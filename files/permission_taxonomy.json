@@ -1,2 +1,26 @@
+{
+    
+    "must": [
+        "CAP_AUDIT_WRITE", 
+        "CAP_KILL"
+    ], 
 
-{ "TODO" }
+    "internet": [
+        "CAP_NET_RAW", 
+        "CAP_NET_BIND_SERVICE", 
+        "..."
+    ], 
+
+    "files": [
+        "CAP_CHOWN", 
+        "CAP_DAC_OVERRIDE", 
+        "..."
+    ], 
+
+    "other": [
+        "CAP_SYS_ADMIN", 
+        "CAP_SYS_MODULE", 
+        "..."
+    ]
+    
+}

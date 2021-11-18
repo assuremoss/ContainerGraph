@@ -1,7 +1,6 @@
 from dockerfile_parser import build_Dockerfile
+from permission_taxonomy import create_Permissions
 import docker
-
-from permission_taxonomy import Permissions
 
 
 class Container:
@@ -75,11 +74,12 @@ def build_Container():
         fs = "abc/def"
 
         # Add container's permissions
-        
-        
-        
-        
-        perm = ""
+        perm = create_Permissions()
+        """
+        TODO
+
+        Ask for already existing permission profiles and eventually parse them.
+        """
 
         # Build the container
         aux = Container(img_id, df, fs, perm)

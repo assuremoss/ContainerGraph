@@ -1,6 +1,5 @@
+import json
 
-
-### PERHAPS THIS CAN BE A JSON FILE, AND NOT A CLASS  !!!
 
 class Permissions : 
     
@@ -11,26 +10,46 @@ class Permissions :
         self.other = other
 
 
+def create_Permissions(profile="Docker") :
+    if profile == "Docker" : 
+        return default_Permissions()
+    else :
+        return custom_Permissions(profile)
 
+# Reference: https://github.com/moby/moby/blob/master/oci/caps/defaults.go#L6-L19
+def default_Permissions() :
 
-# List of capabilities without which the container doesn't work
-must = ["CAP_1", "CAP_2", "..."]
-
-# List of capabilities related to network management/connection/etc.
-# internet CAN also be equal to None, in case there is no connectivity!
-internet = [""]
-
-# List of capabilities related to read/write/execute files
-files = [""]
-
-# List of other capabilities (admin operations), such as mount, adduser, etc.
-other = [""]
-
-
+    must = [""]
+    internet = [""]
+    files = [""]
+    other = [""]
 
 
 
-
-
-def create_Permissions() :
     print("TODO")
+
+
+
+
+
+
+    aux = Permissions(must, internet, files, other)
+    return aux
+
+
+def custom_Permissions() :
+    print("TODO")
+
+
+""" 
+
+There are basically two options here we have to follow:
+
+    1. Using the Docker's default profile if the user doesn't specify one and eventually and the run-time additional parameters.
+
+    2. Parse an existing profile and create a custom Permission object for a container.
+
+For now we only do the first one.
+
+"""
+
