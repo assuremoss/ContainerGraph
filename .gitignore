@@ -1,3 +1,15 @@
+# Ignore neo4j files
+neo4j_query_example
+
+# Ignore notes file
+resources.md
+
+# Ignore Test folder
+./Test
+
+# Ignore notes
+linux_capabilities.md
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
