@@ -4,11 +4,16 @@ neo4j_query_example
 # Ignore notes file
 resources.md
 
-# Ignore Test folder
-./Test
+# Ignore folders
+Resources/
+Test/
+
+Dockerfile
 
 # Ignore notes
 linux_capabilities.md
+
+.DS_Store
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
