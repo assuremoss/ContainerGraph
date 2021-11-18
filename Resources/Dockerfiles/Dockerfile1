@@ -1,0 +1,72 @@
+FROM benhall/elasticsearch:1.4.2
+
+ADD file:dc2eddd5d35b9d66e4db747f5939b2be7f863dcee64c934b0da690f55a23aee8 in /
+
+CMD ["/bin/bash"]
+
+RUN /bin/sh -c apt-get update \
+    && apt-get install -y --no-install-recommends 		ca-certificates 	curl 		wget 	\
+    && rm -rf /var/lib/apt/lists/*
+
+RUN /bin/sh -c apt-get update \
+    && apt-get install -y --no-install-recommends 		bzip2 		unzip 	xz-utils 	\
+    && rm -rf /var/lib/apt/lists/*
+
+RUN /bin/sh -c echo 'deb http://httpredir.debian.org/debian jessie-backports main' > /etc/apt/sources.list.d/jessie-backports.list
+
+ENV LANG=C.UTF-8
+
+RUN /bin/sh -c { 		echo '#!/bin/sh'; 		echo 'set -e'; 		echo; 		echo 'dirname "$(dirname "$(readlink -f "$(which javac || which java)")")"'; 	} > /usr/local/bin/docker-java-home 	\
+    && chmod +x /usr/local/bin/docker-java-home
+
+ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre
+
+ENV JAVA_VERSION=8u72
+
+ENV JAVA_DEBIAN_VERSION=8u72-b15-1~bpo8+1
+
+RUN /bin/sh -c apt-get update \
+    && apt-get install -y --no-install-recommends 		bzip2 		unzip 	xz-utils 	\
+    && rm -rf /var/lib/apt/lists/*
+
+RUN /bin/sh -c echo 'deb http://httpredir.debian.org/debian jessie-backports main' > /etc/apt/sources.list.d/jessie-backports.list
+
+ENV LANG=C.UTF-8
+
+RUN /bin/sh -c { 		echo '#!/bin/sh'; 		echo 'set -e'; 		echo; 		echo 'dirname "$(dirname "$(readlink -f "$(which javac || which java)")")"'; 	} > /usr/local/bin/docker-java-home 	\
+    && chmod +x /usr/local/bin/docker-java-home
+
+ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre
+
+ENV JAVA_VERSION=8u72
+
+ENV JAVA_DEBIAN_VERSION=8u72-b15-1~bpo8+1
+
+ENV CA_CERTIFICATES_JAVA_VERSION=20140324
+
+RUN /bin/sh -c set -x 	\
+    && apt-get update 	\
+    && apt-get install -y 		openjdk-8-jre-headless="$JAVA_DEBIAN_VERSION" 	ca-certificates-java="$CA_CERTIFICATES_JAVA_VERSION" 	\
+    && rm -rf /var/lib/apt/lists/* 	\
+    && [ "$JAVA_HOME" = "$(docker-java-home)" ]
+
+RUN /bin/sh -c /var/lib/dpkg/info/ca-certificates-java.postinst configure
+
+ENV ES_PKG_NAME=elasticsearch-1.4.2
+
+RUN /bin/sh -c cd / \
+    &&   wget https://download.elasticsearch.org/elasticsearch/elasticsearch/$ES_PKG_NAME.tar.gz \
+    &&   tar xvzf $ES_PKG_NAME.tar.gz \
+    &&   rm -f $ES_PKG_NAME.tar.gz \
+    &&   mv /$ES_PKG_NAME /elasticsearch
+
+VOLUME [/data]
+
+ADD file:96b0df7723a1ebfa5eb4eef86ab366ef29954f6a532346b1cadc27cf059cbc15 in /elasticsearch/config/elasticsearch.yml
+
+WORKDIR /data
+
+CMD ["/elasticsearch/bin/elasticsearch"]
+
+EXPOSE 9200/tcp
+EXPOSE 9300/tcp

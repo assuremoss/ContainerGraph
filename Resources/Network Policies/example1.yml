@@ -1,0 +1,16 @@
+# Example of a network policy that allows only pods with
+# the label "access=true" to access the "my-nginx" service
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: access-nginx
+spec:
+  podSelector:
+    matchLabels:
+      app: my-nginx
+  ingress:
+    - from:
+      - podSelector:
+        matchLabels:
+          access: "true"

@@ -1,0 +1,15 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+neo4jrestclient = "*"
+neo4j = "*"
+py2neo = "*"
+dockerfile-parse = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"

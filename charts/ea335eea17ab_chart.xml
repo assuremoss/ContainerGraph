@@ -1,0 +1,35 @@
+<container>
+
+    <image> 
+        <name>$name$</name>
+        <id>ea335eea17ab</id>
+        <filesystem>$filesystem$</filesystem>
+    </image>
+
+    <infrastructure>
+        <docker_v>1.1.1</docker_v>
+        <OS>$OS$</OS>
+        <kernel_v>$kernel_v$</kernel_v>
+        <CPUs>$CPUs$</CPUs>
+        <Mem>$Mem$</Mem>
+        <Registry>$Registry$</Registry>
+    </infrastructure>
+
+    <config>
+        <user>root</user>
+        <env>version1, version2</env>
+        <volume>$volume$</volume>
+        <network>$network$</network>
+        <...></...>
+    </config>
+
+    <permissions>
+        <...></...>
+    </permissions>
+
+    <timeline>
+        <start_t>$start_t$</start_t>
+        <stop_t>$stop_t$</stop_t>
+    </timeline>
+
+</container>

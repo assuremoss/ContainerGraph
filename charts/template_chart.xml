@@ -1,0 +1,35 @@
+<container>
+
+    <image> 
+        <name>$name$</name>
+        <id>$id$</id>
+        <filesystem>$filesystem$</filesystem>
+    </image>
+
+    <infrastructure>
+        <docker_v>$docker_v$</docker_v>
+        <OS>$OS$</OS>
+        <kernel_v>$kernel_v$</kernel_v>
+        <CPUs>$CPUs$</CPUs>
+        <Mem>$Mem$</Mem>
+        <Registry>$Registry$</Registry>
+    </infrastructure>
+
+    <config>
+        <user>$user$</user>
+        <env>$env$</env>
+        <volume>$volume$</volume>
+        <network>$network$</network>
+        <...></...>
+    </config>
+
+    <permissions>
+        <...></...>
+    </permissions>
+
+    <timeline>
+        <start_t>$start_t$</start_t>
+        <stop_t>$stop_t$</stop_t>
+    </timeline>
+
+</container>

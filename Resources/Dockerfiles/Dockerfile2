@@ -1,0 +1,13 @@
+FROM node:12-alpine 
+RUN apk add --no-cache python g++ make \
+    apt-get update
+
+WORKDIR /app
+COPY . .
+
+ENV JAVA_VERSION=8u72
+
+EXPOSE 3000/tcp
+
+RUN yarn install --production
+CMD ["node", "src/index.js"]
