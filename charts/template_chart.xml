@@ -24,7 +24,21 @@
     </config>
 
     <permissions>
-        <...></...>
+        <must>
+            Capabilities without which the container cannot work
+        </must>
+
+        <internet>
+            Capabilities related to network management/connection/etc.
+        </internet>
+
+        <files>
+            Capabilities related to read/write/execute files
+        </files>
+
+        <other>
+            Other capabilities (admin operations), such as mount, adduser, etc.
+        </other>
     </permissions>
 
     <timeline>

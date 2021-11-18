@@ -2,6 +2,9 @@ import re
 
 ### ADD PYTHON EXCEPTIONS WHILE DEALING WITH FILES ###
 
+### TEST WHEN A FIELD NAME IS USED AS A VALUE IN ANOTHER FIELD
+
+
 
 
 # List of fields in the chart that can contain only one value
