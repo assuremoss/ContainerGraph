@@ -4,6 +4,9 @@ neo4j_query_example
 # Ignore notes file
 resources.md
 
+# Ignore container security chart
+*_chart.xml
+
 # Ignore folders
 Resources/
 Test/
