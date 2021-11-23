@@ -1,55 +1,82 @@
 import json
 
-
+# This class represents a JSON-like object containing the privileges binded to a container.
 class Permissions : 
     
-    def __init__(self, must, internet, files, other):
-        self.must = must
-        self.internet = internet
+    def __init__(self, profile, files, network, processes, adminop) :
+        self.profile = profile
         self.files = files
-        self.other = other
+        self.network = network
+        self.processes = processes
+        self.adminop = adminop
+
+    def add_Permission(self, cap_list) :
+        print("TODO")
+
+    def remove_Permission(self, cap_list) :
+        print("TODO")
 
 
-def create_Permissions(profile="Docker") :
-    if profile == "Docker" : 
-        return default_Permissions()
-    else :
-        return custom_Permissions(profile)
+"""
 
-# Reference: https://github.com/moby/moby/blob/master/oci/caps/defaults.go#L6-L19
-def default_Permissions() :
+For now, we implemented this:
+ - cap-drop=ALL 
+ - docker default capabilities
+ - cap-add=ALL (or --privileged, although not equivalent, but only for now);
+ - --read-only (filesystem)
 
-    must = [""]
-    internet = [""]
-    files = [""]
-    other = [""]
+"""
 
+def get_none_profile() :
 
+    pp = {"files": ["read", "write"], # TO CHECK
+        "network": ["none"], # TO CHECK
+        "processes": ["none"], # TO CHECK
+        "adminop": ["none"] 
+        }
 
-    print("TODO")
-
-
-
-
-
-
-    aux = Permissions(must, internet, files, other)
+    aux = Permissions("none", pp["files"], pp["network"], pp["processes"], pp["adminop"])
     return aux
 
 
-def custom_Permissions() :
-    print("TODO")
+def get_default_profile() :
+    pp = {"files": ["read", "write", "execute"],
+        "network": ["connection"], 
+        "processes": ["new_process", "kill_process"], # TO CHECK 
+        "adminop": ["apt", "chmod", "adduser", "mount"]}
+
+    aux = Permissions("default", pp["files"], pp["network"], pp["processes"], pp["adminop"])
+    return aux
 
 
-""" 
+def get_all_profile() :
+    pp = {"files": ["read", "write", "execute"],
+        "network": ["connection"], 
+        "processes": ["new_process", "kill_process"], # TO CHECK 
+        "adminop": ["apt", "chmod", "adduser", "mount", "mount_dev"]}
 
-There are basically two options here we have to follow:
+    aux = Permissions("all", pp["files"], pp["network"], pp["processes"], pp["adminop"])
+    return aux
 
-    1. Using the Docker's default profile if the user doesn't specify one and eventually and the run-time additional parameters.
 
-    2. Parse an existing profile and create a custom Permission object for a container.
 
-For now we only do the first one.
 
-"""
+
+def create_Permissions(profile="Docker") :
+
+    # Docker parameter: --cap-drop=all
+    if profile == "None" :
+        return get_none_profile()
+
+    # Default Docker capabilities list
+    elif profile == "Docker" : 
+        return get_default_profile()
+
+    # Docker parameter: --cap-add=all or --privileged
+    elif profile == "All" :
+        return get_all_profile()
+    
+    else : 
+        print("Wrong permission set! Exiting...")
+        exit(1)
 

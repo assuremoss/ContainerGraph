@@ -19,26 +19,19 @@
         <user>$user$</user>
         <env>$env$</env>
         <volume>$volume$</volume>
-        <network>$network$</network>
+        <net_config>
+            <net_adapt_type>$net_adapt_type$</net_adapt_type>
+            <expose>$expose$</expose>
+            <protocol>$protocol$</protocol>
+        </net_config>
         <...></...>
     </config>
 
     <permissions>
-        <must>
-            Capabilities without which the container cannot work
-        </must>
-
-        <internet>
-            Capabilities related to network management/connection/etc.
-        </internet>
-
-        <files>
-            Capabilities related to read/write/execute files
-        </files>
-
-        <other>
-            Other capabilities (admin operations), such as mount, adduser, etc.
-        </other>
+        <files>$files$</files>
+        <network>$network$</network>
+        <processes>$processes$</processes>
+        <adminop>$adminop$</adminop>
     </permissions>
 
     <timeline>

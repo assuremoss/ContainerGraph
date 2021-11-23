@@ -8,6 +8,7 @@ neo4jrestclient = "*"
 neo4j = "*"
 py2neo = "*"
 dockerfile-parse = "*"
+docker = "*"
 
 [dev-packages]
 

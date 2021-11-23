@@ -5,20 +5,59 @@ Linux manual page: https://man7.org/linux/man-pages/man7/capabilities.7.html
 
 ## Brief
 
-Linux Capabilities are a list of functionalities in the Linux kernel granted to processes or executables to perform actions usually reserved for privileged processes.
+Kernel capabilities turn the binary “root/non-root” dichotomy into a fine-grained access control system. Linux Capabilities are a list of functionalities in the Linux kernel granted to processes or executables to perform actions usually reserved for privileged processes.
 
-In order to be able to assign capabilities to threads, we have the idea of ‘capability sets’. There are five sets for processes, two of which can also be applied to files.
+Capabilities are assigned in sets, called "capability sets", which are the following: the set that is checked by the kernel to allow or disallow calls, whereas the others cnotrol how and what capabilities are added or removed from the effective set.
+
+for threads:
+   - "effective"
+   - "permitted"
+   - "inheritable"
+   - "bounding"
+   - "ambient"
+
+for files:
+   - "effective"
+   - "permitted"
+   - "inheritable"
 
 
-***The list of "dangerous" capabilities should be based on container escape attacks.***
+When setting capabilities on files, you might do something like this `CAP_DAC_OVERRIDE+ep` where e and p denote, respectively, the effective and permitted sets.
+
+
+The full list of available Linux capabilities for the active kernel can be displayed using the capsh command:
+
+```bash
+capsh --print
+```
+
+
+## Retrieving a container's capabilities
+
+```bash
+docker inspect -f '{{.State.Pid}}' <container_id>
+
+getpcaps <pid>
+```
+The getpcaps tool uses the `capget()` system call to query the available capabilities for a particular thread.
+
+In Docker, to drop all capabilities:
+```bash
+--cap-drop=all
+```
+
+To grant a capability:
+```bash
+--cap-add=<capability>
+```
 
 
 ## List of Linux Capabilities
 
- • CAP_CHOWN
+ • CAP_CHOWN: Make changes to the User ID and Group ID of files.
     - chown
 
- • CAP_DAC_OVERRIDE
+ • CAP_DAC_OVERRIDE: Override DAC (Discretionary Access Control). For example, vto bypass read/write/execute permission checks.
  • CAP_DAC_READ_SEARCH
  • CAP_FOWNER
 
@@ -56,7 +95,11 @@ In order to be able to assign capabilities to threads, we have the idea of ‘ca
  • CAP_SYS_RESOURCE
     - setrlimit
 
+ • CAP_KILL: Bypass permission checks for sending signals to processes. 
+
+
+
 
 ## List of Docker default capabilities
 
-And what happens after you run a container with privileges...
+https://github.com/moby/moby/blob/master/oci/caps/defaults.go#L6-L19

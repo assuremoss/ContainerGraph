@@ -7,18 +7,19 @@ resources.md
 # Ignore folders
 Resources/
 Test/
+files/
 
 Dockerfile
+inspect_output.js
 
 # Ignore notes
 linux_capabilities.md
-
-.DS_Store
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+.DS_Store
 
 # C extensions
 *.so

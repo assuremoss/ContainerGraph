@@ -7,24 +7,32 @@
     </image>
 
     <infrastructure>
-        <docker_v>1.1.1</docker_v>
+        <node>$node$</node>
+        <docker_v>20.10.8</docker_v>
         <OS>$OS$</OS>
         <kernel_v>$kernel_v$</kernel_v>
         <CPUs>$CPUs$</CPUs>
-        <Mem>$Mem$</Mem>
-        <Registry>$Registry$</Registry>
+        <mem>$Mem$</mem>
+        <registry>$Registry$</registry>
     </infrastructure>
 
     <config>
         <user>root</user>
-        <env>version1, version2</env>
+        <env>$env$</env>
         <volume>$volume$</volume>
-        <network>$network$</network>
+        <net_config>
+            <net_adapt_type>$net_adapt_type$</net_adapt_type>
+            <expose>$expose$</expose>
+            <protocol>$protocol$</protocol>
+        </net_config>
         <...></...>
     </config>
 
     <permissions>
-        <...></...>
+        <files>read, write, execute</files>
+        <network>connection</network>
+        <processes>new_process, kill_process</processes>
+        <adminop>apt, chmod, adduser, mount</adminop>
     </permissions>
 
     <timeline>

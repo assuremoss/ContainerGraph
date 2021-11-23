@@ -3,7 +3,8 @@ import docker
 # Create a class to represent the Docker Host
 class Host:
 
-    def __init__(self, docker_v, OS, kernel_v, CPUs, Mem, Registry="https://index.docker.io/v1/"):
+    def __init__(self, node_id, docker_v, OS, kernel_v, CPUs, Mem, Registry="https://index.docker.io/v1/"):
+        self.node_id = node_id
         self.docker_v = docker_v
         # OPTION: StorageDriver
         self.OS = OS
@@ -30,6 +31,6 @@ def get_Infrastructure():
     ### TODO ###
     # Get the (default) Registry
 
-    aux = Host(info["ServerVersion"], info["OperatingSystem"], info["KernelVersion"], info["NCPU"], MemTotal)
+    aux = Host("node_0", info["ServerVersion"], info["OperatingSystem"], info["KernelVersion"], info["NCPU"], MemTotal)
     return aux
 

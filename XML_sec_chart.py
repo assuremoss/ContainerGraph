@@ -30,7 +30,10 @@ def generate_XML_chart(cont, infra) :
     chart = chart.replace("$user$", cont.Dockerfile.USER)
 
     # Permissions
-    # chart = chart.replace()
+    chart = chart.replace("$files$", ', '.join(cont.permissions.files))
+    chart = chart.replace("$network$", ', '.join(cont.permissions.network))
+    chart = chart.replace("$processes$", ', '.join(cont.permissions.processes))
+    chart = chart.replace("$adminop$", ', '.join(cont.permissions.adminop))
 
     # Save changes to the chart
     with open('charts/' + cont.ID + '_chart.xml', 'w') as file:

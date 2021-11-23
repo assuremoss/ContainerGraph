@@ -54,9 +54,6 @@ def build_Container():
 
     # Get image
     img, img_id = get_Image_ID()
-
-    ### TO TRY ###
-    # name = client.images.list(img_id)
     
     try:
 
@@ -74,12 +71,8 @@ def build_Container():
         fs = "abc/def"
 
         # Add container's permissions
+        # Before docker run, we grant the docker default capabilities
         perm = create_Permissions()
-        """
-        TODO
-
-        Ask for already existing permission profiles and eventually parse them.
-        """
 
         # Build the container
         aux = Container(img_id, df, fs, perm)
@@ -88,14 +81,4 @@ def build_Container():
     except docker.errors.APIError :
         print("Error while retrieving the image history! Exiting...")
         exit(1)
-
-
-
-
-
-
-
-# build_Container()
-
-
 
