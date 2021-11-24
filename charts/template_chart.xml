@@ -1,30 +1,32 @@
 <container>
 
     <image> 
-        <name>$name$</name>
         <id>$id$</id>
+        <name>$name$</name>
         <filesystem>$filesystem$</filesystem>
     </image>
 
     <infrastructure>
+        <hostname>$hostname$</hostname>
         <docker_v>$docker_v$</docker_v>
-        <OS>$OS$</OS>
+        <os>$os$</os>
         <kernel_v>$kernel_v$</kernel_v>
-        <CPUs>$CPUs$</CPUs>
-        <Mem>$Mem$</Mem>
-        <Registry>$Registry$</Registry>
+        <cpus>$cpus$</cpus>
+        <mem>$mem$</mem>
+        <registry>$registry$</registry>
     </infrastructure>
 
     <config>
+        <base_image>$base_image$</base_image>
         <user>$user$</user>
         <env>$env$</env>
         <volume>$volume$</volume>
         <net_config>
             <net_adapt_type>$net_adapt_type$</net_adapt_type>
             <expose>$expose$</expose>
-            <protocol>$protocol$</protocol>
         </net_config>
-        <...></...>
+        <entrypoint>$entrypoint$</entrypoint>
+        <cmd>$cmd$</cmd>
     </config>
 
     <permissions>
@@ -35,8 +37,8 @@
     </permissions>
 
     <timeline>
-        <start_t>$start_t$</start_t>
-        <stop_t>$stop_t$</stop_t>
+        <start_t>0</start_t>
+        <stop_t>0</stop_t>
     </timeline>
 
 </container>

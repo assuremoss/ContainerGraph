@@ -17,14 +17,11 @@ client = docker.from_env()
 
 
 # Ask the user to provide an image ID
-def get_Image_ID():
+def get_Image(img_id):
 
     try:
-        #Image_ID = input("Insert Image ID: ")
-        Image_ID = "ea335eea17ab" # ONLY FOR TESTING
-
-        aux = client.images.get(Image_ID)
-        return aux, Image_ID
+        image = client.images.get(img_id)
+        return image
 
     # Raise an exception if the image doesn't exist
     except docker.errors.ImageNotFound :
@@ -50,10 +47,10 @@ def reconstruct_Dockerfile(img_hst) :
     f.close()
 
 
-def build_Container():
+def build_Container(img_id):
 
     # Get image
-    img, img_id = get_Image_ID()
+    img = get_Image(img_id)
     
     try:
 
@@ -68,7 +65,7 @@ def build_Container():
         # print(df.EXPOSE)
 
         # Add container filesystem location
-        fs = "abc/def"
+        fs = "/"
 
         # Add container's permissions
         # Before docker run, we grant the docker default capabilities

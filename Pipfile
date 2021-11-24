@@ -9,6 +9,7 @@ neo4j = "*"
 py2neo = "*"
 dockerfile-parse = "*"
 docker = "*"
+argparse = "*"
 
 [dev-packages]
 
