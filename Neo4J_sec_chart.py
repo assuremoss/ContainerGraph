@@ -1,4 +1,3 @@
-from dockerfile_parser import build_Dockerfile
 from neo4j import GraphDatabase
 
 
@@ -10,37 +9,83 @@ def connect_to_neo4j(uri, user, password):
 def insert_into_neo4j(cont, infra):
 
     driver = connect_to_neo4j("bolt://localhost:11005", "neo4j", "password")
-
     with driver.session() as session:
 
-        # Create Infrastructure node
-        ### TODO ### CHECK IF ALREADY EXISTING
-        infra_id = session.write_transaction(create_node_tx, infra, "infra")
+        session.write_transaction(create_cont_node, cont)
+        session.write_transaction(create_fields_node, cont)
 
-        # Create Container node
-        node_id = session.write_transaction(create_node_tx, cont, "container")
+        # Check if perm node already exists 
+        if not session.read_transaction(default_perm_exist) : 
+            session.write_transaction(create_perm_node, cont)
 
-        print(node_id)
+        # Check if infra node already exists
+        if not session.read_transaction(infra_exist, infra) : 
+            session.write_transaction(create_infra_node, infra)
+
+        # Create relationships
+        session.write_transaction(create_relationships, cont, infra)
 
     driver.close()
 
 
-def create_node_tx(tx, node, node_type):
-    
-    aux = "CREATE (i:node_0:Infrastructure:Host {name: 'node_0', docker_v: '', OS: '', kernel_v: '', CPUs: '', Mem: '', Registry: ''})"
+def create_cont_node(tx, cont) :
 
-    if node_type == "container" :
-        aux = "CREATE (c:Container:Docker {name: '" + node.ID + "', start_t: 00, stop_t: 00}) \
-               CREATE (f:ContainerFields {name: '" + node.ID + "_fields', user: '" + node.Dockerfile.USER + "', env: '" + node.Dockerfile.ENV + "', volume: '', net_config: ['', '']}) \
-               CREATE (p:Permissions:DefaultP {name: 'default_perm', files: 'read, write', network: 'connection', processes: 'new_process', adminop: 'apt, chmod, adduser, mount'})"
-        ### TODO ### CHECK IF PERMISSIONS ALREADY EXIST
+    # TODO
+    # Add $name
+    # Add $filesystem
 
-    result = tx.run(aux)
-                    
-    print(result.single())
+    tx.run("CREATE (c:Container:Docker {name: $id, start_t: 0, stop_t: 0})", id=cont.ID)
 
-    record = result.single()[0]
-    return record
+
+def create_fields_node(tx, cont) :
+
+    # TODO
+    # Add $base_image
+
+    id_fields = cont.ID + "_fields"
+    tx.run("CREATE (f:ContainerFields {name: $id_fields, user: $user, env: $env, volume: $volume, net_adapt_type: 'bridge', expose: $expose, entrypoint: $entrypoint, cmd: $cmd})", id_fields=id_fields, user=cont.Dockerfile.USER, env=cont.Dockerfile.ENV, volume=cont.Dockerfile.VOLUME, expose=cont.Dockerfile.EXPOSE, entrypoint=cont.Dockerfile.ENTRYPOINT, cmd=cont.Dockerfile.CMD)
+
+
+def create_infra_node(tx, infra) :
+    tx.run("CREATE (i:Infrastructure:Host {name: $hostname, docker_v: $docker_v, os: $os, kernel_v: $kernel_v, cpus: $cpus, mem: $mem, registry: $registry})", hostname=infra.hostname, docker_v=infra.docker_v, os=infra.os, kernel_v=infra.kernel_v, cpus=infra.cpus, mem=infra.mem, registry=infra.registry)
+
+
+def create_perm_node(tx, cont) :
+
+    files_p = ', '.join(cont.permissions.files)
+    network_p = ', '.join(cont.permissions.network)
+    processes_p = ', '.join(cont.permissions.processes)
+    adminop_p = ', '.join(cont.permissions.adminop)
+
+    tx.run("CREATE (p:Permissions:DefaultP {name: 'default_perm', files: $files_p, network: $network_p, processes: $processes_p, adminop: $adminop_p})", files_p=files_p, network_p=network_p, processes_p=processes_p, adminop_p=adminop_p)
+
+
+def infra_exist(tx, infra) : 
+    result = tx.run("MATCH (i:Infrastructure:Host {name: $hostname}) RETURN count(i) > 0 AS i", hostname=infra.hostname)
+    return result.data('i')[0]['i']
+
+
+def default_perm_exist(tx) :
+    result = tx.run("MATCH (p:Permissions:DefaultP {name: 'default_perm'}) RETURN count(p) > 0 AS p")
+    return result.data('p')[0]['p']
+
+
+def create_relationships(tx, cont, infra):
+
+    id_fields = cont.ID + "_fields"
+
+    tx.run("MATCH (c:Container:Docker {name: $id}) "
+           "MATCH (f:ContainerFields {name: $id_fields}) "
+           "CREATE (c)-[:HAS]->(f) "
+           "UNION "
+           "MATCH (c:Container:Docker {name: $id}) "
+           "MATCH (p:Permissions:DefaultP {name: 'default_perm'}) "
+           "CREATE (c)-[:CAN]->(p) "
+           "UNION "
+           "MATCH (c:Container:Docker {name: $id}) "
+           "MATCH (i:Infrastructure:Host {name: $hostname})"
+           "CREATE (c)-[:RUNS_ON_TOP]->(i)",
+           id=cont.ID, id_fields=id_fields, hostname=infra.hostname)
 
 
 def generate_Neo4J_sec_chart(cont, infra) :
@@ -51,45 +96,6 @@ def generate_Neo4J_sec_chart(cont, infra) :
 
 
 """
-
-### NODES ###
-
-CREATE (c:Container:Docker {name: 'ea335eea17ab', start_t: 0, stop_t: 0})
-
-CREATE (f:ContainerFields {name: 'ea335eea17ab_fields', user: 'root', env: 'JAVA_VERSION=2.0', volume: '', net_config: ['bridge', '80']})
-
-CREATE (p:Permissions:DefaultP {name: 'default_perm', files: 'read, write, execute', network: 'connection', processes: 'new_process, kill_process', adminop: 'adduser, apt, chmod, mount'})
-
-CREATE (i:Infrastructure:Host:node_0 {name: 'node_0', docker_v: '20.10.8', OS: 'Docker Desktop linux', kernel_v: ' 5.10.47-linuxkit', CPUs: '8', Mem: '2GB', Registry: 'https://index.docker.io/v1/'})
-
-
-### RELATIONSHIPS ###
-
-MATCH c = (Container:Docker {name: 'ea335eea17ab'})
-
-
-MATCH (c:Container:Docker {name: 'ea335eea17ab'})
-MATCH (f:ContainerFields {name: 'ea335eea17ab_fields'})
-CREATE (c)-[:HAS]->(f)
-UNION
-MATCH (c:Container:Docker {name: 'ea335eea17ab'})
-MATCH (p:Permissions:DefaultP {name: 'default_perm'})
-CREATE (c)-[:CAN]->(p)
-UNION
-MATCH (c:Container:Docker {name: 'ea335eea17ab'})
-MATCH (i:Infrastructure:Host:node_0 {name: 'node_0'})
-CREATE (c)-[:RUNS_ON_TOP]->(i)
-
-
-### 2 MORE CONTAINERS ###
-
-CREATE (c:Container:Docker {name: 'cont_id0', start_t: 123, stop_t: -1})
-
-CREATE (f:ContainerFields {name: 'id0_fields', user: '', env: '', volume: '', net_config: ['', '']})
-
-Now create new relationships.
-
-
 
 ### QUERIES ###
 

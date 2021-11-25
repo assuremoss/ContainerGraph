@@ -1,6 +1,7 @@
 from dockerfile_parser import build_Dockerfile
 from permission_taxonomy import create_Permissions
 import docker
+import os.path
 
 
 class Container:
@@ -47,7 +48,17 @@ def reconstruct_Dockerfile(img_hst) :
     f.close()
 
 
+# Check whether the new container already exist
+def already_existing(img_id) :
+    chart_uri = 'charts/' + img_id + '_chart.xml'
+    return os.path.exists(chart_uri)
+
+
 def build_Container(img_id):
+
+    if already_existing(img_id) :
+        print("The image with ID " + img_id + " already exists! Exiting...")
+        exit(0)
 
     # Get image
     img = get_Image(img_id)

@@ -3,6 +3,9 @@ from infrastructure_parser import get_Infrastructure
 from permission_taxonomy import create_Permissions
 from XML_sec_chart import generate_XML_chart
 from Neo4J_sec_chart import generate_Neo4J_sec_chart
+from list_containers import neo4j_list_containers
+from remove_all import data_remove_all
+from remove_container import delete_container
 import argparse
 
 
@@ -21,6 +24,8 @@ args = parser.parse_args()
 
 def add_container(container_id) :
     
+    # https://dockerlabs.collabnix.com/advanced/security/capabilities/
+
     cont = build_Container(container_id)
 
     # Retrieve the underlying infrastructure
@@ -28,44 +33,41 @@ def add_container(container_id) :
 
     # Generate Security Charts
     generate_XML_chart(cont, infra)
-    #generate_Neo4J_sec_chart(cont, infra)
+    generate_Neo4J_sec_chart(cont, infra)
 
     print("Added the container with ID " + container_id)
 
 
 def kill_container(container_id) :
 
-    # Check the container exists and is running
-
+    # Check the container exists and is running and kill it
     # Kill the container
-
+    # Don't know if it's really needed it. You can do it with the docker cli
     print("kill_TODO")
 
 
+# List existing containers
 def list_containers() :
+    neo4j_list_containers()
 
-    # Connect to Neo4J and retrieve a list of containers
-
-    print("list_TODO")
-
-
+# Remove a container from Neo4j and delete the corresponding XML chart file
 def remove_container(container_id) :
+    delete_container(container_id)
+    print("The container with id " + container_id + " was successfully removed!")
 
-    # Remove a container from Neo4j and delete the corresponding XML chart file
-
-    print("remove_TODO")
-
-
+# Delete all XML and Neo4j charts
+# (does not remove running containers)
 def remove_all() :
-
-    # Delete all XML and Neo4j charts
-    # (does not remove running containers)
-
-    print("remove_all_TODO")
+    data_remove_all()
+    print("Everything was cleaned up!")
 
 
 def run_container(options) :
     print(options)
+
+    # https://docs.docker.com/engine/reference/run/
+    # https://docker-py.readthedocs.io/en/stable/containers.html
+
     print("run_TODO")
 
 

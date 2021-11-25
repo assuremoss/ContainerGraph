@@ -26,6 +26,7 @@ def get_Infrastructure():
 
     # Convert bytes to GB
     MemTotal = round(info["MemTotal"]/1000000000, 2)
+    MemTotal = str(MemTotal) + "GB"
 
     aux = Host(info["Name"], 
                info["ServerVersion"], 
