@@ -3,6 +3,7 @@ neo4j_query_example
 
 # Ignore notes file
 resources.md
+commands.md
 
 # Ignore container security chart
 *_chart.xml

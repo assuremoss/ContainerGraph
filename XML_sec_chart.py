@@ -15,6 +15,7 @@ def generate_XML_chart(cont, infra) :
         # Image fields
         chart = chart.replace("$id$", cont.ID)
         # chart = chart.replace("$name$", cont.name)
+        chart = chart.replace("$status$", cont.status)
         # chart = chart.replace("$filesystem$", cont.fs)
 
         # Infrastructure fields

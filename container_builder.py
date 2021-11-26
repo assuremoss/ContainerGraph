@@ -8,6 +8,7 @@ class Container:
 
     def __init__(self, ID, Dockerfile, fs, permissions):
         self.ID = ID
+        self.status = "not-running"
         self.Dockerfile = Dockerfile # other Class
         self.fs = fs # uri
         self.permissions = permissions # other Class
@@ -73,7 +74,10 @@ def build_Container(img_id):
 
         # Parse Dockerfile
         df = build_Dockerfile()
-        # print(df.EXPOSE)
+        
+        # For now, remove the Dockerfile
+        # Alternatively, we can save all Dockerfiles in a folder
+        os.remove("Dockerfile")
 
         # Add container filesystem location
         fs = "/"

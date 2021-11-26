@@ -3,6 +3,7 @@
     <image> 
         <id>$id$</id>
         <name>$name$</name>
+        <status>$status$</status>
         <filesystem>$filesystem$</filesystem>
     </image>
 

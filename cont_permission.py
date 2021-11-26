@@ -7,24 +7,22 @@ def connect_to_neo4j(uri, user, password):
     return driver
 
 
-def neo4j_list_containers():
+def print_cont_permissions(container_id):
 
     driver = connect_to_neo4j("bolt://localhost:11005", "neo4j", "password")
     with driver.session() as session:
 
         # Query for all existing containers
-        session.read_transaction(print_containers)
-
+        session.read_transaction(retrieve_container, container_id)
     driver.close()
 
 
-def print_containers(tx) :
-    result =  tx.run("MATCH (c:Container:Docker) RETURN c.name AS IMAGE_ID")
-    cont_list = result.data("IMAGE_ID")
+def retrieve_container(tx, container_id) :
+    result =  tx.run("MATCH (c:Container:Docker {name: $id})-[:CAN]->(p:Permissions) RETURN p", id=container_id)
+    cont_perm = result.data("p")
 
-    if cont_list :
-        print(json.dumps(cont_list, indent=1))
-
+    if cont_perm : 
+        print(json.dumps(cont_perm[0]['p'], indent=1, sort_keys=True))
     else : 
         print("No containers found! Use --add to add one. Exiting...")
 
