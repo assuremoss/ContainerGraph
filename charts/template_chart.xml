@@ -1,8 +1,9 @@
 <container>
 
     <image> 
-        <id>$id$</id>
         <name>$name$</name>
+        <img_id>$img_id$</img_id>
+        <cont_id>$cont_id$</cont_id>
         <status>$status$</status>
         <filesystem>$filesystem$</filesystem>
     </image>

@@ -1,7 +1,7 @@
 import re
 
 # List of fields in the chart that can contain only one value
-single_value_fields = ["name", "id", "filesystem", "docker_v", "OS", "kernel_v", "CPUs", "Mem", "Registry", "start_t", "stop_t"]
+single_value_fields = ["name", "img_id", "img_id", "filesystem", "docker_v", "os", "kernel_v", "cpus", "mem", "registry", "start_t", "stop_t"]
 
 
 # Write data to the XML Manifest
@@ -13,10 +13,11 @@ def generate_XML_chart(cont, infra) :
             chart = file.read()
 
         # Image fields
-        chart = chart.replace("$id$", cont.ID)
-        # chart = chart.replace("$name$", cont.name)
+        chart = chart.replace("$name$", cont.name)
+        chart = chart.replace("$img_id$", cont.img_id)
+        chart = chart.replace("$img_id$", cont.img_id)
         chart = chart.replace("$status$", cont.status)
-        # chart = chart.replace("$filesystem$", cont.fs)
+        chart = chart.replace("$filesystem$", cont.filesystem)
 
         # Infrastructure fields
         chart = chart.replace("$hostname$", infra.hostname)
@@ -48,29 +49,29 @@ def generate_XML_chart(cont, infra) :
         chart = chart.replace("$adminop$", ', '.join(cont.permissions.adminop))
 
         # Save changes to the chart
-        with open('charts/' + cont.ID + '_chart.xml', 'w') as file:
+        with open('charts/' + cont.img_id + '_chart.xml', 'w') as file:
             file.write(chart)
     
     except OSError:
-        print("Error while opening/reading charts/" + cont.ID + "_chart.xml! Exiting...")
+        print("Error while opening/reading charts/" + cont.img_id + "_chart.xml! Exiting...")
         exit(1)
 
 
 # Check whether the field to update supports multi values (e.g. environmental variables) or a single value (e.g. container ID)
-def update_XML_chart(cont, field, value) :
+def update_XML_chart(img_id, field, value) :
 
     if field in single_value_fields : 
-        new_XML_chart(cont, field, value)
+        new_XML_chart(img_id, field, value)
     else : 
-        append_XML_chart(cont, field, value)
+        append_XML_chart(img_id, field, value)
 
 
 # Update a single-value field (e.g. container's ID)
-def new_XML_chart(cont, field, value) : 
+def new_XML_chart(img_id, field, value) : 
 
     try:
         # Open the security chart
-        with open('charts/' + cont.ID + '_chart.xml', 'r') as file :
+        with open('charts/' + img_id + '_chart.xml', 'r') as file :
             chart = file.read()
 
         # Temporarly store the old value of the field
@@ -80,27 +81,27 @@ def new_XML_chart(cont, field, value) :
         chart = chart.replace(old_value, value)
         
         # Save changes to the chart
-        with open('charts/' + cont.ID + '_chart.xml', 'w') as file:
+        with open('charts/' + img_id + '_chart.xml', 'w') as file:
             file.write(chart)
 
     except OSError:
-        print("Error while opening/reading charts/" + cont.ID + "_chart.xml! Exiting...")
+        print("Error while opening/reading charts/" + img_id + "_chart.xml! Exiting...")
         exit(1)
 
 
 # Append a value to a multi-value field (e.g. ENV variables)
-def append_XML_chart(cont, field, value) : 
+def append_XML_chart(img_id, field, value) : 
 
     try:
         # Open the security chart
-        with open('charts/' + cont.ID + '_chart.xml', 'r') as file :
+        with open('charts/' + img_id + '_chart.xml', 'r') as file :
             chart = file.read()
 
         # Temporarly store the old value of the field
         old_value = chart [ chart.index("<" + field + ">") + 2 + len(field) : chart.index("</" + field + ">")]
         
         # If it is the first value of the field, add it
-        if old_value == "$" + field + "$" :
+        if old_value == ("n/a") :
             chart = chart.replace(old_value, value)
         
         # otherwise, append the new value
@@ -108,9 +109,10 @@ def append_XML_chart(cont, field, value) :
             chart = chart.replace(old_value, old_value + ", " + value)
 
         # Save changes to the chart
-        with open('charts/' + cont.ID + '_chart.xml', 'w') as file:
+        with open('charts/' + img_id + '_chart.xml', 'w') as file:
             file.write(chart)
 
     except OSError:
-        print("Error while opening/reading charts/" + cont.ID + "_chart.xml! Exiting...")
+        print("Error while opening/reading charts/" + img_id + "_chart.xml! Exiting...")
         exit(1)
+

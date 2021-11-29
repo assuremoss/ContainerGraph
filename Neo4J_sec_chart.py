@@ -34,20 +34,11 @@ def generate_Neo4J_sec_chart(cont, infra) :
 
 
 def create_cont_node(tx, cont) :
-
-    # TODO
-    # Add $name
-    # Add $filesystem
-
-    tx.run("CREATE (c:Container:Docker {name: $id, status: $status, start_t: 0, stop_t: 0})", id=cont.ID, status=cont.status)
+    tx.run("CREATE (c:Container:Docker {name: $name, img_id: $img_id, cont_id: $cont_id, status: $status, start_t: 0, stop_t: 0})", name=cont.name, img_id=cont.img_id, cont_id=cont.cont_id, status=cont.status)
 
 
 def create_fields_node(tx, cont) :
-
-    # TODO
-    # Add $base_image
-
-    id_fields = cont.ID + "_fields"
+    id_fields = cont.img_id + "_fields"
     tx.run("CREATE (f:ContainerFields {name: $id_fields, user: $user, env: $env, volume: $volume, net_adapt_type: 'bridge', expose: $expose, entrypoint: $entrypoint, cmd: $cmd})", id_fields=id_fields, user=cont.Dockerfile.USER, env=cont.Dockerfile.ENV, volume=cont.Dockerfile.VOLUME, expose=cont.Dockerfile.EXPOSE, entrypoint=cont.Dockerfile.ENTRYPOINT, cmd=cont.Dockerfile.CMD)
 
 
@@ -72,18 +63,21 @@ def default_perm_exist(tx) :
 
 def create_relationships(tx, cont, infra):
 
-    id_fields = cont.ID + "_fields"
+    id_fields = cont.img_id + "_fields"
 
-    tx.run("MATCH (c:Container:Docker {name: $id}) "
+    tx.run("MATCH (c:Container:Docker {img_id: $img_id}) "
            "MATCH (f:ContainerFields {name: $id_fields}) "
            "CREATE (c)-[:HAS]->(f) "
            "UNION "
-           "MATCH (c:Container:Docker {name: $id}) "
+           "MATCH (c:Container:Docker {img_id: $img_id}) "
            "MATCH (p:Permissions:DefaultP {name: 'default_perm'}) "
            "CREATE (c)-[:CAN]->(p) "
            "UNION "
-           "MATCH (c:Container:Docker {name: $id}) "
+           "MATCH (c:Container:Docker {img_id: $img_id}) "
            "MATCH (i:Infrastructure:Host {name: $hostname})"
            "CREATE (c)-[:RUNS_ON_TOP]->(i)",
-           id=cont.ID, id_fields=id_fields, hostname=infra.hostname)
+           img_id=cont.img_id, id_fields=id_fields, hostname=infra.hostname)
 
+
+def add_node_property() :
+    print('TODO')

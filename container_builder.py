@@ -6,13 +6,14 @@ import os.path
 
 class Container:
 
-    def __init__(self, ID, Dockerfile, fs, permissions):
-        self.ID = ID
-        self.status = "not-running"
+    def __init__(self, name, img_id, cont_id, status, Dockerfile, filesystem, permissions):
+        self.name = name
+        self.img_id = img_id
+        self.cont_id = cont_id
+        self.status = status
         self.Dockerfile = Dockerfile # other Class
-        self.fs = fs # uri
+        self.filesystem = filesystem # uri
         self.permissions = permissions # other Class
-
 
 # Connect to the Docker daemon
 client = docker.from_env()
@@ -23,6 +24,11 @@ def get_Image(img_id):
 
     try:
         image = client.images.get(img_id)
+
+        # TODO
+        # Get image name from ID
+
+
         return image
 
     # Raise an exception if the image doesn't exist
@@ -57,10 +63,6 @@ def already_existing(img_id) :
 
 def build_Container(img_id):
 
-    if already_existing(img_id) :
-        print("The image with ID " + img_id + " already exists! Exiting...")
-        exit(0)
-
     # Get image
     img = get_Image(img_id)
     
@@ -79,15 +81,16 @@ def build_Container(img_id):
         # Alternatively, we can save all Dockerfiles in a folder
         os.remove("Dockerfile")
 
+        # TODO
         # Add container filesystem location
-        fs = "/"
+        filesystem = "/var/run/docker/..."
 
         # Add container's permissions
         # Before docker run, we grant the docker default capabilities
         perm = create_Permissions()
 
         # Build the container
-        aux = Container(img_id, df, fs, perm)
+        aux = Container('n/a', img_id, 'n/a', 'not-running', df, filesystem, perm)
         return aux
 
     except docker.errors.APIError :
