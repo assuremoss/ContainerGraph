@@ -1,9 +1,4 @@
 
-### RETRIEVE DOCKERFILES FROM GITHUB ###
-
-# github.com > Search: filename:Dockerfile
-
-
 class Dockerfile:
 
     # add : str to fields, EXPOSE: iter
@@ -80,18 +75,7 @@ def parse_Dockerfile(uri):
                 field = line.split(None, 1)[0]
                 value = line[line.find(' ')+1:].strip()
 
-
-            ### CONTAINERS RUNNING AS ROOT ###
-
-            # By default, containers run as root and this should be disable (e.g. creating a new USER).
-            # However, running containers as non-root might present challenges where you wish to bind 
-            # mount volumes from the underlying host. Thus, we need to check when this latter is the
-            # case.
-
-            ### ###
-
-
-            # store field and value
+            # Store field and value
             if field == "FROM":
                 # Ignore eventual rename (e.g. FROM example AS my_img)
                 FROM = value.split()[0]
