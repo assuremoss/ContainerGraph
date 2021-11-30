@@ -1,12 +1,14 @@
-from df_parser import parse_Dockerfile
+import os
+from parse_Dockerfile import parse_Dockerfile
 import docker
 import json
+import os
 
 
 class Image:
 
     def __init__(self, img_id, repo, tag, t_created, img_size, df):
-        self.img_id = img_id
+        self.id = id
         self.repo = repo
         self.tag = tag
         self.t_created = t_created
@@ -72,12 +74,12 @@ def reconstruct_Dockerfile(img_hst) :
 
 def connect_to_Docker() : 
     """ 
-    Description
+    Connects to the Docker daemon running on the current host
 
     Returns
     -------
-    type:
-        Description
+    Docker client:
+        Returns a client configured from environment variables.
     """
 
     # Connect to the Docker daemon
@@ -122,6 +124,9 @@ def build_one_image(img_id) :
         # Reconstruct the Dockerfile 
         reconstruct_Dockerfile(img.history())
         df = parse_Dockerfile(".")
+        # For now, remove the Dockerfile
+        # Alternatively, we can save all Dockerfiles in a folder
+        os.remove("Dockerfile")
 
         img = Image(img.short_id, repo, tag, t_created, img_size, df)
         return img
@@ -157,13 +162,4 @@ def build_images(img_id_list) :
         img_list.append(build_one_image(img_id))
 
     return img_list
-
-
-
-
-img = build_one_image("ea335eea17ab")
-df_from = img.Dockerfile.get_df_instruction("FROM")
-print(df_from)
-df_from = img.Dockerfile.get_df_instruction("ENTRYPOINT")
-print(df_from)
 

@@ -15,15 +15,43 @@ class Dockerfile :
 
     # Get instruction arguments
     def get_df_instruction(self, instruction) :
+        """ 
+        Description
+
+        Parameters
+        ---------
+        name: type
+            Description
+
+        Returns
+        -------
+        type:
+            Description
+        """
         ist_list = []
         obj = json.loads(self.dfp.json)
         
         for field in obj : 
             key, value = list(field.items())[0]
-            if key == instruction : 
-                ist_list.append(value)
 
-        if not ist_list : 
+            if key == instruction : 
+
+                # Strip brackets and quotes
+                if key == "ENTRYPOINT" :       
+                    value = value.strip('["/').strip('"]')
+                    ist_list = [value]
+
+                elif key == "CMD" :
+                    value = value.strip('["').strip('"]')
+                    value = value.replace('"', '')
+                    ist_list = [value]
+
+                else : 
+                    ist_list.append(value)
+
+        if not ist_list and instruction == "USER": 
+            ist_list = ["root"]
+        elif not ist_list : 
             ist_list = ["n/a"]
 
         return ist_list
