@@ -1,46 +1,55 @@
-<container>
-
-    <image> 
-        <name>$name$</name>
-        <img_id>$img_id$</img_id>
-        <cont_id>$cont_id$</cont_id>
-        <status>$status$</status>
-        <filesystem>$filesystem$</filesystem>
-    </image>
+<?xml version="1.0" encoding="utf-8"?>
+<container id='' name='' status=''>
 
     <infrastructure>
-        <hostname>$hostname$</hostname>
-        <docker_v>$docker_v$</docker_v>
-        <os>$os$</os>
-        <kernel_v>$kernel_v$</kernel_v>
-        <cpus>$cpus$</cpus>
-        <mem>$mem$</mem>
-        <registry>$registry$</registry>
+        <hostname name='' />
+        <container_engine>
+            <docker version=''>yes/no</docker_v>
+            <containerd version=''>yes/no</containerd>
+            <runc version=''>yes/no</runc>
+        </container_engine>
+        <os name='' type='' architecture='' />
+        <kernel version='' />
+        <cpus number='' />
+        <mem total='' />
+        <registry name='' />
     </infrastructure>
 
-    <config>
-        <base_image>$base_image$</base_image>
-        <user>$user$</user>
-        <env>$env$</env>
-        <volume>$volume$</volume>
-        <net_config>
-            <net_adapt_type>$net_adapt_type$</net_adapt_type>
-            <expose>$expose$</expose>
-        </net_config>
-        <entrypoint>$entrypoint$</entrypoint>
-        <cmd>$cmd$</cmd>
+    <image base_image=''> 
+        <id object='image'></id>
+        <repo name='' />
+        <tag name='' />
+        <t_created object='image'></t_created>
+        <size object='image' value='' />
+    </image>
+
+###
+The following config represent the (run-time) configuration of the container. If no paramenters are specified
+at running time (e.g. docker run --env), the config will be the same as the Dockerfile. In this regard, we 
+have two options:
+ - keep both configurations (Dockerfile and runtime) to compare them;
+ - overwrite the Dockerfile config with the runtime paramenters and keep only one version.
+###
+
+    <config object='container'>
+        <user><user/>
+        <env></env>
+        <volume></volume>
+        <network adapter=''></network>
+        <entrypoint command=''>
+        <cmd command=''>
     </config>
 
     <permissions>
-        <files>$files$</files>
-        <network>$network$</network>
-        <processes>$processes$</processes>
-        <adminop>$adminop$</adminop>
+        <files values='' />
+        <network values='' />
+        <processes values='' />
+        <adminop values='' />
     </permissions>
 
-    <timeline>
-        <start_t>0</start_t>
-        <stop_t>0</stop_t>
+    <timeline object='container'>
+        <start_t object='container' value='' />
+        <stop_t object='container' value='' />
     </timeline>
 
 </container>

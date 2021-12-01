@@ -24,6 +24,14 @@ group.add_argument("--run", action='append', nargs=argparse.REMAINDER, help="run
 args = parser.parse_args()
 
 
+### COMMENTING CODE ###
+#
+# https://pandas.pydata.org/docs/development/contributing_docstring.html
+# https://github.com/google/styleguide/blob/gh-pages/pyguide.md#38-comments-and-docstrings
+#
+#######################
+
+
 def add_option(img_id) :
     
     # https://dockerlabs.collabnix.com/advanced/security/capabilities/

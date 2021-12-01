@@ -17,14 +17,14 @@ class Container:
         Description
     """
 
-    def __init__(self, id, name, Image, status, t_created, Permissions, Options) :
+    def __init__(self, id, name, Image, status, t_created, Permissions, Args) :
         self.id = id
         self.name = name
         self.Image = Image
         self.status = status
         self.t_created = t_created
         self.Permissions = Permissions
-        self.Options = Options
+        self.Args = Args
 
 
 

@@ -10,6 +10,9 @@ py2neo = "*"
 dockerfile-parse = "*"
 docker = "*"
 argparse = "*"
+bs4 = "*"
+lxml = "*"
+networkx = "*"
 
 [dev-packages]
 
