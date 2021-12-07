@@ -93,5 +93,5 @@ def save_graph(G) :
 
 
 G = create_graph()
-
+save_graph(G)
 
