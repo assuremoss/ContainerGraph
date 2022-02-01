@@ -1,0 +1,107 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd"><key id="d31" for="edge" attr.name="label" attr.type="string"/>
+<key id="d30" for="node" attr.name="registry" attr.type="string"/>
+<key id="d29" for="node" attr.name="storage" attr.type="string"/>
+<key id="d28" for="node" attr.name="runc_v" attr.type="string"/>
+<key id="d27" for="node" attr.name="containerd_v" attr.type="string"/>
+<key id="d26" for="node" attr.name="docker_v" attr.type="string"/>
+<key id="d25" for="node" attr.name="mem" attr.type="string"/>
+<key id="d24" for="node" attr.name="cpus" attr.type="string"/>
+<key id="d23" for="node" attr.name="kernel" attr.type="string"/>
+<key id="d22" for="node" attr.name="os" attr.type="string"/>
+<key id="d21" for="node" attr.name="hostname" attr.type="string"/>
+<key id="d20" for="node" attr.name="syscalls" attr.type="string"/>
+<key id="d19" for="node" attr.name="CAPs" attr.type="string"/>
+<key id="d18" for="node" attr.name="profile" attr.type="string"/>
+<key id="d17" for="node" attr.name="cmd" attr.type="string"/>
+<key id="d16" for="node" attr.name="entrypoint" attr.type="string"/>
+<key id="d15" for="node" attr.name="net_ports" attr.type="string"/>
+<key id="d14" for="node" attr.name="net_adapter" attr.type="string"/>
+<key id="d13" for="node" attr.name="volume" attr.type="string"/>
+<key id="d12" for="node" attr.name="env" attr.type="string"/>
+<key id="d11" for="node" attr.name="user" attr.type="string"/>
+<key id="d10" for="node" attr.name="base_image" attr.type="string"/>
+<key id="d9" for="node" attr.name="size" attr.type="string"/>
+<key id="d8" for="node" attr.name="t_created" attr.type="string"/>
+<key id="d7" for="node" attr.name="tag" attr.type="string"/>
+<key id="d6" for="node" attr.name="repo" attr.type="string"/>
+<key id="d5" for="node" attr.name="status" attr.type="string"/>
+<key id="d4" for="node" attr.name="stop_t" attr.type="string"/>
+<key id="d3" for="node" attr.name="start_t" attr.type="string"/>
+<key id="d2" for="node" attr.name="name" attr.type="string"/>
+<key id="d1" for="node" attr.name="id" attr.type="string"/>
+<key id="d0" for="node" attr.name="labels" attr.type="string"/>
+<graph edgedefault="directed"><node id="c">
+  <data key="d0">:Container</data>
+  <data key="d1"></data>
+  <data key="d2"></data>
+  <data key="d3"></data>
+  <data key="d4"></data>
+  <data key="d5"></data>
+</node>
+<node id="cc">
+  <data key="d0">:ContainerConfig</data>
+</node>
+<node id="i">
+  <data key="d0">:Image</data>
+  <data key="d1">ba6acccedd29</data>
+  <data key="d6">ubuntu</data>
+  <data key="d7">latest</data>
+  <data key="d8">2021-10-16</data>
+  <data key="d9">727MB</data>
+</node>
+<node id="df">
+  <data key="d0">:Dockerfile</data>
+  <data key="d10"></data>
+  <data key="d11"></data>
+  <data key="d12"></data>
+  <data key="d13"></data>
+  <data key="d14"></data>
+  <data key="d15"></data>
+  <data key="d16"></data>
+  <data key="d17"></data>
+</node>
+<node id="p">
+  <data key="d0">:Permissions</data>
+  <data key="d18"></data>
+  <data key="d19"></data>
+  <data key="d20"></data>
+</node>
+<node id="h">
+  <data key="d0">:Host</data>
+  <data key="d21">vagrant</data>
+  <data key="d22">linux</data>
+  <data key="d23">5.10.47-linuxkit</data>
+  <data key="d24">8</data>
+  <data key="d25">1.93GB</data>
+</node>
+<node id="ce">
+  <data key="d0">:DockerEngine</data>
+  <data key="d26">20.10.8</data>
+  <data key="d27">1.4.9</data>
+  <data key="d28">v1.0.1-0-g4144b63</data>
+  <data key="d29">overlay2</data>
+  <data key="d30">https://index.docker.io/v1/</data>
+</node>
+<edge source="c" target="i" id="dir">
+  <data key="d31">INSTANCIATE</data>
+</edge>
+<edge source="c" target="cc" id="dir">
+  <data key="d31">HAS</data>
+</edge>
+<edge source="c" target="p" id="dir">
+  <data key="d31">CAN</data>
+</edge>
+<edge source="i" target="df" id="dir">
+  <data key="d31">BUILT_FROM</data>
+</edge>
+<edge source="h" target="ce" id="dir">
+  <data key="d31">RUNS_ON_TOP</data>
+</edge>
+<edge source="ce" target="i" id="dir">
+  <data key="d31">MANAGES</data>
+</edge>
+<edge source="ce" target="c" id="dir">
+  <data key="d31">RUNS</data>
+</edge>
+</graph></graphml>

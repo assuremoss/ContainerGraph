@@ -7,6 +7,15 @@ import json
 # Python library for parsing Dockerfile files. 
 
 
+##### TO CHECK #####
+
+# https://github.com/P3GLEG/Whaler
+
+# how does it get some information, e.g. FROM image
+
+
+
+
 class Dockerfile :
 
     def __init__(self, uri):
@@ -55,6 +64,7 @@ class Dockerfile :
             ist_list = ["n/a"]
 
         return ist_list
+
 
     def print_df_instruction(self, instruction) :
         """ 

@@ -2,18 +2,29 @@ import os
 from parse_Dockerfile import parse_Dockerfile
 import docker
 import json
-import os
 
 
 class Image:
+    """
+    Add comments
+    """
 
-    def __init__(self, img_id, repo, tag, t_created, img_size, df):
-        self.id = id
+    def __init__(self, img_id, repo, tag, t_created, img_size, df, sbom):
+        self.img_id = img_id
         self.repo = repo
         self.tag = tag
         self.t_created = t_created
         self.img_size = img_size
         self.Dockerfile = df
+        self.SBOM = sbom
+
+
+def img_already_existing(img_id) :
+    """
+    Add comments
+    """
+
+    return False
 
 
 def print_img_attr(img_id) : 
@@ -72,6 +83,36 @@ def reconstruct_Dockerfile(img_hst) :
     f.close()
 
 
+def generate_sbom(image_id) :
+    """
+    Given a container image ID, it generates a software bill of material (SBOM).
+
+    Returns
+    -------
+    type: list of strings
+        Returns the software packages within the image as a list of strings
+    """
+    
+    sbom = []
+    
+    # Check if syft is installed
+
+    # Run syft
+    # syft <image_id> > <image_id>_sbom (save in )
+
+    # Convert <image_id>_sbom to a table
+    # | NAME | VERSION | TYPE
+
+    # Convert the sbom table to a python dictionary
+    # packages --> name, version, type
+
+    # Store a json in GraphML
+
+    # Remove the sbom file
+
+    return sbom
+
+
 def connect_to_Docker() : 
     """ 
     Connects to the Docker daemon running on the current host
@@ -128,7 +169,11 @@ def build_one_image(img_id) :
         # Alternatively, we can save all Dockerfiles in a folder
         os.remove("Dockerfile")
 
-        img = Image(img.short_id, repo, tag, t_created, img_size, df)
+        # Build a SBOM of the image
+        # The SBOM is saved as a list of software packages 
+        sbom = generate_sbom(img_id)
+
+        img = Image(img_id, repo, tag, t_created, img_size, df, sbom)
         return img
 
     # Raise an exception if the image doesn't exist

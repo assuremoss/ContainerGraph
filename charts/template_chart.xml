@@ -2,54 +2,44 @@
 <container id='' name='' status=''>
 
     <infrastructure>
-        <hostname name='' />
+        <host>
+            <hostname name='' />
+            <os type='' architecture='' />
+            <kernel version='' />
+            <cpus number='' />
+            <mem total='' />
+        </host>
         <container_engine>
-            <docker version=''>yes/no</docker_v>
-            <containerd version=''>yes/no</containerd>
-            <runc version=''>yes/no</runc>
+            <docker version='' />
+            <containerd version='' />
+            <runc version='' />
+            <storage value='' />
+            <registry value='' />
         </container_engine>
-        <os name='' type='' architecture='' />
-        <kernel version='' />
-        <cpus number='' />
-        <mem total='' />
-        <registry name='' />
     </infrastructure>
 
-    <image base_image=''> 
-        <id object='image'></id>
+    <image img_id=''> 
         <repo name='' />
         <tag name='' />
-        <t_created object='image'></t_created>
+        <t_created object='image' value='' />
         <size object='image' value='' />
+        <Dockerfile base_image=''>
+        </Dockerfile>
+        <sbom num_packages='' />
     </image>
 
-###
-The following config represent the (run-time) configuration of the container. If no paramenters are specified
-at running time (e.g. docker run --env), the config will be the same as the Dockerfile. In this regard, we 
-have two options:
- - keep both configurations (Dockerfile and runtime) to compare them;
- - overwrite the Dockerfile config with the runtime paramenters and keep only one version.
-###
-
-    <config object='container'>
-        <user><user/>
-        <env></env>
-        <volume></volume>
-        <network adapter=''></network>
-        <entrypoint command=''>
-        <cmd command=''>
+    <config object='container' >
     </config>
 
     <permissions>
-        <files values='' />
-        <network values='' />
-        <processes values='' />
-        <adminop values='' />
+        <profile value='' />
+        <CAPs value='' />
+        <syscalls value='' />
     </permissions>
 
-    <timeline object='container'>
-        <start_t object='container' value='' />
-        <stop_t object='container' value='' />
+    <timeline object='container' >
+        <start_t value='' />
+        <stop_t value='' />
     </timeline>
 
 </container>

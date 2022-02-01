@@ -1,13 +1,8 @@
-from container_builder import build_Container, already_existing
-from infrastructure_parser import get_Infrastructure
-from permission_taxonomy import create_Permissions
-from XML_sec_chart import generate_XML_chart
-from Neo4J_sec_chart import generate_Neo4J_sec_chart
-from list_containers import neo4j_list_containers
-from remove_all import data_remove_all
-from remove_image import delete_container
-from run_container import run_container
-from cont_permission import print_cont_permissions
+from build_image import img_already_existing, build_one_image
+from build_infrastructure import get_Infrastructure
+from build_XML import image_XML_chart
+from build_GraphML import generate_GraphML_chart
+from build_Neo4J import generate_Neo4J_chart
 import argparse
 
 
@@ -16,10 +11,11 @@ group = parser.add_mutually_exclusive_group(required=True)
 
 group.add_argument("--add", metavar="<image_id>", help="add a new image")
 group.add_argument("--can-i", metavar="<image_id | container_id>", help="list image | container permissions")
-group.add_argument("--list", action="store_true", help="list current images and containers")
-group.add_argument("--remove-image", metavar="<image_id>", help="remove an existing image and container")
-group.add_argument("--remove-all", action="store_true", help="remove all images and containers")
-group.add_argument("--run", action='append', nargs=argparse.REMAINDER, help="run a new container")
+group.add_argument("--list-images", action="store_true", help="list added images")
+# group.add_argument("--list-containers", action="store_true", help="list added containers")
+group.add_argument("--remove-image", metavar="<image_id>", help="remove an existing image")
+group.add_argument("--remove-all-images", action="store_true", help="remove all images")
+group.add_argument("--run", action='append', nargs=argparse.REMAINDER, help="run a container")
 
 args = parser.parse_args()
 
@@ -34,22 +30,23 @@ args = parser.parse_args()
 
 def add_option(img_id) :
     
-    # https://dockerlabs.collabnix.com/advanced/security/capabilities/
-
-    if already_existing(img_id) :
+    if img_already_existing(img_id) :
         print("The image with ID " + img_id + " already exists! Exiting...")
         exit(0)
 
-    cont = build_Container(img_id)
-
+    # Build the Container Image
+    img = build_one_image(img_id)
+    # As an alternative, img_id can also be a list of IDs
+    
     # Retrieve the underlying infrastructure
-    infra = get_Infrastructure()
+    infra = get_Infrastructure(img_id)
 
     # Generate Security Charts
-    generate_XML_chart(cont, infra)
-    generate_Neo4J_sec_chart(cont, infra)
+    image_XML_chart(img, infra)
+    generate_GraphML_chart(img, infra)
+    generate_Neo4J_chart(img.img_id)
 
-    print("Added the image with ID " + img_id)
+    print("Successfully added the image with ID " + img_id)
 
 
 # Print the container's permissions
