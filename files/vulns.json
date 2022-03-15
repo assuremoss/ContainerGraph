@@ -1,0 +1,265 @@
+{
+	"container_attacks": [
+        {
+            "escape_1": [
+                {
+                    "engine": "docker",
+                    "pre_conditions": [
+                        {
+                            "user": "root",
+                            "capability": "CAP_SYS_ADMIN",
+                            "syscall": "mount"
+                        }
+                    ],
+                    "post_conditions": [
+                        {
+                            "impact": "container_escape"
+                        }
+                    ]
+                }
+            ],
+
+            "escape_2": [
+                {
+                    "engine": "docker",
+                    "pre_conditions": [
+                        {
+                            "user": "root",
+                            "capability": "CAP_SYS_MODULE"
+                        }
+                    ],
+                    "post_conditions": [
+                        {
+                            "impact": "container_escape"
+                        }
+                    ]
+                }
+            ],
+            
+            "escape_3": [
+                {
+                    "engine": "docker",
+                    "pre_conditions": [
+                        {
+                            "user": "root",
+                            "capability": "CAP_SYS_ADMIN",
+                            "syscall": "mount"
+                        }
+                    ],
+                    "post_conditions": [
+                        {
+                            "impact": "host_root"
+                        }
+                    ]
+                }
+            ],
+
+            "escape_4": [
+                {
+                    "engine": "docker",
+                    "pre_conditions": [
+                        {
+                            "user": "privileged"
+                        }
+                    ],
+                    "post_conditions": [
+                        {
+                            "impact": "container_escape"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+
+    "kernel_attacks": [
+        {
+            "CVE-2017-7308": [
+                {
+                    "CVSS_v3": "7.8",
+                    "pre_conditions": [
+                        {
+                            "max_kernel_version": "4.10.7",
+                            "capability": "CAP_NET_RAW"
+                        }
+                    ],
+                    "post_conditions": [
+                        {
+                            "impact": "priviledge_escalation, denial_of_service"
+                        }
+                    ]
+                }
+            ],
+
+            "CVE-2022-0492": [
+                {
+                    "CVSS_v3": "7.0",
+                    "pre_conditions": [
+                        {
+                            "user": "root",
+                            "capability": "CAP_SYS_ADMIN",
+                            "syscall": "mount, unshare"
+                        }
+                    ],
+                    "post_conditions": [
+                        {
+                            "impact": "priviledge_escalation"
+                        }
+                    ]
+                }
+            ],
+
+            "CVE-2022-0185": [
+                {
+                    "CVSS_v3": "8.4",
+                    "pre_conditions": [
+                        {
+                            "min_kernel_version": "5.1",
+                            "max_kernel_version": "5.16",
+                            "user": "root",
+                            "capability": "CAP_SYS_ADMIN"
+                        }
+                    ],
+                    "post_conditions": [
+                        {
+                            "impact": "priviledge_escalation"
+                        }
+                    ]
+                }
+            ],
+
+            "CVE-2017-14489": [
+                {
+                    "CVSS_v3": "5.5",
+                    "pre_conditions": [
+                        {
+                            "max_kernel_version": "4.13.2"
+                        }
+                    ],
+                    "post_conditions": [
+                        {
+                            "impact": "denial_of_service"
+                        }
+                    ]
+                }
+            ],
+
+            "CVE-2016-4997": [
+                {
+                    "CVSS_v3": "7.8",
+                    "pre_conditions": [
+                        {
+                            "max_kernel_version": "4.6.3",
+                            "user": "root"
+                        }
+                    ],
+                    "post_conditions": [
+                        {
+                            "impact": "priviledge_escalation, denial_of_service"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+
+    "c_engine_attacks": [
+        {
+            "CVE-2019-5736": [
+                {
+                    "engine": "runC",
+                    "CVSS_v3": "8.6",
+                    "pre_conditions": [
+                        {
+                            "kernel_version": "1.13.1-108.git4ef4b30.el7",
+                            "max_docker_version": "18.09.2",
+                            "max_runc_version": "0.1.1",
+                            "user": "root"
+                        }
+                    ],
+                    "post_conditions": [
+                        {
+                            "impact": "container_escape"
+                        }
+                    ]
+                }
+            ],
+
+            "CVE-2016-9962": [
+                {
+                    "engine": "docker",
+                    "CVSS_v3": "6.4",
+                    "pre_conditions": [
+                        {
+                            "min_docker_version": "1.11.0",
+                            "max_docker_version": "1.12.6",
+                            "user": "root"
+                        }
+                    ],
+                    "post_conditions": [
+                        {
+                            "impact": "container_escape"
+                        }
+                    ]
+                }
+            ],
+
+            "CVE-2020-15257": [
+                {
+                    "engine": "containerd",
+                    "CVSS_v3": "5.2",
+                    "pre_conditions": [
+                        {
+                            "max_containerd_version": "1.4.3",
+                            "user": "root",
+                            "namespace": "host_network"
+                        }
+                    ],
+                    "post_conditions": [
+                        {
+                            "impact": "priviledge_escalation"
+                        }
+                    ]
+                }
+            ],
+
+            "CVE-2020-13401": [
+                {
+                    "engine": "docker",
+                    "CVSS_v3": "6.0",
+                    "pre_conditions": [
+                        {
+                            "max_docker_version": "19.03.11",
+                            "user": "root",
+                            "capability": "CAP_NET_RAW"
+                        }
+                    ],
+                    "post_conditions": [
+                        {
+                            "impact": "denial_of_service"
+                        }
+                    ]
+                }
+            ],
+
+            "CVE-2019-14271": [
+                {
+                    "engine": "docker",
+                    "CVSS_v3": "9.8",
+                    "pre_conditions": [
+                        {
+                            "min_docker_version": "19.03",
+                            "max_docker_version": "19.03.1"
+                        }
+                    ],
+                    "post_conditions": [
+                        {
+                            "impact": "code_injection"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+
+}

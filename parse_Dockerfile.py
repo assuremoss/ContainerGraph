@@ -10,16 +10,15 @@ import json
 ##### TO CHECK #####
 
 # https://github.com/P3GLEG/Whaler
-
 # how does it get some information, e.g. FROM image
-
 
 
 
 class Dockerfile :
 
-    def __init__(self, uri):
+    def __init__(self, uri, img_id):
         self.uri = uri
+        self.img_id = img_id
         self.dfp = DockerfileParser(uri)
 
     # Get instruction arguments
@@ -106,9 +105,9 @@ class Dockerfile :
 
 
 # Parse a Dockerfile file and returns a Dockerfile object
-def parse_Dockerfile(uri=".") :
+def parse_Dockerfile(img_id, uri=".") :
 
     # Create a Dockerfile object
-    df = Dockerfile(uri)
+    df = Dockerfile(uri, img_id)
     return df
 

@@ -3,15 +3,13 @@ neo4j_query_example
 
 # Ignore notes file
 resources.md
-commands.md
 
 # Ignore container security chart
+charts/
 *_chart.xml
 
 # Ignore folders
 Resources/
-Test/
-files/
 
 Dockerfile
 inspect_output.js

@@ -4,9 +4,9 @@ import docker
 import json
 
 
-class Image:
+class Image :
     """
-    Add comments
+    TODO
     """
 
     def __init__(self, img_id, repo, tag, t_created, img_size, df, sbom):
@@ -19,12 +19,33 @@ class Image:
         self.SBOM = sbom
 
 
-def img_already_existing(img_id) :
+class Dockerfile :
     """
-    Add comments
+    TODO
     """
 
-    return False
+    def __init__(self, FROM) :
+        self.FROM = FROM
+
+
+
+def retrieve_img_id(img_id) :
+    """
+    TODO
+    """
+
+    client = connect_to_Docker()
+
+    try:
+        img = client.images.get(img_id)
+        return img.short_id[7:]
+
+    except docker.errors.ImageNotFound as error:
+        print(error)
+        exit(1)
+    except docker.errors.APIError as error:
+        print(error)
+        exit(1)
 
 
 def print_img_attr(img_id) : 
@@ -128,7 +149,7 @@ def connect_to_Docker() :
     return client
 
 
-def build_one_image(img_id) :
+def build_image(img_id) :
     """ 
     Given an image ID, it returns an Image object containing all the information
 
@@ -148,6 +169,8 @@ def build_one_image(img_id) :
     try:
         img = client.images.get(img_id)
 
+        img_id = img.short_id[7:]
+
         # Retrieve repo and tag (only the first one)
         if img.tags :
             repo = img.tags[0].split(':')[0]
@@ -164,7 +187,11 @@ def build_one_image(img_id) :
 
         # Reconstruct the Dockerfile 
         reconstruct_Dockerfile(img.history())
-        df = parse_Dockerfile(".")
+        df = parse_Dockerfile(img_id, ".")
+
+        # df.print_df_instruction('ENV')
+        # df.print_df_instruction('CMD')
+
         # For now, remove the Dockerfile
         # Alternatively, we can save all Dockerfiles in a folder
         os.remove("Dockerfile")
@@ -183,28 +210,4 @@ def build_one_image(img_id) :
     except docker.errors.APIError :
         print("Error while connecting to the Docker API! Exiting...")
         exit(1)
-
-
-def build_images(img_id_list) :
-    """ 
-    Given a list of image IDs, it builds and returns corresponding 
-    Image objects.
-
-    Parameters
-    ---------
-    img_id_list: list
-        List of Image IDs
-
-    Returns
-    -------
-    list:
-        A list of Image objects
-    """
-
-    img_list = []
-
-    for img_id in img_id_list : 
-        img_list.append(build_one_image(img_id))
-
-    return img_list
 
