@@ -4,8 +4,9 @@ class Container :
     TODO
     """
 
-    def __init__(self, name) :
+    def __init__(self, name, user) :
         self.c_name = name
+        self.user = user
 
 
 def build_config(cont, run_args) :
@@ -14,6 +15,7 @@ def build_config(cont, run_args) :
     """
 
     c_name = cont.name
+    user = 'root'
 
     # parse docker run arguments and check for permissions parameters
     for i in range(len(run_args)) :
@@ -26,6 +28,6 @@ def build_config(cont, run_args) :
 
 
  
-    return Container(c_name)
+    return Container(c_name, user)
 
     

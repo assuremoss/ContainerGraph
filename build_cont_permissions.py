@@ -1,13 +1,16 @@
 
 
+import sys
+
+
 class Permission :
     """
     TODO
     """
 
-    def __init__(self, profile, CAPs, syscalls, read_only, AppArmor_profile, Seccomp_profile) :
+    def __init__(self, profile, capabilities, syscalls, read_only, AppArmor_profile, Seccomp_profile) :
         self.profile = profile
-        self.CAPs = CAPs
+        self.capabilities = capabilities
         self.syscalls = syscalls
         self.read_only = read_only
         self.AppArmor_profile = AppArmor_profile
@@ -15,10 +18,15 @@ class Permission :
 
 
 # List of default Docker Linux Capabilities
-CAPs_default = "AUDIT_WRITE, CHOWN, DAC_OVERRIDE, FOWNER, FSETID, KILL, MKNOD, NET_BIND_SERVICE, NET_RAW, SETFCAP, SETGID, SETPCAP, SETUID, SYS_CHROOT"
+capabilities_default = ["audit_write", "chown", "dac_override", "fowner", "fsetid", "kill", "mknod", "net_bind_service", "net_raw", "setfcap", "setgid", "setpcap", "setuid", "sys_chroot"]
+
+all_capabilities = ["audit_write", "chown", "dac_override", "fowner", "fsetid", "kill", "mknod", "net_bind_service", "net_raw", "setfcap", "setgid", "setpcap", "setuid", "sys_admin", "sys_chroot", "sys_module"]
+
 
 # List of default Docker (allowed) system calls
-syscalls_default = "accept, access, bind, capget, chmod, chown, close, connect, creat, execve, exit, fork, ioctl, kill, mkdir, open, read, rename, send, socket, time, uname, write"
+syscalls_default = ["accept", "access", "bind", "capget", "chmod", "chown", "close", "connect", "creat", "execve", "exit", "fork", "ioctl", "kill", "mkdir", "open", "read", "rename", "send", "socket", "time", "uname", "write"]
+
+all_syscalls = ["accept", "access", "bind", "capget", "chmod", "chown", "close", "connect", "creat", "execve", "exit", "fork", "ioctl", "kill", "mkdir", "mount", "open", "read", "rename", "send", "socket", "time", "uname", "write", "unshare"]
 
 
 def compare_Permissions(permission1, permission2) :
@@ -27,7 +35,7 @@ def compare_Permissions(permission1, permission2) :
     """
 
     if permission1.profile == permission2.profile :
-        if permission1.CAPs == permission2.CAPs :
+        if permission1.capabilities == permission2.capabilities :
             if permission1.syscalls == permission2.syscalls :
                 if permission1.read_only == permission2.read_only :
                     if permission1.AppArmor_profile == permission2.AppArmor_profile :
@@ -37,42 +45,79 @@ def compare_Permissions(permission1, permission2) :
     return False
 
 
-def build_permissions(run_args) :
+def build_permissions(cont_id, run_args) :
     """
     TODO
     """
 
+    profile = 'docker-default'
+    capabilities = capabilities_default
+    syscalls = syscalls_default
+    read_only = 'False'
+    AppArmor_profile = 'docker-default'
+    Seccomp_profile = 'docker-default'
+
     # parse docker run arguments and check for permissions parameters
-    for arg in run_args :
+    for i in range(len(run_args)) :
 
-        if arg == '--cap-drop' or arg == '--CAP-DROP' :
-            # '--cap-drop=ALL --cap-drop all'
-            print('TODO')
+        # continue only if the current arg is a docker flag
+        if run_args[i][:1] == '-' :
 
-        if arg == '--cap-add' or arg == '--CAP-ADD' :
-            # '--cap-add=ALL --cap-add all'
-            print('TODO')
+            if run_args[i] == '--cap-drop' :
+                profile = cont_id + '_custom'
+                if run_args[i+1] == 'all' :
+                    capabilities = []
+                else :
+                    capabilities.remove(run_args[i+1])
 
-        if arg == '--security-opt' :
+            if run_args[i] == '--cap-add' :
+                profile = cont_id + '_custom'
+                if run_args[i+1] == 'all' :
+                    capabilities = all_capabilities
+                else :
+                    capabilities = list(set(capabilities + [run_args[i+1]]))
 
-            # --security-opt apparmor=unconfined
-            # --security-opt seccomp=unconfined
+            if run_args[i] == '--security-opt' :
+                profile = cont_id + '_custom'
+                if run_args[i+1] == 'apparmor=unconfined' :
+                    AppArmor_profile = 'unconfined'
+                    ### TO CHECK
+                    # capabilities & syscalls
+                    capabilities = all_capabilities
+                    syscalls = all_syscalls
 
-            print('ciao')
+                elif run_args[i+1] == 'seccomp=unconfined' :
+                    Seccomp_profile = 'unconfined'
+                    ### TO CHECK
+                    # capabilities & syscalls
+                    capabilities = all_capabilities
+                    syscalls = all_syscalls
 
-        if arg == '--privileged' :
-            perm = Permission('docker-privileged', '*', '*', 'false', 'unconfined', 'unconfined')
-            return perm
+                if 'apparmor=unconfined' in run_args and 'seccomp=unconfined' in run_args :
+                    AppArmor_profile = 'unconfined'
+                    Seccomp_profile = 'unconfined'
+                    ### TO CHECK
+                    capabilities = all_capabilities
+                    syscalls = all_syscalls
+                    ###
 
-        if arg == '--read-only' :
-            perm = Permission('docker-default', CAPs_default, syscalls_default, 'true', 'docker-default', 'docker-default')
-            return perm
+                ### TODO: apparmor=custom_profile
 
-        # default docker run configuration
-        # TRANSLATE INTO AN IF (if any of the previous ==> default profile)
-        else :
-            perm = Permission('docker-default', CAPs_default, syscalls_default, 'false', 'docker-default', 'docker-default')
-            return perm
+                ### TODO: seccomp=custom_profile
+
+            if run_args[i] == '--privileged' :
+                profile = 'docker-privileged'
+                capabilities = all_capabilities
+                syscalls = all_syscalls
+                AppArmor_profile = 'unconfined'
+                Seccomp_profile = 'unconfined'
+
+            if run_args[i] == '--read-only' :
+                profile = 'docker-read-only'
+                read_only = 'True'
+
+    perm = Permission(profile, capabilities, syscalls, read_only, AppArmor_profile, Seccomp_profile)
+    return perm
 
 
 def parse_AppArmor() :

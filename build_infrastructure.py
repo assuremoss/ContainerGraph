@@ -133,7 +133,8 @@ def build_host() :
     hostname = "vagrant"
     os = "linux"
     architecture = "x86_64"
-    kernel_v = "5.10.47-linuxkit" 
+    # kernel_v = "5.10.47-linuxkit" 
+    kernel_v = 5.10
     cpus = "8" 
     mem = "1.93GB"
 

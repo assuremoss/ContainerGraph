@@ -50,6 +50,8 @@ Show Neo4J graph.
 
 Show updated Neo4J knowledge graph and running containers `docker ps`.
 
+Describe the `vulns.json` and `vulns_query.json` files (i.e. how we represent container vulnerabilities and misconfigurations and how we geenrate the corresponding queries).
+
 
 ## 5 - Analyze Containers
 
@@ -66,11 +68,11 @@ In this example we run the same container image with 3 different configurations.
 
 ```bash
 
-python main.py --run docker run -it --rm -d nginx
+python main.py --run docker run --name test1 -it --rm -d nginx
 
-python main.py --run docker run --name vuln1 --cap-add CAP_SYS_ADMIN -it --rm -d nginx 
+python main.py --run docker run --name vuln1 --cap-add sys_admin --security-opt apparmor=unconfined -it --rm -d nginx 
 
-python main.py --run docker run --name vuln2 --privileged -it --rm -d nginx 
+python main.py --run docker run --name vuln2 -it --rm --privileged -d nginx 
 
 docker ps 
 ```
@@ -108,4 +110,25 @@ Equivalent queries work also with properties that are not of type list (e.g. use
 **Return all relationships of a container**
 
 `MATCH (c:Container:Docker {cont_id: '...'})-[r]->(b) RETURN r, c, b`
+
+
+## Testing Container Permission Parser
+
+```bash
+
+python main.py --run docker run --name test0 -it --rm -d nginx
+
+python main.py --run docker run --name test1 -it --rm --cap-drop all --cap-add sys_module -d nginx
+
+python main.py --run docker run --name test2 -it --rm --cap-add sys_admin -d nginx
+
+python main.py --run docker run --name test3 -it --rm --cap-drop chown -d nginx
+
+python main.py --run docker run --name test4 -it --rm --privileged -d nginx
+
+python main.py --run docker run --name test5 -it --rm --cap-add sys_admin --security-opt apparmor=unconfined -d nginx
+
+python main.py --run docker run --name test6 -it --rm --cap-add sys_admin --security-opt seccomp=unconfined -d nginx
+
+```
 

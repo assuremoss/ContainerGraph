@@ -13,6 +13,7 @@ argparse = "*"
 bs4 = "*"
 lxml = "*"
 networkx = "*"
+colorama = "*"
 
 [dev-packages]
 

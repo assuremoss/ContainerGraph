@@ -9,8 +9,9 @@ class Image :
     TODO
     """
 
-    def __init__(self, img_id, repo, tag, t_created, img_size, df, sbom):
+    def __init__(self, img_id, name, repo, tag, t_created, img_size, df, sbom):
         self.img_id = img_id
+        self.name = name
         self.repo = repo
         self.tag = tag
         self.t_created = t_created
@@ -170,6 +171,7 @@ def build_image(img_id) :
         img = client.images.get(img_id)
 
         img_id = img.short_id[7:]
+        name = img.tags[0]
 
         # Retrieve repo and tag (only the first one)
         if img.tags :
@@ -200,7 +202,7 @@ def build_image(img_id) :
         # The SBOM is saved as a list of software packages 
         sbom = generate_sbom(img_id)
 
-        img = Image(img_id, repo, tag, t_created, img_size, df, sbom)
+        img = Image(img_id, name, repo, tag, t_created, img_size, df, sbom)
         return img
 
     # Raise an exception if the image doesn't exist

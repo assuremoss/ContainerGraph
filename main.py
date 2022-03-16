@@ -4,6 +4,7 @@ from build_infrastructure import get_Infrastructure
 from build_cont_Neo4j import cont_already_existing, cont_Neo4j_chart
 from build_img_Neo4j import img_already_existing, image_Neo4j_chart
 from remove_all import data_remove_all
+from analyze import analyze_cont
 import argparse
 
 
@@ -13,12 +14,13 @@ group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument("--add", metavar="<image_id>", help="add a new image")
 group.add_argument("--run", action='append', nargs=argparse.REMAINDER, help="run a container")
 # group.add_argument("--restart", action='append', nargs=argparse.REMAINDER, help="restart a container")
-group.add_argument("--analyze", action='append', nargs=argparse.REMAINDER, help="analyze container's configuration")
+group.add_argument("--analyze", metavar="<container_id>", help="analyze container's vulnerabilities/misconfiguration")
 group.add_argument("--remove-all", action="store_true", help="remove all running containers and clean Neo4J graph")
 
 args = parser.parse_args()
 
 
+# Add a container image
 def add_option(img_id) :
     """
     TODO
@@ -69,8 +71,7 @@ def run_option(options) :
 
 # Analyze the container's vulnerabilities/misconfigurations
 def analyze_option(cont_id) :
-    # print_cont_permissions(container_id)
-    print("ANALYZE_TODO")
+    analyze_cont(cont_id)
 
 
 def remove_all_option() :
@@ -78,6 +79,7 @@ def remove_all_option() :
     print("Everything was cleaned up!")
 
 
+# Remove all containers and clean up Neo4J
 def main() :
 
     if args.add :
@@ -87,7 +89,7 @@ def main() :
         run_option(args.run)
 
     elif args.analyze :
-        analyze_option(args.run)
+        analyze_option(args.analyze)
 
     elif args.remove_all :
         remove_all_option()

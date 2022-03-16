@@ -59,10 +59,18 @@ def perm_exist(tx, cont) :
     TODO
     """
 
-    result = tx.run("MATCH (p:Permissions {profile: $profile}) RETURN COUNT(p) > 0 ", profile = cont.permissions.profile)
+    if cont.permissions.profile == 'custom' :
+        ### TO CHECK
+        #
+        # Model the case where a custom profile is equal to an already existent custom profile.
+        #
+        return False
 
-    result = result.single()[0]
-    return result
+    else :
+        result = tx.run("MATCH (p:Permissions {profile: $profile}) RETURN COUNT(p) > 0 ", profile = cont.permissions.profile)
+
+        result = result.single()[0]
+        return result
 
 
 def create_cont_node(tx, cont) :
@@ -70,7 +78,7 @@ def create_cont_node(tx, cont) :
     TODO
     """
 
-    tx.run("CREATE (c:Container:Docker {name: 'Container', cont_id: $cont_id})", cont_id = cont.cont_id) 
+    tx.run("CREATE (c:Container:Docker {name: $name, cont_id: $cont_id, img_id: $img_id, start_t: $start_t, status: $status})", cont_id = cont.cont_id, img_id = cont.img_id, name = cont.name, start_t = cont.start_t, status = cont.status) 
 
 
 def create_cconfig_node(tx, cont) :
@@ -78,7 +86,7 @@ def create_cconfig_node(tx, cont) :
     TODO
     """
 
-    tx.run("CREATE (cc:ContainerConfig {name: 'ContainerConfig', c_name: $c_name})", c_name = cont.cconfig.c_name) 
+    tx.run("CREATE (cc:ContainerConfig {name: 'ContainerConfig', c_name: $c_name, user: $user})", c_name = cont.cconfig.c_name, user = cont.cconfig.user) 
 
 
 def create_permissions_node(tx, cont) :
@@ -86,7 +94,7 @@ def create_permissions_node(tx, cont) :
     TODO
     """
 
-    tx.run("CREATE (p:Permissions {name: 'Permissions', profile: $profile})", profile = cont.permissions.profile) 
+    tx.run("CREATE (p:Permissions {name: 'Permissions', profile: $profile, capabilities: $capabilities, syscalls: $syscalls, read_only: $read_only, AppArmor_profile: $AppArmor_profile, Seccomp_profile: $Seccomp_profile})", profile = cont.permissions.profile, capabilities = cont.permissions.capabilities, syscalls = cont.permissions.syscalls, read_only = cont.permissions.read_only, AppArmor_profile = cont.permissions.AppArmor_profile, Seccomp_profile = cont.permissions.Seccomp_profile) 
 
 
 def create_cont_relationships(tx, cont, infra) :

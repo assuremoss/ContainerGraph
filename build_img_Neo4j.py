@@ -28,8 +28,6 @@ def query_image(tx, img_id) :
     TODO
     """
 
-    # CHECK BY NAME INSTEAD ID
-
     result = tx.run("MATCH (i:Image:Docker {img_id: $img_id}) RETURN COUNT(i) > 0", img_id=img_id)
 
     result = result.single()[0]
@@ -74,7 +72,9 @@ def create_image_node(tx, img) :
     TODO
     """
 
-    tx.run("CREATE (i:Image:Docker {name: 'Image', img_id: $img_id})", img_id = img.img_id)
+    ### TO UPDATE WITH ALL THE FIELDS
+
+    tx.run("CREATE (i:Image:Docker {name: $name, img_id: $img_id})", name = img.name, img_id = img.img_id)
 
 
 def create_dockerfile_node(tx, img) :
@@ -82,9 +82,9 @@ def create_dockerfile_node(tx, img) :
     TODO
     """
 
-    tx.run("CREATE (df:Dockerfile {name: 'Dockerfile', img_id: $img_id})", img_id = img.img_id)
+    ### TO UPDATE WITH ALL THE FIELDS
 
-    # Return neo4j node id to avoid confusion
+    tx.run("CREATE (df:Dockerfile {name: 'Dockerfile', img_id: $img_id})", img_id = img.img_id)
 
 
 def create_engine_node(tx, infra) :
@@ -92,7 +92,7 @@ def create_engine_node(tx, infra) :
     TODO
     """
 
-    tx.run("CREATE (de:DockerEngine {name: 'DockerEngine', docker_v: $docker_v})", docker_v = infra.docker_v)
+    tx.run("CREATE (de:DockerEngine {name: 'DockerEngine', docker_v: $docker_v, containerd_v: $containerd_v, runc_v: $runc_v, storage: $storage, registry: $registry})", docker_v = infra.docker_v, containerd_v = infra.containerd_v, runc_v = infra.runc_v, storage = infra.storage, registry = infra.registry)
 
 
 def create_host_node(tx, infra) :
@@ -100,7 +100,7 @@ def create_host_node(tx, infra) :
     TODO
     """
 
-    tx.run("CREATE (h:Host {name: 'Host', hostname: $hostname})", hostname = infra.host.hostname)
+    tx.run("CREATE (h:Host {name: 'Host', hostname: $hostname, os: $os, architecture: $architecture, kernel_v: $kernel_v, cpus: $cpus, mem: $mem})", hostname = infra.host.hostname, os = infra.host.os, architecture = infra.host.architecture, kernel_v = infra.host.kernel_v, cpus = infra.host.cpus, mem = infra.host.mem)
 
 
 def create_host_relationship(tx, infra) :

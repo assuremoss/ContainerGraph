@@ -59,7 +59,7 @@ def build_container(options):
         cconfig = build_config(cont, run_args)
 
         # retrieve container permissions
-        permissions = build_permissions(run_args)
+        permissions = build_permissions(cont_id, run_args)
         
         # build container object
         cont = build_cont_obj(cont, start_t, cconfig, permissions)
