@@ -1,4 +1,3 @@
-from build_cont_Neo4j import cont_already_existing
 import docker
 import warnings
 import json
@@ -45,9 +44,9 @@ def is_c_running(cont_id) :
         cont_id = cont.short_id
 
         # check that the container also exists into Neo4J
-        if not cont_already_existing(cont_id) :
-            print("A container with id " + str(cont_id) + " does not exist! Exiting...")
-            exit(1)
+        # if not cont_already_existing(cont_id) :
+        #     print("A container with id " + str(cont_id) + " does not exist! Exiting...")
+        #     exit(1)
 
         return cont_id
 

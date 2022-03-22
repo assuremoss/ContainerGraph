@@ -4,6 +4,8 @@
             "escape_1": [
                 {
                     "engine": "docker",
+                    "mitre_tactic": "privilege_escalation",
+                    "mitre_technique": "escape_to_host",
                     "pre_conditions": [
                         {
                             "user": "root",
@@ -13,7 +15,7 @@
                     ],
                     "post_conditions": [
                         {
-                            "impact": "container_escape, host_root"
+                            "impact": "privilege_escalation"
                         }
                     ]
                 }
@@ -22,6 +24,8 @@
             "escape_2": [
                 {
                     "engine": "docker",
+                    "mitre_tactic": "",
+                    "mitre_technique": "",
                     "pre_conditions": [
                         {
                             "user": "root",
@@ -39,6 +43,8 @@
             "escape_3": [
                 {
                     "engine": "docker",
+                    "mitre_tactic": "",
+                    "mitre_technique": "",
                     "pre_conditions": [
                         {
                             "permissions": "privileged"
@@ -59,6 +65,8 @@
             "CVE-2017-7308": [
                 {
                     "CVSS_v3": "7.8",
+                    "mitre_tactic": "",
+                    "mitre_technique": "",
                     "pre_conditions": [
                         {
                             "max_kernel_version": "4.10.7",
@@ -76,6 +84,8 @@
             "CVE-2022-0492": [
                 {
                     "CVSS_v3": "7.8",
+                    "mitre_tactic": "",
+                    "mitre_technique": "",
                     "pre_conditions": [
                         {
                             "max_kernel_version": "5.17",
@@ -95,6 +105,8 @@
             "CVE-2022-0185": [
                 {
                     "CVSS_v3": "8.4",
+                    "mitre_tactic": "",
+                    "mitre_technique": "",
                     "pre_conditions": [
                         {
                             "min_kernel_version": "5.1",
@@ -114,6 +126,8 @@
             "CVE-2017-14489": [
                 {
                     "CVSS_v3": "5.5",
+                    "mitre_tactic": "",
+                    "mitre_technique": "",
                     "pre_conditions": [
                         {
                             "max_kernel_version": "4.13.2"
@@ -130,6 +144,8 @@
             "CVE-2016-4997": [
                 {
                     "CVSS_v3": "7.8",
+                    "mitre_tactic": "",
+                    "mitre_technique": "",
                     "pre_conditions": [
                         {
                             "max_kernel_version": "4.6.3",
@@ -152,6 +168,8 @@
                 {
                     "engine": "runC",
                     "CVSS_v3": "8.6",
+                    "mitre_tactic": "",
+                    "mitre_technique": "",
                     "pre_conditions": [
                         {
                             "kernel_version": "1.13.1-108.git4ef4b30.el7",
@@ -172,6 +190,8 @@
                 {
                     "engine": "docker",
                     "CVSS_v3": "6.4",
+                    "mitre_tactic": "",
+                    "mitre_technique": "",
                     "pre_conditions": [
                         {
                             "min_docker_version": "1.11.0",
@@ -191,6 +211,8 @@
                 {
                     "engine": "containerd",
                     "CVSS_v3": "5.2",
+                    "mitre_tactic": "",
+                    "mitre_technique": "",
                     "pre_conditions": [
                         {
                             "max_containerd_version": "1.4.3",
@@ -210,6 +232,8 @@
                 {
                     "engine": "docker",
                     "CVSS_v3": "6.0",
+                    "mitre_tactic": "",
+                    "mitre_technique": "",
                     "pre_conditions": [
                         {
                             "max_docker_version": "19.03.11",
@@ -229,6 +253,8 @@
                 {
                     "engine": "docker",
                     "CVSS_v3": "9.8",
+                    "mitre_tactic": "",
+                    "mitre_technique": "",
                     "pre_conditions": [
                         {
                             "min_docker_version": "19.03",

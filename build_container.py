@@ -19,6 +19,17 @@ class Container :
         self.cconfig = cconfig
         self.permissions = permissions
 
+    def print_cont(self) :
+        print('cont_id: ' + self.cont_id)
+        print('img_id :' + self.img_id)
+        print('name :' + self.name)
+        print('start_t :' + self.start_t)
+        print('status :' + self.status)
+        print('')
+        self.cconfig.print_cconfig()
+        print('')
+        self.permissions.print_perm()
+
 
 def connect_to_Docker() : 
     """ 
@@ -40,11 +51,8 @@ def build_container(options):
     TODO
     """
 
-    # docker run command
-    command = ' '.join(options[0])
-
     # list of docker run arguments (e.g. -d, -it, --rm, etc.)
-    run_args = options[0][2:-1]
+    run_args = options[0][2:]
 
     # run the container
     cont_id, start_t = run_cont(options[0])
@@ -56,16 +64,17 @@ def build_container(options):
         cont = client.containers.get(cont_id)
 
         # retrieve container configuration
-        cconfig = build_config(cont, run_args)
+        cconfig = build_config(run_args)
 
         # retrieve container permissions
         permissions = build_permissions(cont_id, run_args)
-        
+
         # build container object
         cont = build_cont_obj(cont, start_t, cconfig, permissions)
+        # cont.print_cont()
         return cont
     
-    # Raise an exception if the image doesn't exist
+    # Raise an exception if the container doesn't exist
     except docker.errors.NotFound as error :
         print(error)
         exit(1)
@@ -86,7 +95,7 @@ def run_cont(command) :
         cont_id = cont_id.decode('utf-8')[:5]
 
         start_t = subprocess.check_output(["date"])
-        start_t = start_t.decode('utf-8')
+        start_t = start_t.decode('utf-8').replace("\n", "")
 
         return cont_id, start_t
 

@@ -1,6 +1,9 @@
 # Ignore neo4j files
 neo4j_query_example
 
+# Ignore PoC file
+Proof_of_Concept.md
+
 # Ignore notes file
 resources.md
 

@@ -3,21 +3,24 @@
         {
             "CAP_AUDIT_CONTROL": [
                 {
-                    "kernel_v": "2.6.11"
+                    "kernel_v": "2.6.11",
+                    "docker-default": "no"
                 }
             ]
         },
         {
             "CAP_AUDIT_READ": [
                 {
-                    "kernel_v": "3.16"
+                    "kernel_v": "3.16",
+                    "docker-default": "no"
                 }
             ]
         },
         {
             "CAP_AUDIT_WRITE": [
                 {
-                    "kernel_v": "2.6.11"
+                    "kernel_v": "2.6.11",
+                    "docker-default": "yes"
                 }
             ]
         },
@@ -25,6 +28,7 @@
             "CAP_BLOCK_SUSPEND": [
                 {
                     "kernel_v": "3.5",
+                    "docker-default": "no",
                     "system_calls": [
                         {
                             "name": "epoll_create",
@@ -58,6 +62,7 @@
             "CAP_BPF": [
                 {
                     "kernel_v": "5.8",
+                    "docker-default": "no",
                     "system_calls": [
                         {
                             "name": "bpf",
@@ -70,13 +75,15 @@
         {
             "CAP_CHECKPOINT_RESTORE": [
                 {
-                    "kernel_v": "5.9"
+                    "kernel_v": "5.9",
+                    "docker-default": "no"
                 }
             ]
         },
         {
             "CAP_CHOWN": [
                 {
+                    "docker-default": "yes",
                     "system_calls": [
                         {
                             "name": "chown",
@@ -87,11 +94,16 @@
             ]
         },
         {
-            "CAP_DAC_OVERRIDE": []
+            "CAP_DAC_OVERRIDE": [
+                { 
+                    "docker-default": "yes"
+                }
+            ]
         },
         {
             "CAP_DAC_READ_SEARCH": [
                 {
+                    "docker-default": "no",
                     "system_calls": [
                         {
                             "name": "name_to_handle_at",
@@ -112,6 +124,7 @@
         {
             "CAP_FOWNER": [
                 {
+                    "docker-default": "yes",
                     "system_calls": [
                         {
                             "name": "ioctl",
@@ -138,11 +151,16 @@
             ]
         },
         {
-            "CAP_FSETID": []
+            "CAP_FSETID": [
+                { 
+                    "docker-default": "yes"
+                }
+            ]
         },
         {
             "CAP_IPC_LOCK": [
                 {
+                    "docker-default": "no",
                     "system_calls": [
                         {
                             "name": "mlock",
@@ -185,11 +203,16 @@
             ]
         },
         {
-            "CAP_IPC_OWNER": []
+            "CAP_IPC_OWNER": [
+                { 
+                    "docker-default": "no"
+                }
+            ]
         },
         {
             "CAP_KILL": [
                 {
+                    "docker-default": "yes",
                     "system_calls": [
                         {
                             "name": "kill",
@@ -202,7 +225,8 @@
         {
             "CAP_LEASE": [
                 {
-                    "kernel_v": "2.4"
+                    "kernel_v": "2.4",
+                    "docker-default": "no"
                 }
             ]
         },
@@ -210,6 +234,7 @@
             "CAP_LINUX_IMMUTABLE": [
                 {
                     "kernel_v": "1.1.1",
+                    "docker-default": "no",
                     "system_calls": [
                         {
                             "name": "ioctl",
@@ -222,14 +247,16 @@
         {
             "CAP_MAC_ADMIN": [
                 {
-                    "kernel_v": "2.6.25"
+                    "kernel_v": "2.6.25",
+                    "docker-default": "no"
                 }
             ]
         },
         {
             "CAP_MAC_OVERRIDE": [
                 {
-                    "kernel_v": "2.6.25"
+                    "kernel_v": "2.6.25",
+                    "docker-default": "no"
                 }
             ]
         },
@@ -237,6 +264,7 @@
             "CAP_MKNOD": [
                 {
                     "kernel_v": "2.4",
+                    "docker-default": "yes",
                     "system_calls": [
                         {
                             "name": "mknod",
@@ -249,6 +277,7 @@
         {
             "CAP_NET_ADMIN": [
                 {
+                    "docker-default": "no",
                     "system_calls": [
                         {
                             "name": "getsockopt",
@@ -263,18 +292,31 @@
             ]
         },
         {
-            "CAP_NET_BIND_SERVICE": []
+            "CAP_NET_BIND_SERVICE": [
+                { 
+                    "docker-default": "yes"
+                }
+            ]
         },
         {
-            "CAP_NET_BROADCAST": []
+            "CAP_NET_BROADCAST": [
+                { 
+                    "docker-default": "no"
+                }
+            ]
         },
         {
-            "CAP_NET_RAW": []
+            "CAP_NET_RAW": [
+                { 
+                    "docker-default": "yes"
+                }
+            ]
         },
         {
             "CAP_PERFMON": [
                 {
                     "kernel_v": "5.8",
+                    "docker-default": "no",
                     "system_calls": [
                         {
                             "name": "perf_event_open",
@@ -287,14 +329,16 @@
         {
             "CAP_SETGID": [
                 {
-                    "kernel_v": "1.1.1"
+                    "kernel_v": "1.1.1",
+                    "docker-default": "no"
                 }
             ]
         },
         {
             "CAP_SETFCAP": [
                 {
-                    "kernel_v": "2.6.24"
+                    "kernel_v": "2.6.24",
+                    "docker-default": "yes"
                 }
             ]
         },
@@ -302,6 +346,7 @@
             "CAP_SETPCAP": [
                 {
                     "kernel_v": "2.6.24",
+                    "docker-default": "yes",
                     "system_calls": [
                         {
                             "name": "prctl",
@@ -314,6 +359,7 @@
         {
             "CAP_SETUID": [
                 {
+                    "docker-default": "yes",
                     "system_calls": [
                         {
                             "name": "setuid",
@@ -346,6 +392,7 @@
         {
             "CAP_SYS_ADMIN": [
                 {
+                    "docker-default": "no",
                     "system_calls": [
                         {
                             "name": "quotactl",
@@ -573,6 +620,7 @@
         {
             "CAP_SYS_BOOT": [
                 {
+                    "docker-default": "no",
                     "system_calls": [
                         {
                             "name": "reboot",
@@ -593,6 +641,7 @@
         {
             "CAP_SYS_CHROOT": [
                 {
+                    "docker-default": "yes",
                     "system_calls": [
                         {
                             "name": "chroot",
@@ -609,6 +658,7 @@
         {
             "CAP_SYS_MODULE": [
                 {
+                    "docker-default": "no",
                     "system_calls": [
                         {
                             "name": "create_module",
@@ -633,6 +683,7 @@
         {
             "CAP_SYS_NICE": [
                 {
+                    "docker-default": "no",
                     "system_calls": [
                         {
                             "name": "",
@@ -662,6 +713,7 @@
         {
             "CAP_SYS_PACCT": [
                 {
+                    "docker-default": "no",
                     "system_calls": [
                         "acct"
                     ]
@@ -671,6 +723,7 @@
         {
             "CAP_SYS_PTRACE": [
                 {
+                    "docker-default": "no",
                     "system_calls": [
                         "ptrace", 
                         "get_robust_list",
@@ -687,6 +740,7 @@
         {
             "CAP_SYS_RAWIO": [
                 {
+                    "docker-default": "no",
                     "system_calls": [
                         "iopl",
                         "ioperm",
@@ -700,6 +754,7 @@
         {
             "CAP_SYS_RESOURCE": [
                 {
+                    "docker-default": "no",
                     "system_calls": [
                         "ioctl",
                         "getrlimit",
@@ -721,6 +776,7 @@
         {
             "CAP_SYS_TIME": [
                 {
+                    "docker-default": "no",
                     "system_calls": [
                         "gettimeofday",
                         "settimeofday",
@@ -736,6 +792,7 @@
         {
             "CAP_SYS_TTY_CONFIG": [
                 {
+                    "docker-default": "no",
                     "system_calls": [
                         "vhangup",
                         "ioctl"
@@ -746,6 +803,7 @@
         {
             "CAP_SYSLOG": [
                 {
+                    "docker-default": "no",
                     "kernel_v": "2.6.37",
                     "system_calls": [
                         "syslog",
@@ -756,40 +814,139 @@
             ]
         },
         {
-            "CAP_WAKE_ALARM": []
+            "CAP_WAKE_ALARM": [
+                {
+                    "docker-default": "no"
+                }
+            ]
         }
     ],
 
     "syscalls": [
         {
-            "name": "syscall1_without_CAP",
-            "kernel_v": "1.1.1"
+            "name": "accept",
+            "kernel_v": "1.1.1",
+            "docker-default": "yes"
         },
         {
-            "name": "syscall2_without_CAP",
-            "kernel_v": "1.1.1"
+            "name": "access",
+            "kernel_v": "1.1.1",
+            "docker-default": "yes"
         },
-
-        "personality",
-        "modify_ldt",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        ""
+        {
+            "name": "bind",
+            "kernel_v": "1.1.1",
+            "docker-default": "yes"
+        },
+        {
+            "name": "capget",
+            "kernel_v": "1.1.1",
+            "docker-default": "yes"
+        },
+        {
+            "name": "chmod",
+            "kernel_v": "1.1.1",
+            "docker-default": "yes"
+        },
+        {
+            "name": "chown",
+            "kernel_v": "1.1.1",
+            "docker-default": "yes"
+        },
+        {
+            "name": "close",
+            "kernel_v": "1.1.1",
+            "docker-default": "yes"
+        },
+        {
+            "name": "connect",
+            "kernel_v": "1.1.1",
+            "docker-default": "yes"
+        },
+        {
+            "name": "creat",
+            "kernel_v": "1.1.1",
+            "docker-default": "yes"
+        },
+        {
+            "name": "execve",
+            "kernel_v": "1.1.1",
+            "docker-default": "yes"
+        },
+        {
+            "name": "exit",
+            "kernel_v": "1.1.1",
+            "docker-default": "yes"
+        },
+        {
+            "name": "fork",
+            "kernel_v": "1.1.1",
+            "docker-default": "yes"
+        },
+        {
+            "name": "ioctl",
+            "kernel_v": "1.1.1",
+            "docker-default": "yes"
+        },
+        {
+            "name": "kill",
+            "kernel_v": "1.1.1",
+            "docker-default": "yes"
+        },
+        {
+            "name": "mkdir",
+            "kernel_v": "1.1.1",
+            "docker-default": "yes"
+        },
+        {
+            "name": "mount",
+            "kernel_v": "1.1.1",
+            "docker-default": "no"
+        },
+        {
+            "name": "open",
+            "kernel_v": "1.1.1",
+            "docker-default": "yes"
+        },
+        {
+            "name": "read",
+            "kernel_v": "1.1.1",
+            "docker-default": "yes"
+        },
+        {
+            "name": "rename",
+            "kernel_v": "1.1.1",
+            "docker-default": "yes"
+        },
+        {
+            "name": "send",
+            "kernel_v": "1.1.1",
+            "docker-default": "yes"
+        },
+        {
+            "name": "socket",
+            "kernel_v": "1.1.1",
+            "docker-default": "yes"
+        },
+        {
+            "name": "time",
+            "kernel_v": "1.1.1",
+            "docker-default": "yes"
+        },
+        {
+            "name": "uname",
+            "kernel_v": "1.1.1",
+            "docker-default": "yes"
+        },
+        {
+            "name": "write",
+            "kernel_v": "1.1.1",
+            "docker-default": "yes"
+        },
+        {
+            "name": "unshare",
+            "kernel_v": "1.1.1",
+            "docker-default": "no"
+        }
     ]
 }
