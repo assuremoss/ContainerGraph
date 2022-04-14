@@ -5,8 +5,14 @@ import json
 
 
 class Image :
-    """
-    TODO
+    """  brief title.
+    
+    Arguments:
+    arg1 - desc
+    arg2 - desc
+
+    Description:
+    blablabla
     """
 
     def __init__(self, img_id, name, repo, tag, t_created, img_size, df, sbom):
@@ -21,8 +27,14 @@ class Image :
 
 
 class Dockerfile :
-    """
-    TODO
+    """  brief title.
+    
+    Arguments:
+    arg1 - desc
+    arg2 - desc
+
+    Description:
+    blablabla
     """
 
     def __init__(self, FROM) :
@@ -31,8 +43,14 @@ class Dockerfile :
 
 
 def retrieve_img_id(img_id) :
-    """
-    TODO
+    """  brief title.
+    
+    Arguments:
+    arg1 - desc
+    arg2 - desc
+
+    Description:
+    blablabla
     """
 
     client = connect_to_Docker()

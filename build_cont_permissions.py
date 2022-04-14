@@ -2,8 +2,14 @@ import json
 
 
 class Permission :
-    """
-    TODO
+    """  brief title.
+    
+    Arguments:
+    arg1 - desc
+    arg2 - desc
+
+    Description:
+    blablabla
     """
 
     def __init__(self, profile, capabilities, syscalls, read_only, no_new_priv, AppArmor_profile, Seccomp_profile) :
@@ -44,8 +50,14 @@ class Permission :
 
 
 def parse_CAPS_file() :
-    """
-    TODO
+    """  brief title.
+    
+    Arguments:
+    arg1 - desc
+    arg2 - desc
+
+    Description:
+    blablabla
     """
 
     try :
@@ -62,33 +74,62 @@ def parse_CAPS_file() :
         exit(1)
 
 
-def build_permissions(cont_id, run_args) :
-    """
-    TODO
-    """
-
-    # Retrieve list of capabilities
-    capabilities, syscalls = parse_CAPS_file()
+def get_all_syscalls() :
+    """  brief title.
     
+    Arguments:
+    arg1 - desc
+    arg2 - desc
+
+    Description:
+    blablabla
+    """
+    
+    _, syscalls = parse_CAPS_file()
+
+    all_syscalls = []
+    for syscall in syscalls :
+        all_syscalls.append(syscall['name'])
+
+    return all_syscalls
+
+
+def get_all_caps() :
+    """  brief title.
+    
+    Arguments:
+    arg1 - desc
+    arg2 - desc
+
+    Description:
+    blablabla
+    """
+    
+    capabilities, _ = parse_CAPS_file()
+
     all_caps = []
     for cap in capabilities : 
         all_caps.append(list(cap.keys())[0])
 
-    all_syscall = []
-    for syscall in syscalls :
-        all_syscall.append(syscall['name'])
+    return all_caps
 
+
+def build_permissions(cont_id, run_args) :
+    """  brief title.
+    
+    Arguments:
+    arg1 - desc
+    arg2 - desc
+
+    Description:
+    blablabla
+    """
+
+    all_caps = get_all_caps()
+    all_syscalls = get_all_syscalls()
     default_cap = []
-    for cap in capabilities : 
-        aux = cap[list(cap.keys())[0]][0]
-        if aux['docker-default'] == 'yes' :
-            default_cap.append(list(cap.keys())[0])
-
     default_syscall = []
-    for syscall in syscalls :
-        if syscall['docker-default'] == 'yes' :
-            default_syscall.append(syscall['name'])
-
+    
     # Default Docker Profile
     profile = 'docker-default'
     capabilities = default_cap
@@ -143,7 +184,7 @@ def build_permissions(cont_id, run_args) :
         if run_args[i] == '--privileged' :
                 profile = 'docker-privileged'
                 capabilities = all_caps
-                syscalls = all_syscall
+                syscalls = all_syscalls
                 AppArmor_profile = 'unconfined'
                 Seccomp_profile = 'unconfined'
 
@@ -179,7 +220,7 @@ def build_permissions(cont_id, run_args) :
                 # capabilities & syscalls
                 ###
                 capabilities = all_caps
-                syscalls = all_syscall
+                syscalls = all_syscalls
 
             elif value == 'seccomp=unconfined' :
                 Seccomp_profile = 'unconfined'
@@ -187,7 +228,7 @@ def build_permissions(cont_id, run_args) :
                 # capabilities & syscalls
                 ###
                 capabilities = all_caps
-                syscalls = all_syscall
+                syscalls = all_syscalls
 
             ### TODO: apparmor=custom_profile
             # elif value.startswith('apparmor=') :
@@ -204,14 +245,26 @@ def build_permissions(cont_id, run_args) :
 
 
 def parse_AppArmor() :
-    """
-    TODO
+    """  brief title.
+    
+    Arguments:
+    arg1 - desc
+    arg2 - desc
+
+    Description:
+    blablabla
     """
     print("TODO")
 
 
 def parse_Seccomp() :
-    """
-    TODO
+    """  brief title.
+    
+    Arguments:
+    arg1 - desc
+    arg2 - desc
+
+    Description:
+    blablabla
     """
     print("TODO")

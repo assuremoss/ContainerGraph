@@ -11,6 +11,17 @@ Blablabla
 
 
 
+
+
+## Comparison Tool
+
+**Microsoft Defender for Containers** 
+ - https://techcommunity.microsoft.com/t5/microsoft-defender-for-cloud/introducing-microsoft-defender-for-containers/ba-p/2952317
+ - https://docs.microsoft.com/en-us/azure/defender-for-cloud/defender-for-cloud-introduction
+ - https://docs.microsoft.com/en-us/azure/defender-for-cloud/alerts-reference#alerts-k8scluster
+ - https://guillaumeben.xyz/defender-containers.html
+
+
 ## Useful Tools
 
 https://github.com/containers

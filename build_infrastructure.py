@@ -1,6 +1,5 @@
-from platform import architecture
 import docker
-import socket, sys, platform, os, re
+import socket, sys, platform, os, subprocess
 
 
 class Host:
@@ -110,17 +109,26 @@ def build_DockerHost(host):
         # Equivalent to run `docker version`
         version = client.version()
         containerd_v = version["Components"][1]["Version"]
+        containerd_v = containerd_v[:5]
+
+        # runc_v = info["RuncCommit"]["ID"]
+        runc_v = subprocess.check_output(["runc", "-v"])
+        runc_v = runc_v.decode('utf-8')
+        runc_v = runc_v[13:18]
 
         aux = DockerHost(host, 
                 info["ServerVersion"],
                 containerd_v, 
-                info["RuncCommit"]["ID"], 
+                runc_v, 
                 info["Driver"],
                 info["IndexServerAddress"])
         return aux
 
     except docker.errors.DockerException as error :
         print(error)
+    except subprocess.CalledProcessError as error :
+        print(error)
+        exit(1)
 
 
 def build_PodmanHost(host) :

@@ -2,8 +2,14 @@ from neo4j import GraphDatabase
 
 
 def connect_to_neo4j(uri, user, password) :
-    """
-    TODO
+    """  brief title.
+    
+    Arguments:
+    arg1 - desc
+    arg2 - desc
+
+    Description:
+    blablabla
     """
 
     driver = GraphDatabase.driver(uri, auth=(user, password))
@@ -11,8 +17,14 @@ def connect_to_neo4j(uri, user, password) :
 
 
 def cont_Neo4j_chart(NEO4J_ADDRESS, cont) :
-    """
-    TODO
+    """  brief title.
+    
+    Arguments:
+    arg1 - desc
+    arg2 - desc
+
+    Description:
+    blablabla
     """
 
     driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":11005", "neo4j", "password")
@@ -33,8 +45,14 @@ def cont_Neo4j_chart(NEO4J_ADDRESS, cont) :
 
 
 def create_cconfig_nodes(tx, cont) :
-    """
-    TODO
+    """  brief title.
+    
+    Arguments:
+    arg1 - desc
+    arg2 - desc
+
+    Description:
+    blablabla
     """
 
     # For each docker run arg (e.g. user, volume, etc.) create a node 
@@ -52,8 +70,14 @@ def create_cconfig_nodes(tx, cont) :
 
 
 def create_cconfig_relationships(tx, cont) :
-    """
-    TODO
+    """  brief title.
+    
+    Arguments:
+    arg1 - desc
+    arg2 - desc
+
+    Description:
+    blablabla
     """
 
     # For each docker run arg (e.g. user, volume, etc.) create a node 
@@ -77,8 +101,14 @@ def create_cconfig_relationships(tx, cont) :
 
 
 def perm_exist(tx, cont) :
-    """
-    TODO
+    """  brief title.
+    
+    Arguments:
+    arg1 - desc
+    arg2 - desc
+
+    Description:
+    blablabla
     """
 
     result = tx.run("MATCH (p:Permissions {profile: $profile}) RETURN COUNT(p) > 0 ", profile = cont.permissions.profile)
@@ -88,8 +118,14 @@ def perm_exist(tx, cont) :
 
 
 def create_permissions_node(tx, cont) :
-    """
-    TODO
+    """  brief title.
+    
+    Arguments:
+    arg1 - desc
+    arg2 - desc
+
+    Description:
+    blablabla
     """
 
     tx.run("MERGE (p:Permissions {name: 'Permissions', profile: $profile, object: 'Container'})", profile = cont.permissions.profile) 
@@ -98,8 +134,14 @@ def create_permissions_node(tx, cont) :
 
 
 def create_perm_relationships(tx, cont) :
-    """
-    TODO
+    """  brief title.
+    
+    Arguments:
+    arg1 - desc
+    arg2 - desc
+
+    Description:
+    blablabla
     """
 
     for cap in cont.permissions.capabilities :
@@ -128,19 +170,31 @@ def create_perm_relationships(tx, cont) :
 
 
 def create_cont_node(tx, cont) :
-    """
-    TODO
+    """  brief title.
+    
+    Arguments:
+    arg1 - desc
+    arg2 - desc
+
+    Description:
+    blablabla
     """
 
     tx.run("MERGE (c:Container:Docker {name: $name, cont_id: $cont_id, img_id: $img_id, start_t: $start_t, status: $status})", cont_id = cont.cont_id, img_id = cont.img_id, name = cont.name, start_t = cont.start_t, status = cont.status) 
 
 
 def create_cont_relationships(tx, cont) :
-    """
-    TODO
+    """  brief title.
+    
+    Arguments:
+    arg1 - desc
+    arg2 - desc
+
+    Description:
+    blablabla
     """
 
-    tx.run("MATCH (de:DockerEngine:Version) "
+    tx.run("MATCH (de:DockerEngine)-[:RUNS_ON_TOP]->(h:LinuxHost) "
            "MATCH (c:Container:Docker {cont_id: $cont_id}) "
            "MERGE (de)-[:RUNS]->(c) "
            "UNION "

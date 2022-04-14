@@ -33,20 +33,10 @@ def create_host_node(tx, host) :
     query = "MERGE (h:Host:" + host.host.name + " {name: $hostname, processor: $processor, cpus: $cpus, mem: $mem})"
     tx.run(query, hostname = host.host.hostname, processor = host.host.processor, cpus = host.host.cpus, mem = host.host.mem)
 
-    ### CREATE 5 VERSIONS NODES ###
-    query = "MERGE (k:Kernel:" + host.host.h_platform + ":Version {name: $kernel_v, kernel_v: $kernel_v})"
-    tx.run(query, kernel_v = host.host.kernel_v)
-    ###
-
     if host.name == "DockerEngine" :
 
-        query = "MERGE (ce:ContainerEngine:" + host.name + " {name: $name, containerd_v: $containerd_v, runc_v: $runc_v, storage: $storage, registry: $registry})"
-        tx.run(query, name = host.name, containerd_v = host.containerd_v, runc_v = host.runc_v, storage = host.storage, registry = host.registry)
-
-        ### CREATE 5 VERSIONS NODES ###
-        query = "MERGE (de:Engine:" + host.name + ":Version {name: $docker_v, docker_v: $docker_v})"
-        tx.run(query, docker_v = host.docker_v)
-        ###
+        query = "MERGE (ce:ContainerEngine:" + host.name + " {name: $name, storage: $storage, registry: $registry})"
+        tx.run(query, name = host.name, storage = host.storage, registry = host.registry)
 
 
 def create_host_relationship(tx, host) :
@@ -54,21 +44,36 @@ def create_host_relationship(tx, host) :
     TODO
     """
 
+    kernel_v = host.host.kernel_v[:3]
+
     tx.run("MATCH (h:Host {name: $hostname}) "
-           "MATCH (k:Kernel {kernel_v: $kernel_v}) "
-           "MERGE (h)-[:USES]->(k) "
+           "MATCH (kv:KernelVersion {key: $kernel_v}) "
+           "MERGE (h)-[:USES]->(kv) "
            "UNION "
-           "MATCH (k:Kernel {kernel_v: $kernel_v}) "
+           "MATCH (h:Host {name: $hostname}) "
            "MATCH (ce:ContainerEngine {name: $name}) "
-           "MERGE (ce)-[:RUNS_ON_TOP]->(k) "
-           , hostname = host.host.hostname, kernel_v = host.host.kernel_v, name = host.name
+           "MERGE (ce)-[:RUNS_ON_TOP]->(h) "
+           "UNION "
+           "MATCH (ce:ContainerEngine {name: $name}) "
+           "MATCH (kv:KernelVersion {key: $kernel_v}) "
+           "MERGE (ce)-[:USES]->(kv) "
+           , hostname = host.host.hostname, kernel_v = kernel_v, name = host.name
     )
 
     if host.name == "DockerEngine" :
+
         tx.run("MATCH (ce:ContainerEngine {name: $name}) "
-               "MATCH (de:DockerEngine {docker_v: $docker_v}) "
+               "MATCH (de:DockerVersion {key: $docker_v}) "
                "MERGE (ce)-[:USES]->(de) "
-               , name = host.name, docker_v = host.docker_v
+               "UNION "
+               "MATCH (de:DockerVersion {key: $docker_v}) "
+               "MATCH (cv:containerdVersion {key: $containerd_v}) "
+               "MERGE (de)-[:USES]->(cv) "
+               "UNION "
+               "MATCH (de:DockerVersion {key: $docker_v}) "
+               "MATCH (rv:runcVersion {key: $runc_v}) "
+               "MERGE (de)-[:USES]->(rv) "
+               , name = host.name, docker_v = host.docker_v, containerd_v = host.containerd_v, runc_v = host.runc_v
         )
 
 
@@ -81,3 +86,9 @@ def host_Neo4j(NEO4J_ADDRESS, host) :
 
     # Create Host and Container Engine nodes
     host_node(NEO4J_ADDRESS, host)
+
+    # Print info
+    print('Added the Host and Docker nodes.\n')
+
+    # Graph update: +2 nodes and +6 edges
+    # Total: 411 nodes and 6 edges.

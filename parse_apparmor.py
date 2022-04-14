@@ -147,47 +147,58 @@ The following modifiers can be prepended to a rule to change this behavior:
 """
 
 
+from pathlib import Path
+
 
 class AppArmor_Profile : 
 
-    def __init__(self, name):
+    def __init__(self, name, uri, caps, syscalls):
         self.name = name
-        # .... MORE TO COME
+        self.uri = uri
+        self.caps = caps
+        self.syscalls = syscalls
 
 
-"""
-The parser's output:
-
- - List of ALLOWED system calls
- - List of DENIED system calls
- - List of GRANTED capabilities
- 
- - Network Access ?
- - File Access ?
-
-"""
-
-
-
-
-def retrieve_profile() :
-    """
-    Given the location of the AppArmor profile, retrieve the file to parse.
-
-    """
-
-    # Ubuntu
-
-
-    # Mac-OS
+def parse_apparmor_file(uri) :
+    """  brief title.
     
-    print("TODO")
+    Arguments:
+    arg1 - desc
+    arg2 - desc
 
-
-def parse_profile() :
+    Description:
+    blablabla
     """
+
+    try :
+        with open(uri, 'r') as profile :
+            
+            # TODO
+
+            return profile
+
+    except FileNotFoundError as error :
+        print(error)
+        exit(1)
+
+
+def get_caps_syscalls(profile) :
+    """  brief title.
     
+    Arguments:
+    arg1 - desc
+    arg2 - desc
+
+    Description:
+    blablabla
     """
+
+    # https://github.com/moby/moby/issues/17142
+    # https://docs.docker.com/engine/security/apparmor/
+
+
+
+
 
     # 1. Get profile name
 
@@ -215,22 +226,29 @@ def parse_profile() :
 
     # 8. Children profiles and hats ^ ?
 
+    return
 
 
+def AppArmor_Parser(uri='/files/Apparmor/docker-default') :
+    """  brief title.
+    
+    Arguments:
+    arg1 - desc
+    arg2 - desc
 
-    print("TODO")
-
-
-
-
-
-def AppArmor_Parser() :
+    Description:
+    blablabla
     """
-    Retrieve and parse an AppArmor profile. It will return a list of ...
-    """
 
-    # Retrieve the profile file by location
-    profile_loc = retrieve_profile()
+    profile = parse_apparmor_file(uri)
+
+    caps, syscalls = get_caps_syscalls(profile)
+
+    # Strip path and .json
+    p = Path(uri)
+    name = p.parts[-1].strip('.json')
+
+    return AppArmor_Profile(name, uri, caps, syscalls)
 
 
 

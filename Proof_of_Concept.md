@@ -1,21 +1,113 @@
 
-# Discussion
+## Seccomp - Secure Compute Mode
 
- - Representing each tool version with 5/10 node (5 versions less and 5 version more) --  we need a reference for this (e.g. people only update systems one or two version ahead at time).
+Seccomp is a Linux techonology to limit the set of system calls a process (container) can use.
 
- - How do we represent attacks with CAPEC? Is it the right template? I found several similar references of attacks representation to later generate attack paths.
 
- - AppArmor/Seccomp: edges are allowed CAPs/syscalls?
 
- - When to initialize vuln.json in Neo4J? Should we create missing nodes as well and "wait" containers will connect to them?
 
- - How do we model the interaction with the user? Terminal output?
 
- - All properties (nodes) in common between containers (root user, capabilities, etc.) are create only once and all containers connect to the same node. This should not be a problem because to update a container (privileges) we first need to stop and restart it (so also a new graph representation will be generated).
+## AND/OR trees - Neo4J
 
- - If we keep this container/attacks representation, I only need the vulns.json file to automatically create nodes in the graphs and automatically generate the query.
+Reference: 
 
- - Analytical hierarchy process: [version_upgrade], [not_privileged], [not_root], [not_capability], [not_syscall], [read_only_fs], [no_new_priv], [official_image]
+[1] https://neo4j.com/labs/apoc/4.1/overview/apoc.path/apoc.path.subgraphNodes/
+
+[2] https://stackoverflow.com/questions/71815007/given-a-neo4j-tree-with-a-weight-on-its-leaves-how-do-i-return-for-each-node-th/71820674#71820674
+
+
+
+Return all AND/OR nodes of a CVE node (no leaves):
+
+"
+MATCH (r:ROOT_NODE)
+CALL apoc.path.subgraphAll(r, {
+	relationshipFilter: "<",
+	labelFilter: "+AND_NODE|+OR_NODE"
+})
+YIELD nodes, relationships
+WITH REVERSE(nodes) AS result
+RETURN result
+"
+
+To __exclude__ specific nodes, use the following:
+`blackListNodes: List<Node>`
+
+
+
+
+
+
+
+
+
+
+
+
+## AND/OR Graph Traversal Algorithm
+
+// For a given vulnerability
+// return (the list of) AND or OR nodes
+...
+
+// For each AND/OR node, find children nodes 
+UNWIND nodes AS n
+    CALL {
+        WITH n
+        MATCH (c)-[*1]->(n)
+        WITH COLLECT(c) as children
+        UNWIND children AS child
+        WITH COLLECT( EXISTS( (:Container {name: 'Nginx'})-[*]->(child) ) ) AS connections
+        RETURN connections
+    }
+    // Evaluate AND/OR conditions
+    CALL {
+        WITH n, connections
+        RETURN
+        CASE n.name
+        WHEN 'AND_NODE'  THEN ALL(con in connections WHERE con=True)
+        WHEN 'OR_NODE' THEN ANY(con in connections WHERE con=True)
+        END AS result
+    }
+
+// Combine all AND/OR condition results
+WITH COLLECT(result) AS results
+RETURN ALL(r in results WHERE r=True)
+
+
+
+## Vulnerabilities
+
+We can retrieve a list of vulnerabilities affecting the Docker engine (and its subcomponents, like containerd and runc) by checking the Docker releases webpage.
+
+### (Docker) Container Engine
+https://docs.docker.com/engine/release-notes/
+
+v20.10
+    - CVE-2022-24769
+    - CVE-2021-41092
+    - CVE-2021-41190 (containerd)
+    - CVE-2021-41103 (containerd)
+    - CVE-2021-41089
+    - CVE-2021-41091
+    - CVE-2021-21285
+    - CVE-2021-21284
+    - CVE-2021-30465 (runc)
+    - CVE-2021-21334 (containerd)
+    - CVE-2019-14271
+
+https://docs.docker.com/engine/release-notes/19.03/
+v19.03
+
+### Container CVE List
+
+ - https://www.container-security.site/general_information/container_cve_list.html
+
+### Docker security non-events
+
+ - https://docs.docker.com/engine/security/non-events/
+
+ - https://blog.pentesteracademy.com/abusing-sys-module-capability-to-perform-docker-container-breakout-cf5c29956edd
 
 
 
@@ -28,11 +120,9 @@ This file shows the list of commands to use for a proof of concept of this tool.
 
 For Vagrant Ubuntu VM: `export NEO4J_ADDRESS="192.168.2.5"`.
 
-Cleaning up the environment.
+Cleaning up the environment: `python main.py --remove-all`
 
-```bash
-python main.py --remove-all
-```
+Within the Neo4J browser, run: `:config initialNodeDisplay: 1000`
 
 
 ## 1 - List Docker Images
@@ -118,47 +208,36 @@ python main.py --run docker run --name vuln2 -it --rm -d --privileged ubuntu
 ```
 
 "
-MERGE (cve:Escape1 {name: 'Escape_1'})
-MERGE (mtac:Mitre:Tactic {name: 'Privilege Escalation'})
-MERGE (mtec:Mitre:Technique {name: 'Escape to Host'})
+MERGE (a:ROOT_NODE{key:'a'})
+MERGE (b:AND_NODE{key:'b'})
+MERGE (c:OR_NODE{key:'c'})
+MERGE (d:OR_NODE{key:'d'})
+MERGE (e:AND_NODE{key:'e'})
+MERGE (f:RED{key:'f'})
+MERGE (g:GREEN{key:'g'})
+MERGE (h:RED{key:'h'})
+MERGE (i:RED{key:'i'})
+MERGE (j:GREEN{key:'j'})
+MERGE (k:GREEN{key:'k'})
 
-MATCH (cve:Escape1 {name: 'Escape_1'})
-MATCH (mtec:Mitre:Technique {name: 'Escape to Host'})
-MERGE (cve)-[:LEADS_TO]->(mtec)
-
-MATCH (mtac:Mitre:Tactic {name: 'Privilege Escalation'})
-MATCH (mtec:Mitre:Technique {name: 'Escape to Host'})
-MERGE (mtec)-[:PARTS_OF]->(mtac)
-
-MATCH (cve:Escape1 {name: 'Escape_1'})
-MATCH (cc:ContainerConfig {name: 'root'})
-MERGE (cc)-[:ASSUMPTION_OF]->(cve)
-
-MATCH (cve:Escape1 {name: 'Escape_1'})
-MATCH (cap:Capability {name: 'CAP_SYS_ADMIN'})
-MERGE (cap)-[:ASSUMPTION_OF]->(cve)
-
-MATCH (cve:Escape1 {name: 'Escape_1'})
-MATCH (sysc:SystemCall {name: 'mount'})
-MERGE (sysc)-[:ASSUMPTION_OF]->(cve)
+MERGE (k)-[:AND]->(e)
+MERGE (j)-[:AND]->(e)
+MERGE (e)-[:OR]->(d)
+MERGE (i)-[:OR]->(d)
+MERGE (f)-[:OR]->(c)
+MERGE (g)-[:OR]->(c)
+MERGE (h)-[:OR]->(c)
+MERGE (c)-[:AND]->(b)
+MERGE (d)-[:AND]->(b)
+MERGE (b)-[:OR]->(a)
 "
 
 
 Examples of Neo4J queries to check whether a container is vulnerable to a specific vulnerability:
 
-`MATCH p = (c:Container)-[*]-(cve:Escape1) RETURN COUNT(p) > 0`
-
-This kind of query can actually be automatically generated :)
-
-
-Query to return the **Spanning Tree** of a vulnerability:
-
-`MATCH p = (a)-[:ASSUMPTION_OF]->(b)-[*]->(c) RETURN *`
-
-
-Query to return the list of Assumptions for an attack:
-
-`MATCH (a)-[:ASSUMPTION_OF]->(b) RETURN a.name`
+"
+...
+"
 
 
 ## Pattern negation to multiple nodes

@@ -51,7 +51,7 @@ def create_relationships(tx, img) :
     """
 
     tx.run("MATCH (i:Image:Docker {img_id: $img_id}) "
-           "MATCH (de:DockerEngine:Version) "
+           "MATCH (de:DockerEngine)-[:RUNS_ON_TOP]->(h:LinuxHost) "
            "MERGE (de)-[:MANAGES]->(i) "
            "UNION "
            "MATCH (i:Image:Docker {img_id: $img_id}) "

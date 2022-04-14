@@ -71,6 +71,10 @@ def remove_all_option(NEO4J_ADDRESS) :
 
 def main() :
 
+    from parse_Seccomp import parse_seccomp
+    parse_seccomp()
+    exit(0)
+
     if 'NEO4J_ADDRESS' in os.environ:
         global NEO4J_ADDRESS
         NEO4J_ADDRESS = os.environ.get('NEO4J_ADDRESS')
