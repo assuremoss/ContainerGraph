@@ -1,33 +1,43 @@
 
 # ContainerGraph
 
-A tool to generate a Knowledge Graph of Docker containers. 
+A tool to generate a Knowledge Graph of Docker containers, unveil the presence of vulnerabilities, and suggest security policies. 
 
+## Requirements
+
+ - python
+
+ - docker
+
+ - Neo4J
+
+## Run the tool as a Docker container
+
+**TODO**
 
 ## How to run the tool
 
-Blablabla
+To run the tool, follow these steps:
+
+1. `git clone https://github.com/fminna/ContainerGraph.git`
+
+2. `cd ContainerGraph`
+
+3.  `sudo addgroup --system docker`
+    `sudo adduser $USER docker`
+    `newgrp docker`
+
+4. `export NEO4J_ADDRESS="neo4j_server_ip"`
+
+5. `pipenv install`
+
+6. `pipenv shell`
+
+7. `python main.py --help`
 
 
 
-
-
-
-## Comparison Tool
-
-**Microsoft Defender for Containers** 
- - https://techcommunity.microsoft.com/t5/microsoft-defender-for-cloud/introducing-microsoft-defender-for-containers/ba-p/2952317
- - https://docs.microsoft.com/en-us/azure/defender-for-cloud/defender-for-cloud-introduction
- - https://docs.microsoft.com/en-us/azure/defender-for-cloud/alerts-reference#alerts-k8scluster
- - https://guillaumeben.xyz/defender-containers.html
-
-
-## Useful Tools
-
-https://github.com/containers
-
-
-## Neo4J Database Connection
+### Neo4J Database Connection
 
 To run the tool within a `Vagrant` virtual machine you have to allow remote connections to the Neo4J database. To do so, change the following Database settings:
 

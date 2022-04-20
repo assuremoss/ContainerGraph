@@ -1,4 +1,8 @@
-import json
+from string import capwords
+from parse_Apparmor import apparmor_parser
+from parse_Seccomp import seccomp_parser
+from parse_perm_file import get_all_caps, get_all_syscalls
+from parse_Seccomp import analyze_syscalls
 
 
 class Permission :
@@ -12,44 +16,17 @@ class Permission :
     blablabla
     """
 
-    def __init__(self, profile, capabilities, syscalls, read_only, no_new_priv, AppArmor_profile, Seccomp_profile) :
+    def __init__(self, profile, Seccomp_profile, Apparmor_profile,  read_only, no_new_priv, caps, syscalls) :
         self.profile = profile
-        self.capabilities = capabilities
-        self.syscalls = syscalls
+        self.Seccomp_profile = Seccomp_profile
+        self.Apparmor_profile = Apparmor_profile
         self.read_only = read_only
         self.no_new_priv = no_new_priv
-        self.AppArmor_profile = AppArmor_profile
-        self.Seccomp_profile = Seccomp_profile
-
-    def print_perm(self) :
-        print('profile: ' + self.profile)
-        print(self.capabilities)
-        print(self.syscalls)
-        print('read_only: ' + self.read_only)
-        print('no_new_priv: ' + self.no_new_priv)
-        print('AppArmor_profile: ' + self.AppArmor_profile)
-        print('Seccomp_profile: ' + self.Seccomp_profile)
+        self.caps = caps
+        self.syscalls = syscalls
 
 
-# class AppArmor :
-#     """
-#     TODO
-#     """
-
-#     def __init__():
-#         print()
-
-
-# class SecComp :
-#     """
-#     TODO
-#     """
-
-#     def __init__():
-#         print()
-
-
-def parse_CAPS_file() :
+def evaluate_perm(profile, Seccomp_p, Apparmor_p) : 
     """  brief title.
     
     Arguments:
@@ -60,58 +37,16 @@ def parse_CAPS_file() :
     blablabla
     """
 
-    try :
-        with open('./files/permission_taxonomy.json', 'r') as perm_file :
-            perm = json.load(perm_file)
+    if profile == 'docker-privileged' :
+        return get_all_caps(), get_all_syscalls()
 
-            capabilities = perm['capabilities']
-            syscalls = perm['syscalls']
+    allowed_syscalls = []
 
-            return capabilities, syscalls
-
-    except FileNotFoundError as error :
-        print(error)
-        exit(1)
+    # for c in Apparmor_p.caps :
+        
 
 
-def get_all_syscalls() :
-    """  brief title.
-    
-    Arguments:
-    arg1 - desc
-    arg2 - desc
-
-    Description:
-    blablabla
-    """
-    
-    _, syscalls = parse_CAPS_file()
-
-    all_syscalls = []
-    for syscall in syscalls :
-        all_syscalls.append(syscall['name'])
-
-    return all_syscalls
-
-
-def get_all_caps() :
-    """  brief title.
-    
-    Arguments:
-    arg1 - desc
-    arg2 - desc
-
-    Description:
-    blablabla
-    """
-    
-    capabilities, _ = parse_CAPS_file()
-
-    all_caps = []
-    for cap in capabilities : 
-        all_caps.append(list(cap.keys())[0])
-
-    return all_caps
+    return Apparmor_p.caps, allowed_syscalls
 
 
 def build_permissions(cont_id, run_args) :
@@ -125,21 +60,23 @@ def build_permissions(cont_id, run_args) :
     blablabla
     """
 
-    all_caps = get_all_caps()
-    all_syscalls = get_all_syscalls()
-    default_cap = []
-    default_syscall = []
-    
-    # Default Docker Profile
+    # Permission object fields
     profile = 'docker-default'
-    capabilities = default_cap
-    syscalls = default_syscall
-    read_only = 'False'
+    Seccomp_p = []
+    AppArmor_p = []
+    read_only = 'False' 
     no_new_priv = 'False'
-    AppArmor_profile = 'docker-default'
-    Seccomp_profile = 'docker-default'
 
-    # parse docker run arguments and check for permissions parameters
+    # List of allowed capabilities
+    a_caps = []
+    # List of denied capabilities
+    d_caps = []
+    # List of allowed syscalls
+    a_syscalls = []
+    # List of denied syscalls
+    d_syscalls = []
+
+    # parse docker run arguments 
     for i in range(len(run_args)) :
 
         arg = run_args[i]
@@ -152,7 +89,7 @@ def build_permissions(cont_id, run_args) :
             profile = cont_id + '_custom'
 
             if value == 'all' or value == 'ALL' : 
-                capabilities = []
+                d_caps = get_all_caps()
                 continue
 
             # Standardize (CAP) value
@@ -160,7 +97,7 @@ def build_permissions(cont_id, run_args) :
                 value = 'CAP_' + value.upper()
             else : value = value.upper()
                       
-            capabilities.remove(value)
+            d_caps.append(value)
 
         # Add Capabilities
         if arg.startswith('--cap-add') or arg.startswith('--CAP-ADD'):
@@ -170,7 +107,7 @@ def build_permissions(cont_id, run_args) :
             profile = cont_id + '_custom'
 
             if value == 'all' or value == 'ALL' : 
-                capabilities = all_caps
+                a_caps = get_all_caps()
                 continue
 
             # Standardize (CAP) value
@@ -178,23 +115,23 @@ def build_permissions(cont_id, run_args) :
                 value = 'CAP_' + value.upper()
             else : value = value.upper()
                       
-            capabilities = list(set(capabilities + [value]))
+            a_caps = list(set(a_caps + [value]))
 
         # Privileged Profile
         if run_args[i] == '--privileged' :
-                profile = 'docker-privileged'
-                capabilities = all_caps
-                syscalls = all_syscalls
-                AppArmor_profile = 'unconfined'
-                Seccomp_profile = 'unconfined'
+            return Permission('docker-privileged', 'unconfined', 'unconfined', 'False', 'False', get_all_caps(), get_all_syscalls())
 
         # Mount the container's root filesystem as read only
         if run_args[i] == '--read-only' :
             profile = 'docker-read-only'
             read_only = 'True'
-            ### CAPs ###
-            ### SYSCALLs ###
-
+            # The capabilities are the same as for the docker-default AppAmor profile (i.e., 14 caps).
+            a_caps += apparmor_parser().caps     
+            #
+            # Forbidden system calls 
+            d_syscalls += apparmor_parser().d_syscalls
+            d_syscalls += ['chmod', 'chown', 'chown32', 'write', 'chroot', 'creat', 'create_module', 'delete_module', 'epoll_create', 'epoll_create1', 'allocate', 'fchmod', 'fchmodat', 'fchown', 'chown32', 'chownat', 'fsetxattr', 'init_module', 'io_destroy', 'lchown', 'lchown32', 'mkdir', 'mkdirat', 'mknod', 'mknodat', 'move_mount', 'move_pages', 'pivot_root', 'rename', 'renameat', 'rmdir', 'setdomainname', 'setfsgid', 'setfsgid32', 'setfsuid', 'setfsuid32', 'setgid', 'setgid32', 'setgroups', 'setgroups32', 'sethostname', 'setitimer', 'setns', 'setpgid', 'setpriority', 'setregid', 'setregid32', 'setresgid', 'setresgid32', 'setreuid', 'setreuid32', 'setrlimit', 'setsid', 'setsockopt', 'set_thread_area', 'set_tid_address', 'settimeofday', 'setuid', 'setuid32', 'setxattr', 'ulink', 'ulinkat', 'unshare', 'write', 'writev']
+                   
         # Docker Security Options
         if arg.startswith('--security-opt') :
 
@@ -206,65 +143,68 @@ def build_permissions(cont_id, run_args) :
 
             profile = cont_id + '_custom'
 
+            # NoNewPriv: the container can not start a process with more privileges than its own.
+            # Syntax: --security-opt=no-new-privileges:true
             if value.startswith('no-new-privileges') :
                 aux = value.split(':')[1]
                 if aux == 'true' : 
                     no_new_priv = 'True'
-                    ### TO CHECK
-                    # capabilities & syscalls
-                    ###
-
-            elif value == 'apparmor=unconfined' :
-                AppArmor_profile = 'unconfined'
-                ### TO CHECK
-                # capabilities & syscalls
-                ###
-                capabilities = all_caps
-                syscalls = all_syscalls
+                    # The capabilities are the same as for the docker-default AppAmor profile (i.e., 14 caps).
+                    a_caps += apparmor_parser().caps
+                    #
+                    # TODO: which system calls are forbidden, beside default ?
+                    d_syscalls += apparmor_parser().d_syscalls
 
             elif value == 'seccomp=unconfined' :
-                Seccomp_profile = 'unconfined'
-                ### TO CHECK
-                # capabilities & syscalls
-                ###
-                capabilities = all_caps
-                syscalls = all_syscalls
+                Seccomp_p = 'unconfined'
 
-            ### TODO: apparmor=custom_profile
-            # elif value.startswith('apparmor=') :
+            # Seccomp custom profile
+            elif value.startswith('seccomp=') :
+                uri = value.replace('seccomp=', '')
+                Seccomp_p = seccomp_parser('', uri)
 
-            ### TODO: seccomp=custom_profile
-            # elif value.startswith('seccomp=') :
+            elif value == 'apparmor=unconfined' :
+                AppArmor_p = 'unconfined'
+                # By default, if no other capabilities are added, with unconfined apparmor Docker will only grant the 14 default capabilities.
+                a_caps += apparmor_parser().caps
 
-    # Sort Capabilities and Systemcalls
-    capabilities.sort()
-    syscalls.sort()
+            # AppArmor custom profile
+            elif value.startswith('apparmor=') :
+                uri = value.replace('apparmor=', '')
+                AppArmor_p = apparmor_parser('', uri)
+                a_caps += AppArmor_p.caps
+                a_syscalls += AppArmor_p.a_syscalls
+                d_syscalls += AppArmor_p.d_syscalls
 
-    perm = Permission(profile, capabilities, syscalls, read_only, no_new_priv, AppArmor_profile, Seccomp_profile)
-    return perm
+    # Default profile
+    if not Seccomp_p : 
+        Seccomp_p = seccomp_parser()
 
+    # Default profile
+    if not AppArmor_p : 
+        AppArmor_p = apparmor_parser()
+        a_caps += AppArmor_p.caps
+        a_syscalls += AppArmor_p.a_syscalls
+        d_syscalls += AppArmor_p.d_syscalls
 
-def parse_AppArmor() :
-    """  brief title.
+    # Get a list of allowed system calls, also based on granted CAPs
+    if Seccomp_p == 'unconfined' :
+        a_s = get_all_syscalls()
+        d_s = []
+    else :
+        a_s, d_s = analyze_syscalls(Seccomp_p, a_caps)
     
-    Arguments:
-    arg1 - desc
-    arg2 - desc
+    a_syscalls += a_s
+    d_syscalls += d_s
 
-    Description:
-    blablabla
-    """
-    print("TODO")
-
-
-def parse_Seccomp() :
-    """  brief title.
+    # List of allowed caps - list of disallowed caps
+    caps = [c for c in a_caps if c not in d_caps]
+    caps = list(set(caps))
+    caps.sort()
     
-    Arguments:
-    arg1 - desc
-    arg2 - desc
+    sysc = [s for s in a_syscalls if s not in d_syscalls]
+    sysc = list(set(sysc))
+    sysc.sort()
 
-    Description:
-    blablabla
-    """
-    print("TODO")
+    return Permission(profile, Seccomp_p, AppArmor_p, read_only, no_new_priv, caps, sysc)
+

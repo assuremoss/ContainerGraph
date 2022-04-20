@@ -7,6 +7,21 @@ profile docker-default flags=(attach_disconnected,mediate_deleted) {
   file,
   umount,
 
+  capability chown,
+  capability dac_override,
+  capability fsetid,
+  capability fowner,
+  capability mknod,
+  capability net_raw,
+  capability setgid,
+  capability setuid,
+  capability setfcap,
+  capability setpcap,
+  capability net_bind_service,
+  capability sys_chroot,
+  capability kill,
+  capability audit_write,
+
   signal (receive) peer=unconfined,
 
   signal (send,receive) peer=docker-default,

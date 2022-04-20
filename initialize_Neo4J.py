@@ -115,7 +115,10 @@ def initialize_Neo4j_db(NEO4J_ADDRESS) :
         # Initialize Host
         host_Neo4j(NEO4J_ADDRESS, host)
 
-        print('Total: 411 nodes and 6 relationships.\n')
+        #
+        # MATCH (n)-[r]->() RETURN COUNT(r)
+        # MATCH (n) RETURN COUNT(n)
+        # print('Total: 411 nodes and 6 relationships.\n')
 
         # Initialize Vulnerabilities
         # vuln_Neo4j(NEO4J_ADDRESS)

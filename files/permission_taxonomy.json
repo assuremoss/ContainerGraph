@@ -1,804 +1,168 @@
 {
 	"capabilities": [
         {
-            "CAP_AUDIT_CONTROL": [
-                {
-                    "kernel_v": "2.6.11",
-                    "docker-default": "no"
-                }
-            ]
+            "name": "CAP_AUDIT_CONTROL",
+            "kernel_v": "2.6.11"
         },
         {
-            "CAP_AUDIT_READ": [
-                {
-                    "kernel_v": "3.16",
-                    "docker-default": "no"
-                }
-            ]
+            "name": "CAP_AUDIT_READ",
+            "kernel_v": "3.16"
         },
         {
-            "CAP_AUDIT_WRITE": [
-                {
-                    "kernel_v": "2.6.11",
-                    "docker-default": "yes"
-                }
-            ]
+            "name": "CAP_AUDIT_WRITE",
+            "kernel_v": "2.6.11"
         },
         {
-            "CAP_BLOCK_SUSPEND": [
-                {
-                    "kernel_v": "3.5",
-                    "system_calls": [
-                        {
-                            "name": "epoll_create",
-                            "kernel_v": "2.6"
-                        },
-                        {
-                            "name": "epoll_create1",
-                            "kernel_v": "2.6.27"
-                        },
-                        {
-                            "name": "epoll_ctl",
-                            "kernel_v": "2.6"
-                        },
-                        {
-                            "name": "epoll_pwait",
-                            "kernel_v": "2.6.19"
-                        },
-                        {
-                            "name": "epoll_pwait2",
-                            "kernel_v": "5.11"
-                        },
-                        {
-                            "name": "epoll_wait",
-                            "kernel_v": "2.6"
-                        }
-                    ]
-                }
-            ]
+            "name": "CAP_BLOCK_SUSPEND",
+            "kernel_v": "3.5"
         },
         {
-            "CAP_BPF": [
-                {
-                    "kernel_v": "5.8",
-                    "system_calls": [
-                        {
-                            "name": "bpf",
-                            "kernel_v": "3.18"
-                        }
-                    ]
-                }
-            ]
+            "name": "CAP_BPF",
+            "kernel_v": "5.8"
         },
         {
-            "CAP_CHECKPOINT_RESTORE": [
-                {
-                    "kernel_v": "5.9",
-                    "docker-default": "no"
-                }
-            ]
+            "name": "CAP_CHECKPOINT_RESTORE",
+            "kernel_v": "5.9"
         },
         {
-            "CAP_CHOWN": [
-                {
-                    "system_calls": [
-                        {
-                            "name": "chown",
-                            "kernel_v": "2.2"
-                        }
-                    ]
-                }
-            ]
+            "name": "CAP_CHOWN",
+            "kernel_v": "2.2"
         },
         {
-            "CAP_DAC_OVERRIDE": [
-                { 
-                    "docker-default": "yes"
-                }
-            ]
+            "name": "CAP_DAC_OVERRIDE",
+            "kernel_v": "2.2"
         },
         {
-            "CAP_DAC_READ_SEARCH": [
-                {
-                    "system_calls": [
-                        {
-                            "name": "name_to_handle_at",
-                            "kernel_v": "2.6.39"
-                        },
-                        {
-                            "name": "open_by_handle_at",
-                            "kernel_v": "2.6.39"
-                        },
-                        {
-                            "name": "linkat",
-                            "kernel_v": "2.6.16"
-                        }
-                    ]
-                }
-            ]
+            "name": "CAP_DAC_READ_SEARCH",
+            "kernel_v": "2.2"
         },
         {
-            "CAP_FOWNER": [
-                {
-                    "system_calls": [
-                        {
-                            "name": "ioctl",
-                            "kernel_v": "1.0"
-                        },
-                        {
-                            "name": "utime",
-                            "kernel_v": "1.0"
-                        },
-                        {
-                            "name": "utimes",
-                            "kernel_v": "2.2"
-                        },
-                        {
-                            "name": "chmod",
-                            "kernel_v": "1.0"
-                        },
-                        {
-                            "name": "open",
-                            "kernel_v": "1.0"
-                        }
-                    ]
-                }
-            ]
+            "name": "CAP_FOWNER",
+            "kernel_v": "2.2"
         },
         {
-            "CAP_FSETID": [
-                { 
-                    "docker-default": "yes"
-                }
-            ]
+            "name": "CAP_FSETID",
+            "kernel_v": "2.2"
         },
         {
-            "CAP_IPC_LOCK": [
-                {
-                    "system_calls": [
-                        {
-                            "name": "mlock",
-                            "kernel_v": "2.0"
-                        },
-                        {
-                            "name": "mlock2",
-                            "kernel_v": "4.4"
-                        },
-                        {
-                            "name": "munlock",
-                            "kernel_v": "2.0"
-                        },
-                        {
-                            "name": "mlockall",
-                            "kernel_v": "2.0"
-                        },
-                        {
-                            "name": "munlockall",
-                            "kernel_v": "2.0"
-                        },
-                        {
-                            "name": "mmap",
-                            "kernel_v": "1.0"
-                        },
-                        {
-                            "name": "munmap",
-                            "kernel_v": "1.0"
-                        },
-                        {
-                            "name": "shmctl",
-                            "kernel_v": "2.0"
-                        },
-                        {
-                            "name": "memfd_create",
-                            "kernel_v": "3.17"
-                        }
-                    ]
-                }
-            ]
+            "name": "CAP_IPC_LOCK",
+            "kernel_v": "2.2"
         },
         {
-            "CAP_IPC_OWNER": [
-                { 
-                    "docker-default": "no"
-                }
-            ]
+            "name": "CAP_IPC_OWNER",
+            "kernel_v": "2.2"
         },
         {
-            "CAP_KILL": [
-                {
-                    "system_calls": [
-                        {
-                            "name": "kill",
-                            "kernel_v": "1.0"
-                        }
-                    ]
-                }
-            ]
+            "name": "CAP_KILL",
+            "kernel_v": "2.2"
         },
         {
-            "CAP_LEASE": [
-                {
-                    "kernel_v": "2.4",
-                    "docker-default": "no"
-                }
-            ]
+            "name": "CAP_LEASE",
+            "kernel_v": "2.4"
         },
         {
-            "CAP_LINUX_IMMUTABLE": [
-                {
-                    "kernel_v": "1.1.1",
-                    "system_calls": [
-                        {
-                            "name": "ioctl",
-                            "kernel_v": "1.0"
-                        }
-                    ]
-                }
-            ]
+            "name": "CAP_LINUX_IMMUTABLE",
+            "kernel_v": "2.2"
         },
         {
-            "CAP_MAC_ADMIN": [
-                {
-                    "kernel_v": "2.6.25",
-                    "docker-default": "no"
-                }
-            ]
+            "name": "CAP_MAC_ADMIN",
+            "kernel_v": "2.6.25"
         },
         {
-            "CAP_MAC_OVERRIDE": [
-                {
-                    "kernel_v": "2.6.25",
-                    "docker-default": "no"
-                }
-            ]
+            "name": "CAP_MAC_OVERRIDE",
+            "kernel_v": "2.6.25"
         },
         {
-            "CAP_MKNOD": [
-                {
-                    "kernel_v": "2.4",
-                    "system_calls": [
-                        {
-                            "name": "mknod",
-                            "kernel_v": "1.0"
-                        }
-                    ]
-                }
-            ]
+            "name": "CAP_MKNOD",
+            "kernel_v": "2.4"
         },
         {
-            "CAP_NET_ADMIN": [
-                {
-                    "system_calls": [
-                        {
-                            "name": "getsockopt",
-                            "kernel_v": "2.0"
-                        },
-                        {
-                            "name": "setsockopt",
-                            "kernel_v": "2.0"
-                        }
-                    ]
-                }
-            ]
+            "name": "CAP_NET_ADMIN",
+            "kernel_v": "2.2"
         },
         {
-            "CAP_NET_BIND_SERVICE": [
-                { 
-                    "docker-default": "yes"
-                }
-            ]
+            "name": "CAP_NET_BIND_SERVICE",
+            "kernel_v": "2.2"
         },
         {
-            "CAP_NET_BROADCAST": [
-                { 
-                    "docker-default": "no"
-                }
-            ]
+            "name": "CAP_NET_BROADCAST",
+            "kernel_v": "2.2"
         },
         {
-            "CAP_NET_RAW": [
-                { 
-                    "docker-default": "yes"
-                }
-            ]
+            "name": "CAP_NET_RAW",
+            "kernel_v": "2.2"
         },
         {
-            "CAP_PERFMON": [
-                {
-                    "kernel_v": "5.8",
-                    "system_calls": [
-                        {
-                            "name": "perf_event_open",
-                            "kernel_v": "2.6.31"
-                        }
-                    ]
-                }
-            ]
+            "name": "CAP_PERFMON",
+            "kernel_v": "5.8"
         },
         {
-            "CAP_SETGID": [
-                {
-                    "kernel_v": "1.1.1",
-                    "docker-default": "no"
-                }
-            ]
+            "name": "CAP_SETGID",
+            "kernel_v": "2.2"
         },
         {
-            "CAP_SETFCAP": [
-                {
-                    "kernel_v": "2.6.24",
-                    "docker-default": "yes"
-                }
-            ]
+            "name": "CAP_SETFCAP",
+            "kernel_v": "2.6.24"
         },
         {
-            "CAP_SETPCAP": [
-                {
-                    "kernel_v": "2.6.24",
-                    "system_calls": [
-                        {
-                            "name": "prctl",
-                            "kernel_v": "2.2"
-                        }
-                    ]
-                }
-            ]
+            "name": "CAP_SETPCAP",
+            "kernel_v": "2.6.24"
         },
         {
-            "CAP_SETUID": [
-                {
-                    "system_calls": [
-                        {
-                            "name": "setuid",
-                            "kernel_v": "1.0"
-                        },
-                        {
-                            "name": "setreuid",
-                            "kernel_v": "1.0"
-                        },
-                        {
-                            "name": "setregid",
-                            "kernel_v": "1.0"
-                        },
-                        {
-                            "name": "setresuid",
-                            "kernel_v": "2.2"
-                        },
-                        {
-                            "name": "setresgid",
-                            "kernel_v": "2.2"
-                        },
-                        {
-                            "name": "setfsuid",
-                            "kernel_v": "1.2"
-                        }
-                    ]
-                }
-            ]
+            "name": "CAP_SETUID",
+            "kernel_v": "2.2"
         },
         {
-            "CAP_SYS_ADMIN": [
-                {
-                    "system_calls": [
-                        {
-                            "name": "quotactl",
-                            "kernel_v": "1.0"
-                        },
-                        {
-                            "name": "clone",
-                            "kernel_v": "1.0"
-                        },
-                        {
-                            "name": "clone3",
-                            "kernel_v": "5.3"
-                        },
-                        {
-                            "name": "fsconfig",
-                            "kernel_v": "5.2"
-                        },
-                        {
-                            "name": "fsmount",
-                            "kernel_v": "5.2"
-                        },
-                        {
-                            "name": "fsopen",
-                            "kernel_v": "5.2"
-                        },
-                        {
-                            "name": "fspick",
-                            "kernel_v": "5.2"
-                        },
-                        {
-                            "name": "lookup_dcookie",
-                            "kernel_v": "2.6"
-                        },
-                        {
-                            "name": "move_mount",
-                            "kernel_v": "5.2"
-                        },
-                        {
-                            "name": "name_to_handle_at",
-                            "kernel_v": "2.6.39"
-                        },
-                        {
-                            "name": "open_tree",
-                            "kernel_v": "5.2"
-                        },
-                        {
-                            "name": "mount",
-                            "kernel_v": "1.0"
-                        },
-                        {
-                            "name": "umount",
-                            "kernel_v": "1.0"
-                        },
-                        {
-                            "name": "umount2",
-                            "kernel_v": "2.2"
-                        },
-                        {
-                            "name": "pivot_root",
-                            "kernel_v": "2.4"
-                        },
-                        {
-                            "name": "swapon",
-                            "kernel_v": "1.0"
-                        },
-                        {
-                            "name": "swapoff",
-                            "kernel_v": "1.0"
-                        },
-                        {
-                            "name": "setns",
-                            "kernel_v": "3.0"
-                        },
-                        {
-                            "name": "sethostname",
-                            "kernel_v": "1.0"
-                        },
-                        {
-                            "name": "setdomainname",
-                            "kernel_v": "1.0"
-                        },
-                        {
-                            "name": "syslog",
-                            "kernel_v": "1.0"
-                        },
-                        {
-                            "name": "bpf",
-                            "kernel_v": "3.18"
-                        },
-                        {
-                            "name": "perf_event_open",
-                            "kernel_v": "2.6.31"
-                        },
-                        {
-                            "name": "lookup_dcookie",
-                            "kernel_v": "2.6"
-                        },
-                        {
-                            "name": "ioprio_set",
-                            "kernel_v": "2.6.13"
-                        },
-                        {
-                            "name": "fanotify_init",
-                            "kernel_v": "2.6.37"
-                        },
-                        {
-                            "name": "keyctl",
-                            "kernel_v": "2.6.10"
-                        },
-                        {
-                            "name": "madvise",
-                            "kernel_v": "2.4"
-                        },
-                        {
-                            "name": "nfsservctl",
-                            "kernel_v": "2.2"
-                        },
-                        {
-                            "name": "bdflush",
-                            "kernel_v": "1.2"
-                        },
-                        {
-                            "name": "ioctl",
-                            "kernel_v": "1.0"
-                        },
-                        {
-                            "name": "getrandom",
-                            "kernel_v": "3.17"
-                        },
-                        {
-                            "name": "seccomp",
-                            "kernel_v": "3.17"
-                        },
-                        {
-                            "name": "process_vm_readv",
-                            "kernel_v": "3.2"
-                        },
-                        {
-                            "name": "process_vm_writev",
-                            "kernel_v": "3.2"
-                        },
-                        {
-                            "name": "ptrace",
-                            "kernel_v": "1.0"
-                        },
-                        {
-                            "name": "nice",
-                            "kernel_v": "1.0"
-                        },
-                        {
-                            "name": "getpriority",
-                            "kernel_v": "1.0"
-                        },
-                        {
-                            "name": "setpriority",
-                            "kernel_v": "1.0"
-                        },
-                        {
-                            "name": "sched_get_affinity",
-                            "kernel_v": "2.6"
-                        },
-                        {
-                            "name": "sched_get_priority_max",
-                            "kernel_v": "2.0"
-                        },
-                        {
-                            "name": "sched_get_priority_min",
-                            "kernel_v": "2.0"
-                        },
-                        {
-                            "name": "sched_getaffinity",
-                            "kernel_v": "2.6"
-                        },
-                        {
-                            "name": "sched_getattr",
-                            "kernel_v": "3.14"
-                        },
-                        {
-                            "name": "sched_getparam",
-                            "kernel_v": "2.0"
-                        },
-                        {
-                            "name": "sched_getscheduler",
-                            "kernel_v": "2.0"
-                        },
-                        {
-                            "name": "sched_rr_get_interval",
-                            "kernel_v": "2.0"
-                        },
-                        {
-                            "name": "sched_set_affinity",
-                            "kernel_v": "2.6"
-                        },
-                        {
-                            "name": "sched_setaffinity",
-                            "kernel_v": "2.6"
-                        },
-                        {
-                            "name": "sched_setattr",
-                            "kernel_v": "3.14"
-                        },
-                        {
-                            "name": "sched_setparam",
-                            "kernel_v": "2.0"
-                        },
-                        {
-                            "name": "sched_setscheduler",
-                            "kernel_v": "2.0"
-                        },
-                        {
-                            "name": "sched_yield",
-                            "kernel_v": "2.0"
-                        },
-                        {
-                            "name": "unshare",
-                            "kernel_v": "2.6.16"
-                        },
-                        {
-                            "name": "vm86",
-                            "kernel_v": "2.2"
-                        },
-                        {
-                            "name": "vm86old",
-                            "kernel_v": "1.0"
-                        }
-                    ]
-                }
-            ]
+            "name": "CAP_SYS_ADMIN",
+            "kernel_v": "2.2"
         },
         {
-            "CAP_SYS_BOOT": [
-                {
-                    "system_calls": [
-                        {
-                            "name": "reboot",
-                            "kernel_v": "1.0"
-                        },
-                        {
-                            "name": "kexec_load",
-                            "kernel_v": "2.6.13"
-                        },
-                        {
-                            "name": "kexec_file_load",
-                            "kernel_v": "3.17"
-                        }
-                    ]
-                }
-            ]
+            "name": "CAP_SYS_BOOT",
+            "kernel_v": "2.2"
         },
         {
-            "CAP_SYS_CHROOT": [
-                {
-                    "system_calls": [
-                        {
-                            "name": "chroot",
-                            "kernel_v": "1.0"
-                        },
-                        {
-                            "name": "setns",
-                            "kernel_v": "3.0"
-                        }
-                    ]
-                }
-            ]
+            "name": "CAP_SYS_CHROOT",
+            "kernel_v": "2.2"
         },
         {
-            "CAP_SYS_MODULE": [
-                {
-                    "system_calls": [
-                        {
-                            "name": "create_module",
-                            "kernel_v": ""
-                        },
-                        {
-                            "name": "delete_module",
-                            "kernel_v": ""
-                        },
-                        {
-                            "name": "finit_module",
-                            "kernel_v": ""
-                        },
-                        {
-                            "name": "init_module",
-                            "kernel_v": ""
-                        }
-                    ]
-                }
-            ]
+            "name": "CAP_SYS_MODULE",
+            "kernel_v": "2.2"
         },
         {
-            "CAP_SYS_NICE": [
-                {
-                    "system_calls": [
-                        {
-                            "name": "",
-                            "kernel_v": ""
-                        },
-                        "nice",
-                        "sched_setscheduler",
-                        "sched_getscheduler",
-                        "sched_setparam",
-                        "sched_getparam",
-                        "sched_setattr",
-                        "sched_getattr",
-                        "sched_setaffinity",
-                        "sched_getaffinity",
-                        "ioprio_get",
-                        "ioprio_set",
-                        "migrate_pages",
-                        "move_pages",
-                        "mbind",
-                        "setpriority",
-                        "get_mempolicy",
-                        "set_mempolicy"
-                    ]
-                }
-            ]
+            "name": "CAP_SYS_NICE",
+            "kernel_v": "2.2"
         },
         {
-            "CAP_SYS_PACCT": [
-                {
-                    "system_calls": [
-                        "acct"
-                    ]
-                }
-            ]
+            "name": "CAP_SYS_PACCT",
+            "kernel_v": "2.2"
         },
         {
-            "CAP_SYS_PTRACE": [
-                {
-                    "system_calls": [
-                        "ptrace", 
-                        "get_robust_list",
-                        "set_robust_list",
-                        "process_vm_readv",
-                        "process_vm_writev",
-                        "kcmp",
-                        "pidfd_getfd",
-                        "process_madvise"
-                    ]
-                }
-            ]
+            "name": "CAP_SYS_PTRACE",
+            "kernel_v": "2.2"
         },
         {
-            "CAP_SYS_RAWIO": [
-                {
-                    "system_calls": [
-                        "iopl",
-                        "ioperm",
-                        "msr",
-                        "hpsa",
-                        "cciss"
-                    ]
-                }
-            ]
+            "name": "CAP_SYS_RAWIO",
+            "kernel_v": "2.2"
         },
         {
-            "CAP_SYS_RESOURCE": [
-                {
-                    "system_calls": [
-                        "ioctl",
-                        "getrlimit",
-                        "setrlimit",
-                        "prlimit",
-                        "msgrcv",
-                        "msgsnd",
-                        "msgrcv",
-                        "msgsnd",
-                        "msgctl",
-                        "fcntl",
-                        "mq_overview",
-                        "prctl",
-                        "unix"
-                    ]
-                }
-            ]
+            "name": "CAP_SYS_RESOURCE",
+            "kernel_v": "2.2"
         },
         {
-            "CAP_SYS_TIME": [
-                {
-                    "system_calls": [
-                        "gettimeofday",
-                        "settimeofday",
-                        "stime",
-                        "adjtimex",
-                        "clock_adjtime",
-                        "clock_settime",
-                        "ntp_adjtime"
-                    ]
-                }
-            ]
+            "name": "CAP_SYS_TIME",
+            "kernel_v": "2.2"
         },
         {
-            "CAP_SYS_TTY_CONFIG": [
-                {
-                    "system_calls": [
-                        "vhangup",
-                        "ioctl"
-                    ]
-                }
-            ]
+            "name": "CAP_SYS_TTY_CONFIG",
+            "kernel_v": "2.2"
         },
         {
-            "CAP_SYSLOG": [
-                {
-                    "kernel_v": "2.6.37",
-                    "system_calls": [
-                        "syslog",
-                        "klogctl",
-                        "proc"
-                    ]
-                }
-            ]
+            "name": "CAP_SYSLOG",
+            "kernel_v": "2.6.37"
         },
         {
-            "CAP_WAKE_ALARM": [
-                {
-                    "docker-default": "no"
-                }
-            ]
+            "name": "CAP_WAKE_ALARM",
+            "kernel_v": "3.0"
         }
     ],
 
@@ -1044,7 +408,7 @@
             "kernel_v": "1.0"
         },
         {
-            "name": "chwon32",
+            "name": "chown32",
             "kernel_v": "2.4"
         },
         {
@@ -2185,6 +1549,10 @@
         },
         {
             "name": "umask",
+            "kernel_v": "1.0"
+        },
+        {
+            "name": "umount",
             "kernel_v": "1.0"
         },
         {

@@ -69,6 +69,17 @@ def build_container(options):
         # retrieve container permissions
         permissions = build_permissions(cont_id, run_args)
 
+
+
+    ############################
+        print('Allowed CAPs: ' + str(len(permissions.caps)))
+        # print(permissions.caps)
+        print('Allowed syscalls: ' + str(len(permissions.syscalls)))
+        # print(permissions.syscalls)
+    ############################
+
+
+
         # build container object
         cont = build_cont_obj(cont, start_t, cconfig, permissions)
         # cont.print_cont()

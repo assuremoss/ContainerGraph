@@ -110,8 +110,7 @@ def create_caps_nodes(tx, capabilities) :
     """
 
     for cap in capabilities :
-        cap = list(cap.keys())[0]
-        query = "MERGE (cap:Capability {name: '" + cap + "'})"
+        query = "MERGE (cap:Capability {name: '" + cap['name'] + "'})"
         tx.run(query)
 
 

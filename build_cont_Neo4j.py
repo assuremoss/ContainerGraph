@@ -35,9 +35,13 @@ def cont_Neo4j_chart(NEO4J_ADDRESS, cont) :
         session.write_transaction(create_cconfig_nodes, cont)
         session.write_transaction(create_cconfig_relationships, cont)
 
-        if not session.read_transaction(perm_exist, cont) :
-            session.write_transaction(create_permissions_node, cont)
+        if cont.permissions.profile == 'docker-privileged' :
+            session.write_transaction(create_permissions_node)
             session.write_transaction(create_perm_relationships, cont) 
+        
+        else :
+            session.write_transaction(create_sec_prof_nodes, cont)
+            session.write_transaction(create_prof_relationships, cont) 
 
         session.write_transaction(create_cont_relationships, cont) 
 
@@ -100,7 +104,7 @@ def create_cconfig_relationships(tx, cont) :
                 )
 
 
-def perm_exist(tx, cont) :
+def create_permissions_node(tx) :
     """  brief title.
     
     Arguments:
@@ -111,13 +115,10 @@ def perm_exist(tx, cont) :
     blablabla
     """
 
-    result = tx.run("MATCH (p:Permissions {profile: $profile}) RETURN COUNT(p) > 0 ", profile = cont.permissions.profile)
-
-    result = result.single()[0]
-    return result
+    tx.run("MERGE (p:PrivPermissions {name: 'PrivPermissions', object: 'Container'})") 
 
 
-def create_permissions_node(tx, cont) :
+def create_sec_prof_nodes(tx, cont) :
     """  brief title.
     
     Arguments:
@@ -128,9 +129,46 @@ def create_permissions_node(tx, cont) :
     blablabla
     """
 
-    tx.run("MERGE (p:Permissions {name: 'Permissions', profile: $profile, object: 'Container'})", profile = cont.permissions.profile) 
     tx.run("MERGE (aa:AppArmor {name: 'AppArmor', profile: $profile, object: 'Container'})", profile = cont.permissions.profile)
     tx.run("MERGE (sc:SecComp {name: 'SecComp', profile: $profile, object: 'Container'})", profile = cont.permissions.profile)
+
+
+def create_prof_relationships(tx, cont) :
+    """  brief title.
+    
+    Arguments:
+    arg1 - desc
+    arg2 - desc
+
+    Description:
+    blablabla
+    """
+
+    tx.run("MATCH (c:Container:Docker {cont_id: $cont_id}) "
+        "MATCH (aa:AppArmor {name: 'AppArmor', profile: $profile}) "
+        "MERGE (c)-[:HAS]->(aa) ",
+        cont_id = cont.cont_id, profile = cont.permissions.profile
+    )
+
+    tx.run("MATCH (c:Container:Docker {cont_id: $cont_id}) "
+        "MATCH (sc:SecComp {name: 'SecComp', profile: $profile}) "
+        "MERGE (c)-[:HAS]->(sc) ",
+        cont_id = cont.cont_id, profile = cont.permissions.profile
+    )
+
+    for cap in cont.permissions.caps :
+        tx.run("MATCH (aa:AppArmor {name: 'AppArmor', profile: $profile}) "
+           "MATCH (cap:Capability {name: '" + cap + "'})"
+           "MERGE (aa)-[:HAS]->(cap) "
+           , profile = cont.permissions.profile
+        )
+
+    for syscall in cont.permissions.syscalls :
+        tx.run("MATCH (sc:SecComp {name: 'SecComp', profile: $profile}) "
+           "MATCH (sysc:SystemCall {name: '" + syscall + "'})"
+           "MERGE (sc)-[:HAS]->(sysc) "
+           , profile = cont.permissions.profile
+        )
 
 
 def create_perm_relationships(tx, cont) :
@@ -144,29 +182,25 @@ def create_perm_relationships(tx, cont) :
     blablabla
     """
 
-    for cap in cont.permissions.capabilities :
-        tx.run("MATCH (p:Permissions {name: 'Permissions', profile: $profile, object: 'Container'}) "
+    tx.run("MATCH (c:Container:Docker {cont_id: $cont_id}) "
+        "MATCH (pp:PrivPermissions {name: 'PrivPermissions', object: 'Container'}) "
+        "MERGE (c)-[:HAS]->(pp) ",
+        cont_id = cont.cont_id
+    )
+
+    for cap in cont.permissions.caps :
+        tx.run("MATCH (pp:PrivPermissions {name: 'PrivPermissions', object: 'Container'}) "
            "MATCH (cap:Capability {name: '" + cap + "'})"
-           "MERGE (p)-[:HAS]->(cap) "
+           "MERGE (pp)-[:HAS]->(cap) "
            , profile = cont.permissions.profile
         )
 
     for syscall in cont.permissions.syscalls :
-        tx.run("MATCH (p:Permissions {name: 'Permissions', profile: $profile, object: 'Container'}) "
+        tx.run("MATCH (pp:PrivPermissions {name: 'PrivPermissions', object: 'Container'}) "
            "MATCH (sysc:SystemCall {name: '" + syscall + "'})"
-           "MERGE (p)-[:HAS]->(sysc) "
+           "MERGE (pp)-[:HAS]->(sysc) "
            , profile = cont.permissions.profile
         )
-
-    tx.run("MATCH (p:Permissions {name: 'Permissions', profile: $profile, object: 'Container'}) "
-           "MATCH (aa:AppArmor {name: 'AppArmor', profile: $profile, object: 'Container'})"
-           "MERGE (p)-[:HAS]->(aa) "
-           "UNION "
-           "MATCH (p:Permissions {name: 'Permissions', profile: $profile, object: 'Container'}) "
-           "MATCH (sc:SecComp {name: 'SecComp', profile: $profile, object: 'Container'})"
-           "MERGE (p)-[:HAS]->(sc) "
-           , profile = cont.permissions.profile 
-    )
 
 
 def create_cont_node(tx, cont) :
@@ -200,10 +234,7 @@ def create_cont_relationships(tx, cont) :
            "UNION "
            "MATCH (c:Container:Docker {cont_id: $cont_id}) "
            "MATCH (i:Image:Docker {img_id: $img_id})  "
-           "MERGE (c)-[:INSTANCIATE]->(i) "
-           "UNION "
-           "MATCH (c:Container:Docker {cont_id: $cont_id}) "
-           "MATCH (p:Permissions {profile: $profile}) "
-           "MERGE (c)-[:CAN]->(p) "
-           , cont_id = cont.cont_id, img_id = cont.img_id, profile = cont.permissions.profile)
+           "MERGE (c)-[:INSTANCIATE]->(i) ", 
+           cont_id = cont.cont_id, img_id = cont.img_id
+    )
 

@@ -1,162 +1,15 @@
-"""
-AppArmor
-
-------------------------------------------------
-
-The default AppArmor profile used by Docker:
---security-opt apparmor=docker-default
-
-To load a custom profile:
-apparmor_parser -r -W /path/to/my_profile
---security-opt apparmor=my_profile
-
-To do not use any AppArmor profile:
---security-opt apparmor=unconfined
-
-------------------------------------------------
-
- - The order of rules does not matter.
-
- - Important: deny rules are evaluated before allow rules and cannot be overridden by an allow rule.
-
-------------------------------------------------
-
-The name of the profile is the one after the "profile" keyword:
-    profile profile_name flags=... {}
-
-It can also start like this:
-    /bin/cat --> will create a profile for cat!
-    /usr/bin/firefox {}
-    /usr/bin/firefox flags=... {}
-    /path/to/executable
-
-Ignore comments --> lines that start with # (do not ignore #include !)
-
-------------------------------------------------
-
-AppArmor Flags
-
-flags=(complain) --> The application will only be constrained by DAC while AppArmor will allow all actions and log any policy violations.
-
-For each rule, you may have empty (allow), deny, and owner.
-
-
-------------------------------------------------
-
-Capability rules --> grant capabilities
-
-Capability rules do not grant extra capability privileges to a task, but serve to mask the tasks, effective and permitted capability sets. 
-
- [('audit'|'quiet')' '] [('deny'|'kill'|'nokill')' '] 'capability' <cap> [<extended cap>|(' '<cap>)+] ','
-
-    capability setuid,
-    capability setgid,
-
-------------------------------------------------
-
-Network Rules --> AppArmor network rules provide a flexible profile centric approach to creating a firewall. The network rules are flexible in that they provide both control over creation of sockets, flow of data (packets), and can stand alone or be integrated with the system firewall.
-
-    network,           # allow all networking
-    deny network,      # disallow all networking
-    network inet tcp,  # allow TCP protocol for IPv4 only
-
-Permissions:
-    create
-    accept
-    bind
-    connect
-    listen
-    read
-    write
-    send
-    receive
-    getsockname
-    getpeername
-    getsockopt
-    setsockopt
-    fcntl
-    ioctl
-    shutdown
-    getpeersec
-
-
-    network inet, # grant the all permissions set
-    deny network bind inet, # subtract bind from inet
-    network inet stream,  # allow inet stream == tcp
-    network inet raw,
-    network tcp,
-
-
-------------------------------------------------
-
-File Rules --> control how iles are accessed and only occur within a profile. They consist of a pathname, a permission set and are terminated by a comma.
-
-    /path/to/file rw, (we consider only this syntax - convention)
-
-List of permissions:
-    r - read
-    w - write
-    a - append
-    l - link 
-    k - lock
-    m - memory
-    x - executable
-    
-
-------------------------------------------------
-
-Mount rule
-
-    mount, # allow any mount
-    mount options=ro /dev/foo, # mount /dev/foo as read-only    
-
-Options:
-    ro, r, read-only   |   rw, w
-    suid               |   nosuid
-    exec               |   noexec
-
-
-
-------------------------------------------------
-
-File Permissions
-    r - read
-    w - write
-    a - append (implied by w)
-    x - execute (for now we only consider x)
-    m - memory map executable
-    k - lock (requires r or w)
-    l - link 
-
-------------------------------------------------
-
-Rule Modifiers --> When there is no corresponding rule for a resource, AppArmor will block access to the resource and log it. When there is a rule in the policy, access is allowed to the resource without logging.
-The following modifiers can be prepended to a rule to change this behavior:
-    audit: force logging
-    deny: explicitly denying, without logging
-    audit deny
-
-    /path/to/file1          w,  # allow write
-    deny /path/to/file2,    w,
-    audit /.../.../         w,
-    audit deny /.../...     w,
-
-
-
-
-"""
-
-
 from pathlib import Path
+from parse_perm_file import get_all_caps, get_all_syscalls
 
 
 class AppArmor_Profile : 
 
-    def __init__(self, name, uri, caps, syscalls):
+    def __init__(self, name, uri, caps, a_syscalls, d_syscalls):
         self.name = name
         self.uri = uri
-        self.caps = caps
-        self.syscalls = syscalls
+        self.caps = caps # List of allowed capabilities
+        self.a_syscalls = a_syscalls # List of allowed system calls
+        self.d_syscalls = d_syscalls # List of denied system calls
 
 
 def parse_apparmor_file(uri) :
@@ -172,10 +25,7 @@ def parse_apparmor_file(uri) :
 
     try :
         with open(uri, 'r') as profile :
-            
-            # TODO
-
-            return profile
+            return profile.readlines()
 
     except FileNotFoundError as error :
         print(error)
@@ -193,43 +43,129 @@ def get_caps_syscalls(profile) :
     blablabla
     """
 
-    # https://github.com/moby/moby/issues/17142
-    # https://docs.docker.com/engine/security/apparmor/
+    ### MAN PAGE
+    # https://manpages.ubuntu.com/manpages/xenial/man5/apparmor.d.5.html
+    ###
+
+    all_caps = get_all_caps()
+    all_syscalls = get_all_syscalls()
+
+    a_caps = [] 
+    d_caps = [] 
+    a_syscalls = []
+    d_syscalls = []
+
+    # Iterate over the profile's lines
+    for line in profile :
+        # Strip left white space
+        line = line.strip().strip(',')
+
+        # Ignore empty lines 
+        if line : 
+
+            # Skip profile name
+            if line.startswith('profile') :
+                continue
+
+            # Other profiles
+            elif line.startswith('#include') :
+                # TODO
+                # For now, skip parsing #include profiles.
+                continue
+
+            # Skip comments
+            elif line.startswith('#') :
+                continue
+        
+            # Skip last line
+            elif line.startswith('}') :
+                continue
+
+            # File options
+            elif line.startswith('/') :
+                continue
+        
+            # File options
+            elif line.startswith('file') :
+                continue
+
+            # Audit options
+            elif line.startswith('audit') :
+                continue
+
+            # Network options
+            elif line.startswith('network') :
+                continue
+
+            # Parse deny options
+            elif line.startswith('deny') :
+                aux = line.split()
+
+                # Deny options on files
+                if aux[1].startswith('/') :
+                    # TODO
+                    # For now, skip rwx permissions on files.
+                    continue
+
+                elif aux[1].startswith('@') :
+                    # TODO
+                    # For now, skip rwx permissions on files.
+                    continue
+
+                # deny network
+                elif aux[1] == 'network' :
+                    # deny access to all networking
+                    # skip for now
+                    continue
+
+                # deny syscall
+                elif aux[1] in all_syscalls :
+                    # TODO
+                    # check for more denied systemcalls (e.g. deny mount, unshare, etc.)
+                    if not aux[1] in d_syscalls : d_syscalls.append(aux[1])
+
+                # deny cap
+                elif aux[1] == 'capability' :
+                    cap = aux[2].upper()
+                    cap = 'CAP_' + cap  
+
+                    # TODO
+                    # check for more denied caps
+                    if not cap in d_caps : d_caps.append(cap)  
+            
+            # Parse capabilities
+            elif line.startswith('capability') :
+                aux = line.split()
+
+                if aux[0] == 'capability,' :
+                    # skip for now
+                    continue
+
+                elif len(aux) > 1 :
+                    cap = aux[1].upper()
+                    cap = 'CAP_' + cap    
+
+                    if not cap in a_caps : a_caps.append(cap)    
+
+            elif line.startswith('owner') :
+                # skip for now
+                continue
+
+            # check allow (e.g. mount, or pivot_root,)
+            else :
+                aux = line.split()
+
+                if aux[0] in all_syscalls :
+                    # for now, skip options=...
+                    if not aux[0] in a_syscalls : a_syscalls.append(aux[0])
+
+    # Return the list of allowed caps - list of disallowed caps
+    caps = [c for c in a_caps if c not in d_caps]
+
+    return caps, a_syscalls, d_syscalls
 
 
-
-
-
-    # 1. Get profile name
-
-    # 2. Line starting with #
-    #     - ignore comments
-    #     - #include ?
-
-    # 3. Capability rules
-
-
-
-    # 4. rlimit rules
-
-
-    # 5. file rules
-
-
-
-    # 6. network rules
-
-
-
-    # 7. ipc rules
-
-
-    # 8. Children profiles and hats ^ ?
-
-    return
-
-
-def AppArmor_Parser(uri='/files/Apparmor/docker-default') :
+def apparmor_parser(profile_name='', uri='/etc/apparmor.d/containers/docker-default') :
     """  brief title.
     
     Arguments:
@@ -240,39 +176,22 @@ def AppArmor_Parser(uri='/files/Apparmor/docker-default') :
     blablabla
     """
 
+    if not uri.startswith('/etc/apparmor.d/containers/') : 
+        uri = '/etc/apparmor.d/containers/' + uri
+
     profile = parse_apparmor_file(uri)
 
-    caps, syscalls = get_caps_syscalls(profile)
+    caps, a_syscalls, d_syscalls = get_caps_syscalls(profile)
 
-    # Strip path and .json
-    p = Path(uri)
-    name = p.parts[-1].strip('.json')
+    caps.sort()
+    a_syscalls.sort()
+    d_syscalls.sort()
 
-    return AppArmor_Profile(name, uri, caps, syscalls)
+    if not profile_name :
+        # Strip path and .json
+        p = Path(uri)
+        name = p.parts[-1].strip('.json')
+    else : name = profile_name
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    return AppArmor_Profile(name, uri, caps, a_syscalls, d_syscalls)
 

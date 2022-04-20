@@ -4,6 +4,16 @@ import docker
 import json
 
 
+#
+#
+#
+# Docker SBOM
+#
+# https://www.docker.com/blog/announcing-docker-sbom-a-step-towards-more-visibility-into-docker-images/
+#
+#
+
+
 class Image :
     """  brief title.
     

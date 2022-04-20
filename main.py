@@ -38,6 +38,8 @@ def add_option(img_id, NEO4J_ADDRESS) :
     # Generate Image Security Charts
     image_Neo4j_chart(NEO4J_ADDRESS, img)
 
+    # PRINT # of nodes and rel.
+
     print("Successfully added the image with ID " + img_id)
 
 
@@ -51,6 +53,8 @@ def run_option(options, NEO4J_ADDRESS) :
     add_option(cont.img_id, NEO4J_ADDRESS)
     
     cont_Neo4j_chart(NEO4J_ADDRESS, cont) 
+
+    # PRINT # of nodes and rel.
 
     print("Successfully added the container with ID " + cont.cont_id)
 
@@ -71,30 +75,28 @@ def remove_all_option(NEO4J_ADDRESS) :
 
 def main() :
 
-    from parse_Seccomp import parse_seccomp
-    parse_seccomp()
-    exit(0)
-
     if 'NEO4J_ADDRESS' in os.environ:
         global NEO4J_ADDRESS
         NEO4J_ADDRESS = os.environ.get('NEO4J_ADDRESS')
 
-    initialize_Neo4j_db(NEO4J_ADDRESS)
-
-    if args.add :
-        add_option(args.add, NEO4J_ADDRESS)
-
-    elif args.run :
-        run_option(args.run, NEO4J_ADDRESS)
-
-    elif args.analyze :
-        analyze_option(args.analyze, NEO4J_ADDRESS)
-
-    elif args.remove :
-        remove_option(args.remove, NEO4J_ADDRESS)
-
-    elif args.remove_all :
+    if args.remove_all :
         remove_all_option(NEO4J_ADDRESS)
+
+    else :
+        # First, make sure Neo4j is initialized
+        initialize_Neo4j_db(NEO4J_ADDRESS)
+
+        if args.add :
+            add_option(args.add, NEO4J_ADDRESS)
+
+        elif args.run :
+            run_option(args.run, NEO4J_ADDRESS)
+
+        elif args.analyze :
+            analyze_option(args.analyze, NEO4J_ADDRESS)
+
+        elif args.remove :
+            remove_option(args.remove, NEO4J_ADDRESS)
 
 
 if __name__ == "__main__" :
