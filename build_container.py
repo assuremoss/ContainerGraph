@@ -32,21 +32,10 @@ class Container :
 
 
 def connect_to_Docker() : 
-    """ 
-    Connects to the Docker daemon running on the current host
-
-    Returns
-    -------
-    Docker client:
-        Returns a client configured from environment variables.
-    """
-
-    # Connect to the Docker daemon
-    client = docker.from_env()
-    return client
+    return docker.from_env()
 
 
-def build_container(options):
+def build_container(options, kernel_v):
     """
     TODO
     """
@@ -67,14 +56,14 @@ def build_container(options):
         cconfig = build_config(run_args)
 
         # retrieve container permissions
-        permissions = build_permissions(cont_id, run_args)
+        permissions = build_permissions(cont_id, run_args, kernel_v)
 
 
 
     ############################
         print('Allowed CAPs: ' + str(len(permissions.caps)))
         # print(permissions.caps)
-        print('Allowed syscalls: ' + str(len(permissions.syscalls)))
+        print('Allowed syscalls: ' + str(len(permissions.syscalls)) + '\n')
         # print(permissions.syscalls)
     ############################
 

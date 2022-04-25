@@ -2,12 +2,7 @@ from neo4j import GraphDatabase
 
 
 def connect_to_neo4j(uri, user, password) :
-    """
-    TODO
-    """
-
-    driver = GraphDatabase.driver(uri, auth=(user, password))
-    return driver
+    return GraphDatabase.driver(uri, auth=(user, password))
 
 
 def image_Neo4j_chart(NEO4J_ADDRESS, img) :

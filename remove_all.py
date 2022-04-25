@@ -4,27 +4,11 @@ import docker
 
 
 def connect_to_Docker() : 
-    """ 
-    Connects to the Docker daemon running on the current host
-
-    Returns
-    -------
-    Docker client:
-        Returns a client configured from environment variables.
-    """
-
-    # Connect to the Docker daemon
-    client = docker.from_env()
-    return client
+    return docker.from_env()
 
 
-def connect_to_neo4j(uri, user, password):
-    """
-    TODO
-    """
-
-    driver = GraphDatabase.driver(uri, auth=(user, password))
-    return driver
+def connect_to_neo4j(uri, user, password) :
+    return GraphDatabase.driver(uri, auth=(user, password))
 
 
 def neo4j_remove_all(NEO4J_ADDRESS):

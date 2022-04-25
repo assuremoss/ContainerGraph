@@ -5,6 +5,10 @@ from init_Neo4j import init_Neo4j
 
 
 def connect_to_neo4j(uri, user, password) :
+    return GraphDatabase.driver(uri, auth=(user, password))
+
+
+def graph_info(NEO4J_ADDRESS) :
     """  brief title.
     
     Arguments:
@@ -15,8 +19,33 @@ def connect_to_neo4j(uri, user, password) :
     blablabla
     """
 
-    driver = GraphDatabase.driver(uri, auth=(user, password))
-    return driver
+    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":11005", "neo4j", "password")
+
+    with driver.session() as session:
+        n_nodes, n_edges = session.read_transaction(query_graph_info)
+    driver.close()
+    
+    return n_nodes, n_edges
+
+
+def query_graph_info(tx) :
+    """  brief title.
+    
+    Arguments:
+    arg1 - desc
+    arg2 - desc
+
+    Description:
+    blablabla
+    """
+
+    n_nodes = tx.run("MATCH (n) RETURN COUNT(n)")
+    n_nodes = n_nodes.single()[0]
+
+    n_edges = tx.run("MATCH (n)-[r]->() RETURN COUNT(r)")
+    n_edges = n_edges.single()[0]
+
+    return n_nodes, n_edges
 
 
 def is_db_initialize(NEO4J_ADDRESS) :
@@ -31,7 +60,6 @@ def is_db_initialize(NEO4J_ADDRESS) :
     """
 
     driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":11005", "neo4j", "password")
-
     with driver.session() as session:
         result = session.read_transaction(query_db)
     driver.close()
@@ -106,25 +134,23 @@ def initialize_Neo4j_db(NEO4J_ADDRESS) :
 
         print('Initializing the graph database...\n')
 
-        # Initialize CAPs & syscalls, engines and kernel versions.
-        init_Neo4j(NEO4J_ADDRESS)
-
         # Retrieve Host info
         host = get_Infrastructure()
+
+        # Initialize CAPs & syscalls, engines and kernel versions.
+        init_Neo4j(NEO4J_ADDRESS)
 
         # Initialize Host
         host_Neo4j(NEO4J_ADDRESS, host)
 
-        #
-        # MATCH (n)-[r]->() RETURN COUNT(r)
-        # MATCH (n) RETURN COUNT(n)
-        # print('Total: 411 nodes and 6 relationships.\n')
+        # Print graph info
+        n_nodes, n_edges = graph_info(NEO4J_ADDRESS)
+        print('Total: ' + str(n_nodes) + ' nodes and ' + str(n_edges) + ' relationships.\n')
 
         # Initialize Vulnerabilities
         # vuln_Neo4j(NEO4J_ADDRESS)
 
-        # Print TOTAL info
-        # # of nodes
-        # # of edges
-        # ...
+        # Print graph info
+        # n_nodes, n_edges = graph_info(NEO4J_ADDRESS)
+        # print('Total: ' + str(n_nodes) + ' nodes and ' + str(n_edges) + ' relationships.\n')
 

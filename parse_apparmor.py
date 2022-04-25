@@ -1,5 +1,5 @@
 from pathlib import Path
-from parse_perm_file import get_all_caps, get_all_syscalls
+from parse_perm_file import get_all_syscalls
 
 
 class AppArmor_Profile : 
@@ -47,8 +47,8 @@ def get_caps_syscalls(profile) :
     # https://manpages.ubuntu.com/manpages/xenial/man5/apparmor.d.5.html
     ###
 
-    all_caps = get_all_caps()
-    all_syscalls = get_all_syscalls()
+    # All system calls
+    all_sysc = get_all_syscalls()
 
     a_caps = [] 
     d_caps = [] 
@@ -119,7 +119,7 @@ def get_caps_syscalls(profile) :
                     continue
 
                 # deny syscall
-                elif aux[1] in all_syscalls :
+                elif aux[1] in all_sysc :
                     # TODO
                     # check for more denied systemcalls (e.g. deny mount, unshare, etc.)
                     if not aux[1] in d_syscalls : d_syscalls.append(aux[1])
@@ -155,13 +155,12 @@ def get_caps_syscalls(profile) :
             else :
                 aux = line.split()
 
-                if aux[0] in all_syscalls :
+                if aux[0] in all_sysc :
                     # for now, skip options=...
                     if not aux[0] in a_syscalls : a_syscalls.append(aux[0])
 
     # Return the list of allowed caps - list of disallowed caps
     caps = [c for c in a_caps if c not in d_caps]
-
     return caps, a_syscalls, d_syscalls
 
 

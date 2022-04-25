@@ -1,6 +1,6 @@
 from pathlib import Path
 import json
-from parse_Apparmor import get_all_syscalls
+from parse_perm_file import get_all_syscalls
 
 
 class SecComp_Profile : 
@@ -11,7 +11,7 @@ class SecComp_Profile :
         self.syscalls = syscalls  # List of dict of ALLOWED system calls
 
 
-def analyze_syscalls(Seccomp_p, caps=[], minKernel="") :
+def analyze_syscalls(Seccomp_p, caps=[], kernel_v="") :
     """  brief title.
     
     Arguments:
@@ -20,34 +20,23 @@ def analyze_syscalls(Seccomp_p, caps=[], minKernel="") :
     Description:
     blablabla
     """
-  
+
     a_syscalls = []
     d_syscalls = []
 
     for s in Seccomp_p.syscalls :
 
-        # Skip syscalls that require specific architectures
-        if s['arches'] :
+        # Skip system calls that are not for the x86 architecture
+        if s['arches'] and 'x86' not in s['arches'] :
             continue
 
         # Allowed syscalls with CAP
-        elif s['caps'] :
-
-            # if s['minKernel'] :
-                # TODO
-
-            if s['caps'][0] in caps :
-                a_syscalls.extend(s['syscalls'])
+        if s['caps'] and s['caps'][0] in caps :
+            a_syscalls.extend(s['syscalls'])
 
         # Allowed syscalls without CAP
-        elif 'syscalls' in s :
-        
-            if not s['caps'] :
-
-            # if s['minKernel'] :
-                # TODO
-
-                a_syscalls.extend(s['syscalls'])
+        elif 'syscalls' in s and not s['caps'] :
+            a_syscalls.extend(s['syscalls'])
 
     a_syscalls = list(set(a_syscalls))
     a_syscalls.sort()
@@ -118,21 +107,20 @@ def get_syscalls(profile) :
 
                 if sysc['action'] == "SCMP_ACT_ALLOW" :
 
+                    # if 'args' in sysc :
+                        # For now, we ignore the args options.
+                    
                     # Single system call
-                    if 'name' in sysc and sysc['name'] in all_sysc :
-                        aux = {'syscalls': sysc['name'], 'minKernel': '', 'caps': '', 'arches': ''}
+                    if 'name' in sysc :
+                        if sysc['name'] in all_sysc :
+                            aux = {'syscalls': [sysc['name']], 'minKernel': '', 'caps': '', 'arches': ''}
+                        else : continue
 
                     # Multiple system calls
                     elif 'names' in sysc : 
                         # Keep only the system calls that we have in our perm file
                         aux = [s for s in sysc['names'] if s in all_sysc]
-                        aux = {'syscalls': aux, 'minKernel': '', 'caps': '', 'arches': ''}
-
-                    # if 'args' in sysc :
-                        # For now, we ignore the args options.
-                    
-                    # if 'comment' in sysc :
-                        # For now, we ignore the args options.
+                        aux = {'syscalls': aux, 'minKernel': '', 'caps': '', 'arches': ''}   
 
                     # Additional options
                     if 'includes' in sysc :
@@ -143,29 +131,31 @@ def get_syscalls(profile) :
                         if 'caps' in sysc['includes'] :
                             aux['caps'] = sysc['includes']['caps']
                         
-                        if 'arches' in sysc['includes'] :
-                            aux['arches'] = sysc['includes']['arches']
+                        if 'arches' in sysc['includes'] and \
+                            'x86' in sysc['includes']['arches'] :
+                                aux['arches'] = sysc['includes']['arches']
+                        else : continue
                     
                     # if 'excludes' in sysc :
+                        # What does this field ???
                         # TODO
 
-                    if not aux in syscalls :
-                        # Append new value/s
+                    # Append new unique value/s
+                    if aux not in syscalls :
                         syscalls.append(aux)
                     
                 # Remove syscalls
                 elif sysc['action'] == "SCMP_ACT_ERRNO" :
 
-                    for aux in syscalls :
+                    for s_dict in syscalls :
+
                         # Single system call
-                        if 'name' in sysc :
-                            if aux['syscalls'] == sysc['name'] :
-                                syscalls.remove(aux)
+                        if 'name' in sysc and sysc['name'] in s_dict['syscalls'] :
+                            s_dict['syscalls'].remove(sysc['name'])
 
                         # Multiple system calls
-                        elif 'names' in sysc :
-                            if aux['syscalls'] == sysc['names'] :
-                                syscalls.remove(aux)
+                        elif 'names' in sysc and sysc['names'] in s_dict['syscalls'] :
+                            s_dict['syscalls'].remove(sysc['names'])
 
     return syscalls
 

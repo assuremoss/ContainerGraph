@@ -2,9 +2,10 @@ from build_image import build_image, retrieve_img_id
 from build_container import build_container
 from build_cont_Neo4j import cont_Neo4j_chart
 from build_img_Neo4j import image_Neo4j_chart
+from build_host_Neo4j import get_kernel_v
 from remove_all import data_remove_all, remove_container
 from analyze import analyze_cont
-from initialize_Neo4J import initialize_Neo4j_db
+from initialize_Neo4J import initialize_Neo4j_db, graph_info
 import argparse
 import os
 
@@ -38,25 +39,30 @@ def add_option(img_id, NEO4J_ADDRESS) :
     # Generate Image Security Charts
     image_Neo4j_chart(NEO4J_ADDRESS, img)
 
-    # PRINT # of nodes and rel.
-
+    # Print graph info
+    n_nodes, n_edges = graph_info(NEO4J_ADDRESS)
     print("Successfully added the image with ID " + img_id)
+    print('Total: ' + str(n_nodes) + ' nodes and ' + str(n_edges) + ' relationships.\n')
 
 
 # Run a new container
 def run_option(options, NEO4J_ADDRESS) :
 
+    # Get the current kernel version
+    kernel_v = get_kernel_v(NEO4J_ADDRESS)
+
     # Build the Container 
-    cont = build_container(options)
+    cont = build_container(options, kernel_v)
 
     # Eventually add the container image
     add_option(cont.img_id, NEO4J_ADDRESS)
     
     cont_Neo4j_chart(NEO4J_ADDRESS, cont) 
 
-    # PRINT # of nodes and rel.
-
+    # Print graph info
+    n_nodes, n_edges = graph_info(NEO4J_ADDRESS)
     print("Successfully added the container with ID " + cont.cont_id)
+    print('Total: ' + str(n_nodes) + ' nodes and ' + str(n_edges) + ' relationships.\n')
 
 
 # Analyze the container's vulnerabilities/misconfigurations

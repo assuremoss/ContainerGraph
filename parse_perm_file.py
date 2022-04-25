@@ -1,7 +1,7 @@
 import json
 
 
-def parse_CAPS_file() :
+def parse_perm_taxonomy() :
     """  brief title.
     
     Arguments:
@@ -19,7 +19,22 @@ def parse_CAPS_file() :
             capabilities = perm['capabilities']
             syscalls = perm['syscalls']
 
-            return capabilities, syscalls
+            kernel_v = perm['kernel_v']
+
+            docker_v = perm['docker_v']
+            containerd_v = perm['containerd_v']
+            runc_v = perm['runc_v']
+
+            result = {
+                'capabilities': capabilities, 
+                'syscalls': syscalls, 
+                'kernel_v': kernel_v, 
+                'docker_v': docker_v, 
+                'containerd_v': containerd_v, 
+                'runc_v': runc_v
+            }
+
+            return result
 
     except FileNotFoundError as error :
         print(error)
@@ -36,17 +51,13 @@ def get_all_syscalls() :
     Description:
     blablabla
     """
-    
-    _, syscalls = parse_CAPS_file()
 
-    all_syscalls = []
-    for syscall in syscalls :
-        all_syscalls.append(syscall['name'])
-
-    return all_syscalls
+    result = parse_perm_taxonomy()
+    all_sysc = [ s['name'] for s in result['syscalls'] ]
+    return all_sysc
 
 
-def get_all_caps() :
+def get_all_CAPs() :
     """  brief title.
     
     Arguments:
@@ -56,11 +67,8 @@ def get_all_caps() :
     Description:
     blablabla
     """
-    
-    capabilities, _ = parse_CAPS_file()
 
-    all_caps = []
-    for cap in capabilities : 
-        all_caps.append(cap['name'])
+    result = parse_perm_taxonomy()
+    all_CAPs = [ c['name'] for c in result['capabilities'] ]
+    return all_CAPs
 
-    return all_caps

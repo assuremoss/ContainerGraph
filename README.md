@@ -27,14 +27,15 @@ To run the tool, follow these steps:
     `sudo adduser $USER docker`
     `newgrp docker`
 
-4. `export NEO4J_ADDRESS="neo4j_server_ip"`
+4. `sudo nano /etc/environment` and append the following line: `NEO4J_ADDRESS="neo4j_server_ip"`
 
-5. `pipenv install`
+5. Log out and log in again (to make the env variable persistent).
 
-6. `pipenv shell`
+6. `pipenv install`
 
-7. `python main.py --help`
+7. `pipenv shell`
 
+8. `python main.py --help`
 
 
 ### Neo4J Database Connection

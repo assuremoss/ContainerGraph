@@ -2,18 +2,7 @@ from neo4j import GraphDatabase
 
 
 def connect_to_neo4j(uri, user, password) :
-    """  brief title.
-    
-    Arguments:
-    arg1 - desc
-    arg2 - desc
-
-    Description:
-    blablabla
-    """
-
-    driver = GraphDatabase.driver(uri, auth=(user, password))
-    return driver
+    return GraphDatabase.driver(uri, auth=(user, password))
 
 
 def cont_Neo4j_chart(NEO4J_ADDRESS, cont) :
@@ -28,15 +17,18 @@ def cont_Neo4j_chart(NEO4J_ADDRESS, cont) :
     """
 
     driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":11005", "neo4j", "password")
-    
     with driver.session() as session:
 
         session.write_transaction(create_cont_node, cont)
         session.write_transaction(create_cconfig_nodes, cont)
         session.write_transaction(create_cconfig_relationships, cont)
 
+        if cont.permissions.profile == 'docker-privileged' or \
+            cont.permissions.read_only == False or \
+             cont.permissions.no_new_priv == False :
+            session.write_transaction(create_permissions_node, cont)
+
         if cont.permissions.profile == 'docker-privileged' :
-            session.write_transaction(create_permissions_node)
             session.write_transaction(create_perm_relationships, cont) 
         
         else :
@@ -63,6 +55,7 @@ def create_cconfig_nodes(tx, cont) :
     for key in cont.cconfig.fields :
         value = cont.cconfig.fields[key]
 
+        # Do not add a node for the container name
         if not key == 'name' :
             if type(value) == list :
                 query = "MERGE (cc:ContainerConfig {name: $key, value: $value})"
@@ -104,7 +97,7 @@ def create_cconfig_relationships(tx, cont) :
                 )
 
 
-def create_permissions_node(tx) :
+def create_permissions_node(tx, cont) :
     """  brief title.
     
     Arguments:
@@ -115,7 +108,17 @@ def create_permissions_node(tx) :
     blablabla
     """
 
-    tx.run("MERGE (p:PrivPermissions {name: 'PrivPermissions', object: 'Container'})") 
+    if cont.permissions.profile == 'docker-privileged' : 
+        tx.run("MERGE (p:Permissions:Privileged {name: 'PrivPermissions', profile: $profile, object: 'Container'})", profile = cont.permissions.profile)  
+
+    else : 
+        tx.run("MERGE (p:Permissions {name: 'Permissions', profile: $profile, object: 'Container'})", profile = cont.permissions.profile) 
+
+    if cont.permissions.read_only == False :
+        tx.run("MERGE (ro:NotReadOnly {name: 'NotReadOnly', object: 'Container'})")
+
+    if cont.permissions.no_new_priv == False :
+        tx.run("MERGE (np:NoNewPriv {name: 'NoNewPriv', object: 'Container'})")
 
 
 def create_sec_prof_nodes(tx, cont) :
@@ -170,6 +173,26 @@ def create_prof_relationships(tx, cont) :
            , profile = cont.permissions.profile
         )
 
+    tx.run("MATCH (c:Container:Docker {cont_id: $cont_id}) "
+        "MATCH (p:Permissions {name: 'Permissions', profile: $profile}) "
+        "MERGE (c)-[:HAS]->(p) ",
+        cont_id = cont.cont_id, profile = cont.permissions.profile
+    )
+
+    if cont.permissions.read_only == False :
+        tx.run("MATCH (ro:NotReadOnly {name: 'NotReadOnly', object: 'Container'}) "
+            "MATCH (p:Permissions {name: 'Permissions', profile: $profile}) "
+            "MERGE (p)-[:HAS]->(ro)  "
+            , profile = cont.permissions.profile
+        )
+
+    if cont.permissions.no_new_priv == False :
+        tx.run("MATCH (np:NoNewPriv {name: 'NoNewPriv', object: 'Container'}) "
+            "MATCH (p:Permissions {name: 'Permissions', profile: $profile}) "
+            "MERGE (p)-[:HAS]->(np)  "
+            , profile = cont.permissions.profile
+        )
+
 
 def create_perm_relationships(tx, cont) :
     """  brief title.
@@ -183,23 +206,35 @@ def create_perm_relationships(tx, cont) :
     """
 
     tx.run("MATCH (c:Container:Docker {cont_id: $cont_id}) "
-        "MATCH (pp:PrivPermissions {name: 'PrivPermissions', object: 'Container'}) "
-        "MERGE (c)-[:HAS]->(pp) ",
+        "MATCH (p:Permissions:Privileged {name: 'PrivPermissions'}) "
+        "MERGE (c)-[:HAS]->(p) ",
         cont_id = cont.cont_id
     )
 
     for cap in cont.permissions.caps :
-        tx.run("MATCH (pp:PrivPermissions {name: 'PrivPermissions', object: 'Container'}) "
+        tx.run("MATCH (p:Permissions:Privileged {name: 'PrivPermissions'}) "
            "MATCH (cap:Capability {name: '" + cap + "'})"
-           "MERGE (pp)-[:HAS]->(cap) "
+           "MERGE (p)-[:HAS]->(cap) "
            , profile = cont.permissions.profile
         )
 
     for syscall in cont.permissions.syscalls :
-        tx.run("MATCH (pp:PrivPermissions {name: 'PrivPermissions', object: 'Container'}) "
+        tx.run("MATCH (p:Permissions:Privileged {name: 'PrivPermissions'}) "
            "MATCH (sysc:SystemCall {name: '" + syscall + "'})"
-           "MERGE (pp)-[:HAS]->(sysc) "
+           "MERGE (p)-[:HAS]->(sysc) "
            , profile = cont.permissions.profile
+        )
+
+    if cont.permissions.read_only == False :
+        tx.run("MATCH (ro:NotReadOnly {name: 'NotReadOnly', object: 'Container'}) "
+            "MATCH (p:Permissions:Privileged {name: 'PrivPermissions'}) "
+            "MERGE (p)-[:HAS]->(ro)  "
+        )
+
+    if cont.permissions.no_new_priv == False :
+        tx.run("MATCH (np:NoNewPriv {name: 'NoNewPriv', object: 'Container'}) "
+            "MATCH (p:Permissions:Privileged {name: 'PrivPermissions'}) "
+            "MERGE (p)-[:HAS]->(np)  "
         )
 
 

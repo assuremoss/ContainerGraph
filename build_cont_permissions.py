@@ -1,8 +1,9 @@
 from string import capwords
 from parse_Apparmor import apparmor_parser
 from parse_Seccomp import seccomp_parser
-from parse_perm_file import get_all_caps, get_all_syscalls
+from parse_perm_file import get_all_CAPs, get_all_syscalls
 from parse_Seccomp import analyze_syscalls
+from parse_perm_file import parse_perm_taxonomy
 
 
 class Permission :
@@ -26,7 +27,7 @@ class Permission :
         self.syscalls = syscalls
 
 
-def evaluate_perm(profile, Seccomp_p, Apparmor_p) : 
+def build_permissions(cont_id, run_args, kernel_v) :
     """  brief title.
     
     Arguments:
@@ -37,35 +38,17 @@ def evaluate_perm(profile, Seccomp_p, Apparmor_p) :
     blablabla
     """
 
-    if profile == 'docker-privileged' :
-        return get_all_caps(), get_all_syscalls()
-
-    allowed_syscalls = []
-
-    # for c in Apparmor_p.caps :
-        
-
-
-    return Apparmor_p.caps, allowed_syscalls
-
-
-def build_permissions(cont_id, run_args) :
-    """  brief title.
+    # All CAPs and system calls
     
-    Arguments:
-    arg1 - desc
-    arg2 - desc
-
-    Description:
-    blablabla
-    """
+    all_caps = get_all_CAPs()
+    all_sysc = get_all_syscalls()
 
     # Permission object fields
     profile = 'docker-default'
     Seccomp_p = []
     AppArmor_p = []
-    read_only = 'False' 
-    no_new_priv = 'False'
+    read_only = False 
+    no_new_priv = False
 
     # List of allowed capabilities
     a_caps = []
@@ -89,7 +72,7 @@ def build_permissions(cont_id, run_args) :
             profile = cont_id + '_custom'
 
             if value == 'all' or value == 'ALL' : 
-                d_caps = get_all_caps()
+                d_caps = all_caps
                 continue
 
             # Standardize (CAP) value
@@ -107,24 +90,24 @@ def build_permissions(cont_id, run_args) :
             profile = cont_id + '_custom'
 
             if value == 'all' or value == 'ALL' : 
-                a_caps = get_all_caps()
+                a_caps = all_caps
                 continue
 
             # Standardize (CAP) value
             elif not value.startswith('CAP_') : 
                 value = 'CAP_' + value.upper()
             else : value = value.upper()
-                      
+            
             a_caps = list(set(a_caps + [value]))
 
         # Privileged Profile
         if run_args[i] == '--privileged' :
-            return Permission('docker-privileged', 'unconfined', 'unconfined', 'False', 'False', get_all_caps(), get_all_syscalls())
+            return Permission('docker-privileged', 'unconfined', 'unconfined', False, False, all_caps, all_sysc)
 
         # Mount the container's root filesystem as read only
         if run_args[i] == '--read-only' :
             profile = 'docker-read-only'
-            read_only = 'True'
+            read_only = True
             # The capabilities are the same as for the docker-default AppAmor profile (i.e., 14 caps).
             a_caps += apparmor_parser().caps     
             #
@@ -147,8 +130,8 @@ def build_permissions(cont_id, run_args) :
             # Syntax: --security-opt=no-new-privileges:true
             if value.startswith('no-new-privileges') :
                 aux = value.split(':')[1]
-                if aux == 'true' : 
-                    no_new_priv = 'True'
+                if aux == True : 
+                    no_new_priv = True
                     # The capabilities are the same as for the docker-default AppAmor profile (i.e., 14 caps).
                     a_caps += apparmor_parser().caps
                     #
@@ -189,7 +172,7 @@ def build_permissions(cont_id, run_args) :
 
     # Get a list of allowed system calls, also based on granted CAPs
     if Seccomp_p == 'unconfined' :
-        a_s = get_all_syscalls()
+        a_s = all_sysc
         d_s = []
     else :
         a_s, d_s = analyze_syscalls(Seccomp_p, a_caps)
@@ -206,5 +189,41 @@ def build_permissions(cont_id, run_args) :
     sysc = list(set(sysc))
     sysc.sort()
 
+    # Remove CAPs and syscalls not supported from the current version of the kernel
+    caps, sysc = remove_unsupported_perm(caps, sysc, kernel_v)
+
     return Permission(profile, Seccomp_p, AppArmor_p, read_only, no_new_priv, caps, sysc)
+
+
+def remove_unsupported_perm(caps, sysc, kernel_v):
+    """  brief title.
+    
+    Arguments:
+    arg1 - desc
+    arg2 - desc
+
+    Description:
+    blablabla
+    """
+
+    result = parse_perm_taxonomy()
+
+    cap_dict = result['capabilities']
+    sysc_dict = result['syscalls']
+
+    for cap in caps : 
+        for c in cap_dict : 
+            if c['name'] == cap : 
+                current_kernel_v = c['kernel_v'][:3]                
+                if kernel_v < current_kernel_v :
+                    caps.remove(cap)
+
+    for s in sysc : 
+        for sd in sysc_dict : 
+            if sd['name'] == s : 
+                current_kernel_v = sd['kernel_v'][:3]                
+                if kernel_v < current_kernel_v :
+                    sysc.remove(s)
+
+    return caps, sysc
 

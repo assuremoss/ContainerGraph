@@ -5,7 +5,6 @@ profile wparmor flags=(attach_disconnected,mediate_deleted) {
 
   #include <abstractions/base>
 
-
   network,
   capability,
   file,
