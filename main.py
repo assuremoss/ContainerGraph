@@ -3,8 +3,8 @@ from build_container import build_container
 from build_cont_Neo4j import cont_Neo4j_chart
 from build_img_Neo4j import image_Neo4j_chart
 from build_host_Neo4j import get_kernel_v
-from remove_all import data_remove_all, remove_container
-from analyze import analyze_cont
+from remove_cont import data_remove_all, remove_container
+from vuln_tree_taversal import query_vulnerability, get_all_cves
 from initialize_Neo4J import initialize_Neo4j_db, graph_info
 import argparse
 import os
@@ -15,10 +15,8 @@ group = parser.add_mutually_exclusive_group(required=True)
 
 group.add_argument("--add", metavar="<image_id>", help="add a new image")
 group.add_argument("--run", action='append', nargs=argparse.REMAINDER, help="run a container")
-# group.add_argument("--restart", action='append', nargs=argparse.REMAINDER, help="restart a container")
-group.add_argument("--remove", metavar="<container_id>", help="remove and delete a container")
-group.add_argument("--analyze", metavar="<container_id>", help="analyze container's vulnerabilities/misconfiguration")
-group.add_argument("--remove-all", action="store_true", help="remove all running containers and clean Neo4J graph")
+group.add_argument("--remove", nargs=1, metavar="<container_id> OR <all>", help="remove and delete one container or all containers")
+group.add_argument("--analyze", nargs=2, metavar=('<container_id>', '<cve>'), help="analyze container's vulnerabilities/misconfigurations")
 
 args = parser.parse_args()
 
@@ -28,7 +26,7 @@ NEO4J_ADDRESS = "localhost"
 
 
 # Add a container image
-def add_option(img_id, NEO4J_ADDRESS) :
+def add_option(NEO4J_ADDRESS, img_id) :
     
     # Standardize the Image ID lenght to 7 chars.
     img_id = retrieve_img_id(img_id)
@@ -46,7 +44,7 @@ def add_option(img_id, NEO4J_ADDRESS) :
 
 
 # Run a new container
-def run_option(options, NEO4J_ADDRESS) :
+def run_option(NEO4J_ADDRESS, options) :
 
     # Get the current kernel version
     kernel_v = get_kernel_v(NEO4J_ADDRESS)
@@ -55,7 +53,7 @@ def run_option(options, NEO4J_ADDRESS) :
     cont = build_container(options, kernel_v)
 
     # Eventually add the container image
-    add_option(cont.img_id, NEO4J_ADDRESS)
+    add_option(NEO4J_ADDRESS, cont.img_id)
     
     cont_Neo4j_chart(NEO4J_ADDRESS, cont) 
 
@@ -66,17 +64,27 @@ def run_option(options, NEO4J_ADDRESS) :
 
 
 # Analyze the container's vulnerabilities/misconfigurations
-def analyze_option(cont_id, NEO4J_ADDRESS) :
-    analyze_cont(cont_id)
+def analyze_option(NEO4J_ADDRESS, options) :
+    # Scan the container for all vulnerabilities
+    if options[1] == 'all' : 
+        vuln_names = get_all_cves(NEO4J_ADDRESS)
+        for vuln in vuln_names :
+          query_vulnerability(NEO4J_ADDRESS, options[0], vuln)
 
-# Remove the specified container
-def remove_option(cont_id, NEO4J_ADDRESS) :
-    remove_container(NEO4J_ADDRESS, cont_id)
+    # Scan the container for a single vulnerability
+    else : 
+        query_vulnerability(NEO4J_ADDRESS, options[0], options[1])
+    
 
-# Remove all containers and clean up Neo4J
-def remove_all_option(NEO4J_ADDRESS) :
-    data_remove_all(NEO4J_ADDRESS)
-    print("Everything was cleaned up!")
+# Remove container/s and clean DB
+def remove_option(NEO4J_ADDRESS, option) :
+
+    # Remove all containers
+    if option[0] == 'all' : 
+        data_remove_all(NEO4J_ADDRESS)
+    # Remove single container
+    else :
+        remove_container(NEO4J_ADDRESS, option[0])
 
 
 def main() :
@@ -85,24 +93,21 @@ def main() :
         global NEO4J_ADDRESS
         NEO4J_ADDRESS = os.environ.get('NEO4J_ADDRESS')
 
-    if args.remove_all :
-        remove_all_option(NEO4J_ADDRESS)
+    if args.remove :
+        remove_option(NEO4J_ADDRESS, args.remove)
 
     else :
         # First, make sure Neo4j is initialized
         initialize_Neo4j_db(NEO4J_ADDRESS)
 
         if args.add :
-            add_option(args.add, NEO4J_ADDRESS)
+            add_option(NEO4J_ADDRESS, args.add)
 
         elif args.run :
-            run_option(args.run, NEO4J_ADDRESS)
+            run_option(NEO4J_ADDRESS, args.run)
 
         elif args.analyze :
-            analyze_option(args.analyze, NEO4J_ADDRESS)
-
-        elif args.remove :
-            remove_option(args.remove, NEO4J_ADDRESS)
+            analyze_option(NEO4J_ADDRESS, args.analyze)
 
 
 if __name__ == "__main__" :

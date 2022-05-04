@@ -62,19 +62,50 @@ With the current configuration, we model:
 
 The Docker (Seccomp and Apparmor) default profiles block 45 system calls and grant only 14 capabilities.
 
-## Examples
+## Example with Escape_1
 
-1. Privileged container (41 CAPs and 364 syscalls):
-`python main.py --run docker run -it --rm -d --privileged nginx`
+https://blog.trailofbits.com/2019/07/19/understanding-docker-container-escapes/
 
-2. Default container (14 CAPs and 320 syscalls):
+1. Default container (14 CAPs and 320 syscalls):
 `python main.py --run docker run -it --rm -d nginx`
 
-3. Custom capability (15 CAPs and 327 syscalls):
-`python main.py --run docker run -it --rm -d --cap-add sys_admin nginx`
+2. Privileged container (41 CAPs and 364 syscalls):
+`python main.py --run docker run -it --rm -d --privileged nginx`
 
-4. Custom profiles container (5 CAPs and 313 syscalls):
-`python main.py --run docker run -it --rm -d --security-opt seccomp=./files/Seccomp/custom-nginx.json --security-opt apparmor=docker-nginx nginx`
+3. Unconfined security profile:
+`python main.py --run docker run -it --rm -d --security-opt apparmor=unconfined --cap-add=SYS_ADMIN nginx`
+
+4. Custom security profiles:
+`python main.py --run docker run -it --rm -d --security-opt apparmor=custom nginx`
+
+5. Manually add Escape_1 to Neo4J.
+
+6. `docker ps` & Analyze containers.
+`python main.py --analyze <container_id> Escape_1`
+
+
+---
+## Fixing Container Configurations
+
+The list of possible fixes depends on the set of leaves belonging to valid paths within the vulnerability AND/OR tree. Invalidating one or more assumptions of an attack not part of a valid path, perhaps makes the configuration more secure (e.g., by restricting the set of available system calls), although without invalidating the attack itself.
+
+Steps to suggest effective fixes: 
+
+1. Split the set of assumptions (leaves in the tree) into an effective set (blocking the attack) and an evocative set (making the configuration more secure without blocking the attack).
+    - any existing algorithm for AND/OR trees? Perhaps we need a custom procedure for this.
+
+2. Rank the fixes effective set using AHP.
+    - we need to define a list of criteria
+
+3. Apply the choosen fix. There is no need to run again the vulnerability query because based on the set from which the fix comes from (effective or evocative), we already know if the attack is still possible or not.
+
+
+
+### Multi-vulnerabilities
+
+https://sysdig.com/blog/vulnerability-score-cvss-meaning/
+
+
 
 
 ---
@@ -111,6 +142,14 @@ Rules governing how capabilities are inherited when starting a process:
 These are usually represented as: `+eip`.
 
 [1] https://blog.container-solutions.com/linux-capabilities-in-practice
+
+
+---
+## Docker and AppArmor
+
+how to load a new profile
+
+url
 
 
 ---
@@ -153,19 +192,85 @@ v19.03
 
 An algorithm to traverse and analyze AND/OR trees implemented in Python and Neo4J.
 
-## Test tree
+## Single path - Unique Fix
 
-MERGE (a:ROOT_NODE{key:'a'})
-MERGE (b:AND_NODE{key:'b'})
-MERGE (c:OR_NODE{key:'c'})
-MERGE (d:OR_NODE{key:'d'})
-MERGE (e:AND_NODE{key:'e'})
-MERGE (f:LEAF{key:'f', property: 'RED'})
-MERGE (g:LEAF{key:'g', property: 'GREEN'})
-MERGE (h:LEAF{key:'h', property: 'RED'})
-MERGE (i:LEAF{key:'i', property: 'RED'})
-MERGE (j:LEAF{key:'j', property: 'GREEN'})
-MERGE (k:LEAF{key:'k', property: 'GREEN'})
+**OR-tree Test**
+
+MERGE (l:CVE {name: 'CVE_1', cvss: 9})
+MERGE (m:OR_NODE {key:'OR_NODE'})
+MERGE (o:DockerVersion {key:'o', property: 'RED', weight: 5})
+MERGE (p:containerdVersion {key:'p', property: 'RED', weight: 7})
+MERGE (q:runcVersion {key:'q', property: 'RED', weight: 9})
+MERGE (r:KernelVersion {key:'r', property: 'RED', weight: 6})
+
+MERGE (m)-[:OR]->(l)
+MERGE (o)-[:OR]->(m)
+MERGE (p)-[:OR]->(m)
+MERGE (q)-[:OR]->(m)
+MERGE (r)-[:OR]->(m)
+
+`python vuln_tree_taversal.py`
+
+
+## Single path - Multiple Fixes
+
+**AND-tree Test**
+
+MERGE (l:CVE {name: 'CVE_1', cvss: 9})
+MERGE (m:AND_NODE {key:'AND_NODE'})
+MERGE (o:Capability {name:'SYS_ADMIN', property: 'GREEN', weight: 10})
+MERGE (p:SystemCall {name:'mount', property: 'GREEN', weight: 7})
+MERGE (q:NoNewPriv {name:'NoNewPriv', property: 'GREEN', weight: 5})
+MERGE (r:SystemCall {name:'unshare', property: 'RED', weight: 7})
+
+MERGE (m)-[:AND]->(l)
+MERGE (o)-[:AND]->(m)
+MERGE (p)-[:AND]->(m)
+MERGE (q)-[:AND]->(m)
+MERGE (r)-[:AND]->(m)
+
+`python vuln_tree_taversal.py`
+
+
+## Multiple paths - Multiple Fixes
+
+**Escape 1**
+
+MERGE (a:CVE {name: 'CVE_1', cvss: 8})
+MERGE (b:OR_NODE {key:'OR_NODE'})
+MERGE (c:AND_NODE {key:'AND_NODE'})
+
+MERGE (i:LEAF {key:'d', name: 'PrivPermissions', property: 'RED', weight: 100})
+MERGE (f:LEAF {key:'f', property: 'RED', weight: 5})
+MERGE (g:LEAF {key:'g', property: 'GREEN', weight: 6})
+MERGE (h:LEAF {key:'h', property: 'GREEN', weight: 7})
+
+MERGE (b)-[:OR]->(a)
+MERGE (i)-[:OR]->(b)
+MERGE (c)-[:OR]->(b)
+MERGE (f)-[:AND]->(c)
+MERGE (g)-[:AND]->(c)
+MERGE (h)-[:AND]->(c)
+
+`python vuln_tree_taversal.py`
+
+
+
+
+
+### TEST data
+
+MERGE (a:CVE {name: 'CVE_2', cvss: 7})
+MERGE (b:AND_NODE {name:'AND_NODE'})
+MERGE (c:OR_NODE {name:'OR_NODE'})
+MERGE (d:OR_NODE {name:'OR_NODE'})
+MERGE (e:AND_NODE {name:'AND_NODE'})
+MERGE (f:LEAF {key:'f', property: 'RED', weight: 6})
+MERGE (g:LEAF {key:'g', property: 'GREEN', weight: 6})
+MERGE (h:LEAF {key:'h', property: 'RED', weight: 6})
+MERGE (i:LEAF {key:'i', property: 'RED', weight: 100})
+MERGE (j:LEAF {key:'j', property: 'GREEN', weight: 5})
+MERGE (k:LEAF {key:'k', property: 'GREEN', weight: 7})
 
 MERGE (k)-[:AND]->(e)
 MERGE (j)-[:AND]->(e)
@@ -178,3 +283,52 @@ MERGE (c)-[:AND]->(b)
 MERGE (d)-[:AND]->(b)
 MERGE (b)-[:OR]->(a)
 
+
+
+### Compute Path Risk
+
+MERGE (att:ATTACK {name: 'ATTACK'})
+MERGE (dep:DEPLOYMENT {name: 'DEPLOYMENT'})
+
+MERGE ()-[:r]->(att)
+MERGE (dep)-[:r]->()
+
+
+
+
+---
+# Escape_1 Neo4J Code
+
+MERGE (m:MITRE:TACTIC {name: 'Privilege Escalation'})
+MERGE (mm:MITRE:TECHNIQUE {name: 'Escape to Host'})
+MERGE (c:CVE {name: 'Escape_1'})
+MERGE (a:AND_NODE {key: 'AND_NODE'})
+MERGE (b:OR_NODE {key: 'OR_NODE'})
+MERGE (mm)-[:LEADS_TO]->(m)
+MERGE (c)-[:EXPLOITS]->(mm)
+MERGE (b)-[:OR]->(c)
+MERGE (a)-[:OR]->(b)
+UNION
+MATCH (b:OR_NODE {key: 'OR_NODE'})
+MATCH (p:Permissions:Privileged)
+MERGE (p)-[:OR]->(b)
+UNION
+MATCH (np:NoNewPriv {name: 'NoNewPriv'})
+MATCH (a:AND_NODE {key: 'AND_NODE'})
+MERGE (np)-[:AND]->(a)
+UNION
+MATCH (ro:NotReadOnly {name: 'NotReadOnly', object: 'Container'})
+MATCH (a:AND_NODE {key: 'AND_NODE'})
+MERGE (ro)-[:AND]->(a)
+UNION
+MATCH (c:Capability {name: 'CAP_SYS_ADMIN'})
+MATCH (a:AND_NODE {key: 'AND_NODE'})
+MERGE (c)-[:AND]->(a)
+UNION
+MATCH (s:SystemCall {name: 'mount'})
+MATCH (a:AND_NODE {key: 'AND_NODE'})
+MERGE (s)-[:AND]->(a)
+UNION
+MATCH (cc:ContainerConfig {name: 'root'})
+MATCH (a:AND_NODE {key: 'AND_NODE'})
+MERGE (cc)-[:AND]->(a)

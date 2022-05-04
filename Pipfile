@@ -14,6 +14,7 @@ bs4 = "*"
 lxml = "*"
 networkx = "*"
 colorama = "*"
+ahpy = "*"
 
 [dev-packages]
 

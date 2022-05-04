@@ -1,6 +1,7 @@
 from neo4j import GraphDatabase
 import os
 import docker
+import json
 
 
 def connect_to_Docker() : 
@@ -9,6 +10,38 @@ def connect_to_Docker() :
 
 def connect_to_neo4j(uri, user, password) :
     return GraphDatabase.driver(uri, auth=(user, password))
+
+
+def reset_ahp() : 
+    """  brief title.
+    
+    Arguments:
+    arg1 - desc
+    arg2 - desc
+
+    Description:
+    blablabla
+    """
+
+    try :
+        with open('./files/ahp_weights.json', 'r+') as f :
+            ahp_weights = json.load(f)
+
+            ahp_weights['version_upgrade'] = 0
+            ahp_weights['not_privileged'] = 0
+            ahp_weights['not_root'] = 0
+            ahp_weights['not_capability'] = 0
+            ahp_weights['not_syscall'] = 0
+            ahp_weights['read-only_fs'] = 0
+            ahp_weights['no_new_priv'] = 0
+
+            f.seek(0)
+            json.dump(ahp_weights, f, indent=4)
+            f.truncate()
+
+    except FileNotFoundError as error :
+        print(error)
+        exit(1)
 
 
 def neo4j_remove_all(NEO4J_ADDRESS):
@@ -76,8 +109,10 @@ def data_remove_all(NEO4J_ADDRESS) :
     # Clean up Neo4J
     neo4j_remove_all(NEO4J_ADDRESS)
 
-    # Clean up XML files
-    # XML_remove_all()
+    # Reset AHP weights
+    reset_ahp()
+
+    print("Everything was cleaned up!")
 
 
 def remove_cont_Neo4j(NEO4J_ADDRESS, cont_id) :

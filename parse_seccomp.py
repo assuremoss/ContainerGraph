@@ -30,7 +30,6 @@ def analyze_syscalls(Seccomp_p, caps=[], kernel_v="") :
         if s['arches'] and 'x86' not in s['arches'] :
             continue
 
-        # Allowed syscalls with CAP
         if s['caps'] and s['caps'][0] in caps :
             a_syscalls.extend(s['syscalls'])
 
@@ -134,14 +133,13 @@ def get_syscalls(profile) :
                         if 'arches' in sysc['includes'] and \
                             'x86' in sysc['includes']['arches'] :
                                 aux['arches'] = sysc['includes']['arches']
-                        else : continue
                     
-                    # if 'excludes' in sysc :
-                        # What does this field ???
+                    if 'excludes' in sysc :
                         # TODO
+                        pass
 
                     # Append new unique value/s
-                    if aux not in syscalls :
+                    if aux['syscalls'] and aux not in syscalls :
                         syscalls.append(aux)
                     
                 # Remove syscalls

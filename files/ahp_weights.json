@@ -1,0 +1,10 @@
+{
+    "version_upgrade": 5,
+    "not_privileged": 9,
+    "not_root": 7,
+    "not_capability": 5,
+    "not_syscall": 7,
+    "read_only_fs": 6,
+    "no_new_priv": 8,
+    "low_risk": 8
+}
