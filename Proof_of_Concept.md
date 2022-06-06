@@ -4,9 +4,11 @@
 
 This file shows the list of commands to use for a proof of concept of this tool.
 
+First of all, became root `sudo su` and create a pipenv shell `pipenv shell`. Then, install Python requirements `pipenv install`.
+
 For Vagrant Ubuntu VM: `export NEO4J_ADDRESS="192.168.2.5"`.
 
-Cleaning up the environment: `python main.py --remove-all`
+Cleaning up the environment: `python main.py --remove all`
 
 Within the Neo4J browser, run: `:config initialNodeDisplay: 1000`
 
@@ -299,6 +301,7 @@ MERGE (dep)-[:r]->()
 ---
 # Escape_1 Neo4J Code
 
+MERGE (p:Permissions:Privileged {name: 'Privileged'})
 MERGE (m:MITRE:TACTIC {name: 'Privilege Escalation'})
 MERGE (mm:MITRE:TECHNIQUE {name: 'Escape to Host'})
 MERGE (c:CVE {name: 'Escape_1'})

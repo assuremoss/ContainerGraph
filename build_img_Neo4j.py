@@ -10,7 +10,7 @@ def image_Neo4j_chart(NEO4J_ADDRESS, img) :
     TODO
     """
 
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":11005", "neo4j", "password")
+    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
     
     with driver.session() as session:
 

@@ -1,6 +1,14 @@
 import json
 import ahpy
 
+# USEFULL LINKS
+
+# https://en.wikipedia.org/wiki/Analytic_hierarchy_process
+
+# https://en.wikipedia.org/wiki/Analytic_hierarchy_process_%E2%80%93_leader_example
+
+# https://github.com/PhilipGriffith/AHPy
+
 
 def parse_ahp_weights() : 
     try :
@@ -27,7 +35,7 @@ def apply_ahp(all_results) :
             print('TODO')
 
         else : 
-            
+
             leaf_type, leaf_value = get_leaf_type(NEO4J_ADDRESS, l)
             print(leaves)
 

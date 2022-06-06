@@ -49,7 +49,7 @@ def neo4j_remove_all(NEO4J_ADDRESS):
     TODO
     """
     
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":11005", "neo4j", "password")
+    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
     with driver.session() as session:
         session.write_transaction(neo4jremove_data)
     driver.close()
@@ -120,7 +120,7 @@ def remove_cont_Neo4j(NEO4J_ADDRESS, cont_id) :
     TODO
     """
 
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":11005", "neo4j", "password")
+    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
     with driver.session() as session:
         session.write_transaction(neo4jremove_cont, cont_id)
     driver.close()

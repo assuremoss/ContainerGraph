@@ -20,7 +20,7 @@ def graph_info(NEO4J_ADDRESS) :
     blablabla
     """
 
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":11005", "neo4j", "password")
+    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
 
     with driver.session() as session:
         n_nodes, n_edges = session.read_transaction(query_graph_info)
@@ -60,7 +60,7 @@ def is_db_initialize(NEO4J_ADDRESS) :
     blablabla
     """
 
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":11005", "neo4j", "password")
+    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
     with driver.session() as session:
         result = session.read_transaction(query_db)
     driver.close()
@@ -96,7 +96,7 @@ def vuln_Neo4j(NEO4J_ADDRESS, vuln) :
     blablabla
     """
 
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":11005", "neo4j", "password")
+    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
     with driver.session() as session:
         session.write_transaction(create_vuln, vuln)
     driver.close()
@@ -225,6 +225,6 @@ def initialize_Neo4j_db(NEO4J_ADDRESS) :
         init_vuln(NEO4J_ADDRESS)
 
         # Print graph info
-        n_nodes, n_edges = graph_info(NEO4J_ADDRESS)
-        print('Total: ' + str(n_nodes) + ' nodes and ' + str(n_edges) + ' relationships.\n')
+        # n_nodes, n_edges = graph_info(NEO4J_ADDRESS)
+        # print('Total: ' + str(n_nodes) + ' nodes and ' + str(n_edges) + ' relationships.\n')
 

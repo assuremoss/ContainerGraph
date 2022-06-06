@@ -22,7 +22,7 @@ def get_all_cves(NEO4J_ADDRESS) :
     Description:
     blablabla
     """
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":11005", "neo4j", "password")
+    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
     with driver.session() as session:
         return session.read_transaction(get_cves_names)
 
@@ -139,7 +139,7 @@ def get_node_dict(NEO4J_ADDRESS, node_id, cont_id) :
     Description:
     blablabla
     """
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":11005", "neo4j", "password")
+    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
     with driver.session() as session:
         return session.read_transaction(query_node, node_id, cont_id)
 
@@ -213,7 +213,7 @@ def get_cve_nodes(NEO4J_ADDRESS, cve) :
     blablabla
     """
 
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":11005", "neo4j", "password")
+    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
     with driver.session() as session:
         return session.read_transaction(query_cve_node, cve)
 
@@ -326,7 +326,7 @@ def weight_path(NEO4J_ADDRESS, path) :
 
     sum = 0
 
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":11005", "neo4j", "password")
+    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
     with driver.session() as session:
         for node_id in path : 
 
@@ -350,7 +350,7 @@ def query_node_weight(tx, node_id) :
 
 
 def get_leaf_type(NEO4J_ADDRESS, leaf_id) :
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":11005", "neo4j", "password")
+    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
     with driver.session() as session:
         return session.read_transaction(retrieve_leaf_type, leaf_id)
 
@@ -464,10 +464,10 @@ def suggest_fix(NEO4J_ADDRESS, all_results) :
             for f in ahp_fixes : 
 
                 if f['type'] == 'SystemCall' : 
-                    aws = input("Accept " + f['fix'] + ' ' + f['value'] + " (y/n) ? ")
+                    aws = input("Deny systemcall " + f['value'] + " (y/n) ? ")
 
                 elif f['type'] == 'Capability' : 
-                    aws = input("Accept " + f['fix'] + ' ' + f['value'] + " (y/n) ? ")
+                    aws = input("Deny capability " + f['value'] + " (y/n) ? ")
                 
                 else :
                     aws = input("Accept " + f['fix'] + " (y/n) ? ")
@@ -515,6 +515,6 @@ def fix_deployment(NEO4J_ADDRESS, cve) :
 
 
 ### CUSTOM FUNCTION ###
-NEO4J_ADDRESS = '192.168.2.5'
-cve = 'CVE_1'
-fix_deployment(NEO4J_ADDRESS, cve)
+# NEO4J_ADDRESS = '192.168.2.5'
+# cve = 'CVE_1'
+# fix_deployment(NEO4J_ADDRESS, cve)

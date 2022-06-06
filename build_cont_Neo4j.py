@@ -16,7 +16,7 @@ def cont_Neo4j_chart(NEO4J_ADDRESS, cont) :
     blablabla
     """
 
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":11005", "neo4j", "password")
+    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
     with driver.session() as session:
 
         session.write_transaction(create_cont_node, cont)

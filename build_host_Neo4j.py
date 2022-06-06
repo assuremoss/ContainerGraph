@@ -13,7 +13,7 @@ def get_kernel_v(NEO4J_ADDRESS):
     For example, version 4.9.
     """
 
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":11005", "neo4j", "password")
+    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
     with driver.session() as session:
         result = session.read_transaction(query_kernel_v)
     driver.close()
@@ -42,7 +42,7 @@ def host_node(NEO4J_ADDRESS, host) :
     TODO
     """
 
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":11005", "neo4j", "password")
+    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
     with driver.session() as session:
 
         session.write_transaction(create_host_node, host)

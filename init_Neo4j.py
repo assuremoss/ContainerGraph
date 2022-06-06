@@ -17,7 +17,7 @@ def perm_nodes(NEO4J_ADDRESS, capabilities, syscalls) :
     blablabla
     """
 
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":11005", "neo4j", "password")
+    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
     
     with driver.session() as session:
 
@@ -102,7 +102,7 @@ def eng_v_nodes(NEO4J_ADDRESS, docker_v, containerd_v, runc_v) :
     blablabla
     """
 
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":11005", "neo4j", "password")
+    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
     
     with driver.session() as session:
         session.write_transaction(create_eng_node, docker_v, containerd_v, runc_v)
@@ -144,7 +144,7 @@ def kernel_v_nodes(NEO4J_ADDRESS, kernel_v) :
     blablabla
     """
 
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":11005", "neo4j", "password")
+    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
     
     with driver.session() as session:
         session.write_transaction(create_kernel_v_node, kernel_v)

@@ -42,7 +42,7 @@ To run the tool, follow these steps:
 
 To run the tool within a `Vagrant` virtual machine you have to allow remote connections to the Neo4J database. To do so, change the following Database settings:
 
-`dbms.connector.bolt.listen_address=0.0.0.0:11005`
+`dbms.connector.bolt.listen_address=0.0.0.0:7687`
 
 The ContainerGraph tool will read the Neo4J database address to use from the local environmental variable `NEO4J_ADDRESS`.
 
