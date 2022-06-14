@@ -63,22 +63,6 @@ def neo4jremove_data(tx) :
     tx.run("MATCH (n) DETACH DELETE n")
 
 
-def XML_remove_all() :
-    """
-    TODO
-    """
-    
-    dir = os.listdir("charts")
-    
-    try :
-        for d in dir :
-            if d != "template_chart.xml" : 
-                os.remove("charts/" + d )
-
-    except FileNotFoundError:
-        pass
-
-
 def cont_remove_all() :
     """
     TODO

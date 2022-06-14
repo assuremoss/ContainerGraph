@@ -4,8 +4,8 @@ from build_cont_Neo4j import cont_Neo4j_chart
 from build_img_Neo4j import image_Neo4j_chart
 from build_host_Neo4j import get_kernel_v
 from remove_cont import data_remove_all, remove_container
-from vuln_tree_taversal import query_vulnerability, get_all_cves
 from initialize_Neo4J import initialize_Neo4j_db, graph_info
+from suggest_fix import query_deployment
 import argparse
 import os
 
@@ -16,7 +16,7 @@ group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument("--add", metavar="<image_id>", help="add a new image")
 group.add_argument("--run", action='append', nargs=argparse.REMAINDER, help="run a container")
 group.add_argument("--remove", nargs=1, metavar="<container_id> OR <all>", help="remove and delete one container or all containers")
-group.add_argument("--analyze", nargs=2, metavar=('<container_id>', '<cve>'), help="analyze container's vulnerabilities/misconfigurations")
+group.add_argument("--analyze", action='store_true', help="analyze all vulnerabilities/misconfigurations")
 
 args = parser.parse_args()
 
@@ -63,17 +63,9 @@ def run_option(NEO4J_ADDRESS, options) :
     print('Total: ' + str(n_nodes) + ' nodes and ' + str(n_edges) + ' relationships.\n')
 
 
-# Analyze the container's vulnerabilities/misconfigurations
-def analyze_option(NEO4J_ADDRESS, options) :
-    # Scan the container for all vulnerabilities
-    if options[1] == 'all' : 
-        vuln_names = get_all_cves(NEO4J_ADDRESS)
-        for vuln in vuln_names :
-          query_vulnerability(NEO4J_ADDRESS, options[0], vuln)
-
-    # Scan the container for a single vulnerability
-    else : 
-        query_vulnerability(NEO4J_ADDRESS, options[0], options[1])
+# Analyze all vulnerabilities/misconfigurations
+def analyze_option(NEO4J_ADDRESS) :
+    query_deployment(NEO4J_ADDRESS)
     
 
 # Remove container/s and clean DB
@@ -107,10 +99,9 @@ def main() :
             run_option(NEO4J_ADDRESS, args.run)
 
         elif args.analyze :
-            analyze_option(NEO4J_ADDRESS, args.analyze)
+            analyze_option(NEO4J_ADDRESS)
 
 
 if __name__ == "__main__" :
-
     main()
 

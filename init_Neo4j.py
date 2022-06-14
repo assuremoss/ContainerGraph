@@ -23,8 +23,7 @@ def perm_nodes(NEO4J_ADDRESS, capabilities, syscalls) :
 
         session.write_transaction(create_caps_nodes, capabilities)
         session.write_transaction(create_syscall_nodes, syscalls)
-        session.write_transaction(create_ro_node)
-        session.write_transaction(create_nonewpriv_node)
+        session.write_transaction(create_perm_nodes)
 
     driver.close()
 
@@ -41,7 +40,7 @@ def create_caps_nodes(tx, capabilities) :
     """
 
     for cap in capabilities :
-        query = "MERGE (cap:Capability {name: '" + cap['name'] + "'})"
+        query = "MERGE (cap:Capability {name: '" + cap['name'] + "', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
         tx.run(query)
 
 
@@ -57,11 +56,11 @@ def create_syscall_nodes(tx, syscalls) :
     """
 
     for syscall in syscalls :
-        query = "MERGE (sysc:SystemCall {name: '" + syscall['name'] + "'})"
+        query = "MERGE (sysc:SystemCall {name: '" + syscall['name'] + "', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
         tx.run(query)
 
 
-def create_ro_node(tx) :
+def create_perm_nodes(tx) :
     """  brief title.
     
     Arguments:
@@ -71,24 +70,19 @@ def create_ro_node(tx) :
     Description:
     blablabla
     """
+    tx.run("CREATE (cc:ContainerConfig {name: 'root', type: 'user', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})")
 
-    query = "MERGE (ro:NotReadOnly {name: 'NotReadOnly'})"
-    tx.run(query)
-
-
-def create_nonewpriv_node(tx) :
-    """  brief title.
+    tx.run("""
+    CREATE (ro:NotReadOnly {name: 'NotReadOnly', object: 'Container', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})
+    """)
     
-    Arguments:
-    arg1 - desc
-    arg2 - desc
+    tx.run("""
+    CREATE (np:NoNewPriv {name: 'NoNewPriv', object: 'Container', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})
+    """)
 
-    Description:
-    blablabla
-    """
-
-    query = "MERGE (nnp:NewPrivileges {name: 'NewPriv'})"
-    tx.run(query)
+    tx.run("""
+    CREATE (p:Permissions:Privileged {name: 'Privileged', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})
+    """)
 
 
 def eng_v_nodes(NEO4J_ADDRESS, docker_v, containerd_v, runc_v) :
@@ -121,15 +115,15 @@ def create_eng_node(tx, docker_v, containerd_v, runc_v) :
     """
 
     for dv in docker_v :
-        query = "MERGE (dv:DockerVersion {key: '" + dv + "'})"
+        query = "MERGE (dv:DockerVersion {key: '" + dv + "', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
         tx.run(query)
 
     for cv in containerd_v :
-        query = "MERGE (cv:containerdVersion {key: '" + cv + "'})"
+        query = "MERGE (cv:containerdVersion {key: '" + cv + "', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
         tx.run(query)
 
     for rv in runc_v :
-        query = "MERGE (rv:runcVersion {key: '" + rv + "'})"
+        query = "MERGE (rv:runcVersion {key: '" + rv + "', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
         tx.run(query)
 
 
@@ -163,7 +157,7 @@ def create_kernel_v_node(tx, kernel_v) :
     """
 
     for kv in kernel_v :
-        query = "MERGE (kv:KernelVersion {key: '" + kv + "'})"
+        query = "MERGE (kv:KernelVersion {key: '" + kv + "', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
         tx.run(query)
 
 

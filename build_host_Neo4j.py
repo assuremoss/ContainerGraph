@@ -74,6 +74,7 @@ def create_host_relationship(tx, host) :
 
     tx.run("MATCH (h:Host {name: $hostname}) "
            "MATCH (kv:KernelVersion {key: $kernel_v}) "
+           "SET kv.weight = 1 "
            "MERGE (h)-[:USES]->(kv) "
            "UNION "
            "MATCH (h:Host {name: $hostname}) "
@@ -90,14 +91,17 @@ def create_host_relationship(tx, host) :
 
         tx.run("MATCH (ce:ContainerEngine {name: $name}) "
                "MATCH (de:DockerVersion {key: $docker_v}) "
+               "SET de.weight = 1 "
                "MERGE (ce)-[:USES]->(de) "
                "UNION "
                "MATCH (de:DockerVersion {key: $docker_v}) "
                "MATCH (cv:containerdVersion {key: $containerd_v}) "
+               "SET cv.weight = 1 "
                "MERGE (de)-[:USES]->(cv) "
                "UNION "
                "MATCH (de:DockerVersion {key: $docker_v}) "
                "MATCH (rv:runcVersion {key: $runc_v}) "
+               "SET rv.weight = 1 "
                "MERGE (de)-[:USES]->(rv) "
                , name = host.name, docker_v = host.docker_v, containerd_v = host.containerd_v, runc_v = host.runc_v
         )
