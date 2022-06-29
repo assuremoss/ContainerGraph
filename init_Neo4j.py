@@ -40,7 +40,7 @@ def create_caps_nodes(tx, capabilities) :
     """
 
     for cap in capabilities :
-        query = "MERGE (cap:Capability {name: '" + cap['name'] + "', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
+        query = "MERGE (cap:Capability {name: '" + cap['name'] + "', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
         tx.run(query)
 
 
@@ -56,7 +56,7 @@ def create_syscall_nodes(tx, syscalls) :
     """
 
     for syscall in syscalls :
-        query = "MERGE (sysc:SystemCall {name: '" + syscall['name'] + "', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
+        query = "MERGE (sysc:SystemCall {name: '" + syscall['name'] + "', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
         tx.run(query)
 
 
@@ -70,18 +70,19 @@ def create_perm_nodes(tx) :
     Description:
     blablabla
     """
-    tx.run("CREATE (cc:ContainerConfig {name: 'root', type: 'user', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})")
+
+    tx.run("CREATE (cc:ContainerConfig {name: 'root', type: 'user', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})")
 
     tx.run("""
-    CREATE (ro:NotReadOnly {name: 'NotReadOnly', object: 'Container', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})
+    CREATE (ro:NotReadOnly {name: 'NotReadOnly', object: 'Container', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})
     """)
     
     tx.run("""
-    CREATE (np:NoNewPriv {name: 'NoNewPriv', object: 'Container', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})
+    CREATE (np:NewPriv {name: 'NewPriv', object: 'Container', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})
     """)
 
     tx.run("""
-    CREATE (p:Permissions:Privileged {name: 'Privileged', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})
+    CREATE (p:Permissions:Privileged {name: 'Privileged', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})
     """)
 
 
@@ -115,15 +116,15 @@ def create_eng_node(tx, docker_v, containerd_v, runc_v) :
     """
 
     for dv in docker_v :
-        query = "MERGE (dv:DockerVersion {key: '" + dv + "', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
+        query = "MERGE (dv:DockerVersion {key: '" + dv + "', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
         tx.run(query)
 
     for cv in containerd_v :
-        query = "MERGE (cv:containerdVersion {key: '" + cv + "', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
+        query = "MERGE (cv:containerdVersion {key: '" + cv + "', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
         tx.run(query)
 
     for rv in runc_v :
-        query = "MERGE (rv:runcVersion {key: '" + rv + "', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
+        query = "MERGE (rv:runcVersion {key: '" + rv + "', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
         tx.run(query)
 
 
@@ -157,7 +158,7 @@ def create_kernel_v_node(tx, kernel_v) :
     """
 
     for kv in kernel_v :
-        query = "MERGE (kv:KernelVersion {key: '" + kv + "', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
+        query = "MERGE (kv:KernelVersion {key: '" + kv + "', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
         tx.run(query)
 
 

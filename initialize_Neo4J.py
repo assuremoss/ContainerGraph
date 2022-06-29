@@ -144,45 +144,8 @@ def init_vuln(NEO4J_ADDRESS, vuln) :
     blablabla
     """
 
+    # FOR NOW I DO IT MANUALLY
     vuln_Neo4j(NEO4J_ADDRESS, vuln)
-
-    # Get 3 lists of dicts, each representing a vuln.
-    # container_attacks, kernel_attacks, engine_attacks = parse_vuln_file()
-
-    # for ca in container_attacks : 
-    #     # Get CVE name
-    #     cve = list(ca.keys())[0]
-
-    #     cve_dict = ca[cve][0]
-
-    #     # Iterate over the other CVE fields
-    #     for k in cve_dict.keys() : 
-
-    #         if k == 'engine' : 
-    #             pass
-
-    #         elif k == 'mitre_tactic' : 
-    #             # Create MITRE tactic node
-    #             #
-    #             #
-    #             # vuln_Neo4j(NEO4J_ADDRESS, vuln)
-    #             #
-    #             # (m:MITRE:TACTIC {name: cve_dict[k]})
-    #             #
-
-    #             pass
-                
-
-    #         elif k == 'mitre_technique' :
-    #             # Create MITRE technique node
-    #             pass
-        
-    #         elif k == 'pre_conditions' : 
-    #             pass
-
-    #         elif k == 'post_conditions' : 
-    #             pass
-
 
 
 def initialize_Neo4j_db(NEO4J_ADDRESS) :
@@ -216,8 +179,8 @@ def initialize_Neo4j_db(NEO4J_ADDRESS) :
 
         # Initialize Vulnerabilities
         init_vuln(NEO4J_ADDRESS, vuln1)
-        # init_vuln(NEO4J_ADDRESS, vuln2)
-        # init_vuln(NEO4J_ADDRESS, vuln3)
+        init_vuln(NEO4J_ADDRESS, vuln2)
+        init_vuln(NEO4J_ADDRESS, vuln3)
 
         # Print graph info
         # n_nodes, n_edges = graph_info(NEO4J_ADDRESS)
@@ -225,8 +188,6 @@ def initialize_Neo4j_db(NEO4J_ADDRESS) :
 
 
 vuln1 = """
-MERGE (atc:Attacker {name: 'Attacker', CVEs: []})
-MERGE (cd:Deployment {name: 'Deployment'})
 MERGE (m:MITRE:TACTIC {name: 'Privilege Escalation'})
 MERGE (mm:MITRE:TECHNIQUE {name: 'Escape to Host'})
 CREATE (c:CVE {name: 'Escape_1', CVSS_v3: gds.util.NaN(), ignore: false, needed: [], weight: -gds.util.infinity()})
@@ -234,7 +195,6 @@ CREATE (a:AND_NODE {key: 'AND_NODE', weight: 0, todo: 5, needed: [], pred: gds.u
 CREATE (b:OR_NODE {key: 'OR_NODE', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})
 MERGE (c)-[:USES]->(mm)
 MERGE (mm)-[:LEADS_TO]->(m)
-MERGE (c)-[:EXPLOITS]->(atc)
 MERGE (b)-[:OR]->(c)
 MERGE (a)-[:OR]->(b)
 UNION
@@ -242,49 +202,25 @@ MATCH (b:OR_NODE {key: 'OR_NODE'})
 MATCH (p:Permissions:Privileged)
 MERGE (p)-[:OR]->(b)
 UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (p:Permissions:Privileged)
-MERGE (cd)-[:PART_OF]->(p)
-UNION
-MATCH (np:NoNewPriv {name: 'NoNewPriv'})
+MATCH (np:NewPriv {name: 'NewPriv'})
 MATCH (a:AND_NODE {key: 'AND_NODE'})
 MERGE (np)-[:AND]->(a)
-UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (np:NoNewPriv {name: 'NoNewPriv'})
-MERGE (cd)-[:PART_OF]->(np)
 UNION
 MATCH (ro:NotReadOnly {name: 'NotReadOnly', object: 'Container'})
 MATCH (a:AND_NODE {key: 'AND_NODE'})
 MERGE (ro)-[:AND]->(a)
 UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (ro:NotReadOnly {name: 'NotReadOnly', object: 'Container'})
-MERGE (cd)-[:PART_OF]->(ro)
-UNION
 MATCH (c:Capability {name: 'CAP_SYS_ADMIN'})
 MATCH (a:AND_NODE {key: 'AND_NODE'})
 MERGE (c)-[:AND]->(a)
-UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (c:Capability {name: 'CAP_SYS_ADMIN'})
-MERGE (cd)-[:PART_OF]->(c)
 UNION
 MATCH (s:SystemCall {name: 'mount'})
 MATCH (a:AND_NODE {key: 'AND_NODE'})
 MERGE (s)-[:AND]->(a)
 UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (s:SystemCall {name: 'mount'})
-MERGE (cd)-[:PART_OF]->(s)
-UNION
 MATCH (cc:ContainerConfig {name: 'root', type: 'user'})
 MATCH (a:AND_NODE {key: 'AND_NODE'})
 MERGE (cc)-[:AND]->(a)
-UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (cc:ContainerConfig {name: 'root', type: 'user'})
-MERGE (cd)-[:PART_OF]->(cc)
 """
 
 vuln2 = """
@@ -296,10 +232,6 @@ MERGE (mm)-[:LEADS_TO]->(m)
 MERGE (c)-[:USES]->(mm)
 MERGE (b)-[:OR]->(c)
 UNION 
-MATCH (atc:Attacker {name: 'Attacker'})
-MATCH (c:CVE {name: 'CVE-2022-0847'})
-MERGE (c)-[:EXPLOITS]->(atc)
-UNION
 MATCH (kv:KernelVersion {key: '5.8'})
 MATCH (b:OR_NODE {key: 'OR_NODE', vuln: 'vuln2'})
 MERGE (kv)-[:OR]->(b)
@@ -319,26 +251,6 @@ UNION
 MATCH (kv:KernelVersion {key: '5.16'})
 MATCH (b:OR_NODE {key: 'OR_NODE', vuln: 'vuln2'})
 MERGE (kv)-[:OR]->(b)
-UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (kv:KernelVersion {key: '5.8'})
-MERGE (cd)-[:PART_OF]->(kv)
-UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (kv:KernelVersion {key: '5.9'})
-MERGE (cd)-[:PART_OF]->(kv)
-UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (kv:KernelVersion {key: '5.10'})
-MERGE (cd)-[:PART_OF]->(kv)
-UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (kv:KernelVersion {key: '5.15'})
-MERGE (cd)-[:PART_OF]->(kv)
-UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (kv:KernelVersion {key: '5.16'})
-MERGE (cd)-[:PART_OF]->(kv)
 """
 
 vuln3 = """
@@ -357,17 +269,9 @@ MERGE (a)-[:AND]->(c)
 MERGE (b)-[:OR]->(a)
 MERGE (b2)-[:OR]->(a)
 UNION 
-MATCH (atc:Attacker {name: 'Attacker'})
-MATCH (c:CVE {name: 'CVE-2022-0185'})
-MERGE (c)-[:EXPLOITS]->(atc)
-UNION
 MATCH (b2:OR_NODE {key: 'OR_NODE', vuln: 'vuln3', name: 'or1'})
 MATCH (p:Permissions:Privileged)
 MERGE (p)-[:OR]->(b2)
-UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (p:Permissions:Privileged)
-MERGE (cd)-[:PART_OF]->(p)
 UNION
 MATCH (b2:OR_NODE {key: 'OR_NODE', vuln: 'vuln3', name: 'or1'})
 MATCH (a1:AND_NODE {key: 'AND_NODE', vuln: 'vuln3', name: 'and2'})
@@ -377,18 +281,10 @@ MATCH (a1:AND_NODE {key: 'AND_NODE', vuln: 'vuln3', name: 'and2'})
 MATCH (cc:ContainerConfig {name: 'root', type: 'user'})
 MERGE (cc)-[:AND]->(a1)
 UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (cc:ContainerConfig {name: 'root', type: 'user'})
-MERGE (cd)-[:PART_OF]->(cc)
-UNION
 MATCH (a1:AND_NODE {key: 'AND_NODE', vuln: 'vuln3', name: 'and2'})
 MATCH (cap:Capability {name: 'CAP_SYS_ADMIN'})
 MERGE (cap)-[:AND]->(a1)
 UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (cap:Capability {name: 'CAP_SYS_ADMIN'})
-MERGE (cd)-[:PART_OF]->(cap)
-UNION
 MATCH (kv:KernelVersion {key: '5.1'})
 MATCH (b:OR_NODE {key: 'OR_NODE', vuln: 'vuln3', name: 'or2'})
 MERGE (kv)-[:OR]->(b)
@@ -452,68 +348,4 @@ UNION
 MATCH (kv:KernelVersion {key: '5.16'})
 MATCH (b:OR_NODE {key: 'OR_NODE', vuln: 'vuln3', name: 'or2'})
 MERGE (kv)-[:OR]->(b)
-UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (kv:KernelVersion {key: '5.1'})
-MERGE (cd)-[:PART_OF]->(kv)
-UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (kv:KernelVersion {key: '5.2'})
-MERGE (cd)-[:PART_OF]->(kv)
-UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (kv:KernelVersion {key: '5.3'})
-MERGE (cd)-[:PART_OF]->(kv)
-UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (kv:KernelVersion {key: '5.4'})
-MERGE (cd)-[:PART_OF]->(kv)
-UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (kv:KernelVersion {key: '5.5'})
-MERGE (cd)-[:PART_OF]->(kv)
-UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (kv:KernelVersion {key: '5.6'})
-MERGE (cd)-[:PART_OF]->(kv)
-UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (kv:KernelVersion {key: '5.7'})
-MERGE (cd)-[:PART_OF]->(kv)
-UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (kv:KernelVersion {key: '5.8'})
-MERGE (cd)-[:PART_OF]->(kv)
-UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (kv:KernelVersion {key: '5.9'})
-MERGE (cd)-[:PART_OF]->(kv)
-UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (kv:KernelVersion {key: '5.10'})
-MERGE (cd)-[:PART_OF]->(kv)
-UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (kv:KernelVersion {key: '5.11'})
-MERGE (cd)-[:PART_OF]->(kv)
-UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (kv:KernelVersion {key: '5.12'})
-MERGE (cd)-[:PART_OF]->(kv)
-UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (kv:KernelVersion {key: '5.13'})
-MERGE (cd)-[:PART_OF]->(kv)
-UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (kv:KernelVersion {key: '5.14'})
-MERGE (cd)-[:PART_OF]->(kv)
-UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (kv:KernelVersion {key: '5.15'})
-MERGE (cd)-[:PART_OF]->(kv)
-UNION
-MATCH (cd:Deployment {name: 'Deployment'})
-MATCH (kv:KernelVersion {key: '5.16'})
-MERGE (cd)-[:PART_OF]->(kv)
 """

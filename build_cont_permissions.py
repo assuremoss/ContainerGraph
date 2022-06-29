@@ -128,10 +128,13 @@ def build_permissions(cont_id, run_args, kernel_v) :
 
             # NoNewPriv: the container can not start a process with more privileges than its own.
             # Syntax: --security-opt=no-new-privileges:true
+
             if value.startswith('no-new-privileges') :
                 aux = value.split(':')[1]
-                if aux == True : 
+
+                if aux : 
                     no_new_priv = True
+
                     # The capabilities are the same as for the docker-default AppAmor profile (i.e., 14 caps).
                     a_caps += apparmor_parser().caps
                     #

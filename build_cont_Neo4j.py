@@ -53,11 +53,11 @@ def create_cconfig_nodes(tx, cont) :
         # Do not add a node for the container name
         if not key == 'name' :
             if type(value) == list :
-                tx.run("MERGE (cc:ContainerConfig {name: $key, value: $value, weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})", key=key, value=value)
+                tx.run("MERGE (cc:ContainerConfig {name: $key, value: $value, tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})", key=key, value=value)
 
             else :
                 if not value == 'root' and key == 'user' :
-                    query = "MERGE (cc:ContainerConfig {name: $value, type: $type, weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
+                    query = "MERGE (cc:ContainerConfig {name: $value, type: $type, tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
                     tx.run(query, type=key, value=value
                     )
 
@@ -169,7 +169,7 @@ def create_prof_relationships(tx, cont) :
         )
 
     if cont.permissions.no_new_priv == False :
-        tx.run("MATCH (np:NoNewPriv {name: 'NoNewPriv', object: 'Container'}) "
+        tx.run("MATCH (np:NewPriv {name: 'NewPriv', object: 'Container'}) "
             "MATCH (p:Permissions {name: 'Permissions', profile: $profile}) "
             "SET np.weight = 1 "
             "MERGE (p)-[:HAS]->(np)  "
@@ -187,11 +187,6 @@ def create_perm_relationships(tx, cont) :
     Description:
     blablabla
     """
-
-    tx.run("""
-    MATCH (p:Permissions:Privileged {name: 'Privileged'})
-    SET p.weight = 1 
-    """)
 
     tx.run("MATCH (c:Container:Docker {cont_id: $cont_id}) "
         "MATCH (p:Permissions:Privileged {name: 'Privileged'}) "
@@ -224,7 +219,7 @@ def create_perm_relationships(tx, cont) :
         )
 
     if cont.permissions.no_new_priv == False :
-        tx.run("MATCH (np:NoNewPriv {name: 'NoNewPriv', object: 'Container'}) "
+        tx.run("MATCH (np:NewPriv {name: 'NewPriv', object: 'Container'}) "
             "MATCH (p:Permissions:Privileged {name: 'Privileged'}) "
             "SET np.weight = 1 "
             "MERGE (p)-[:HAS]->(np)  "
@@ -242,7 +237,11 @@ def create_cont_node(tx, cont) :
     blablabla
     """
 
+    # Create Container node
     tx.run("MERGE (c:Container:Docker {name: $name, cont_id: $cont_id, img_id: $img_id, start_t: $start_t, status: $status})", cont_id = cont.cont_id, img_id = cont.img_id, name = cont.name, start_t = cont.start_t, status = cont.status) 
+
+    # Create Deployment node 
+    tx.run("MERGE (cd:Deployment {name: 'Deployment', cont_id: $cont_id, ignore_CVEs: []})", cont_id = cont.cont_id)
 
 
 def create_cont_relationships(tx, cont) :
@@ -256,6 +255,7 @@ def create_cont_relationships(tx, cont) :
     blablabla
     """
 
+    # Container relationships
     tx.run("MATCH (de:DockerEngine)-[:RUNS_ON_TOP]->(h:LinuxHost) "
            "MATCH (c:Container:Docker {cont_id: $cont_id}) "
            "MERGE (de)-[:RUNS]->(c) "
@@ -265,4 +265,27 @@ def create_cont_relationships(tx, cont) :
            "MERGE (c)-[:INSTANCIATE]->(i) ", 
            cont_id = cont.cont_id, img_id = cont.img_id
     )
+
+    # Deployment relationships
+    tx.run("""
+    MATCH (cd:Deployment {name: 'Deployment', cont_id: $cont_id})
+    MATCH (c:Container:Docker {cont_id: $cont_id}) 
+    MERGE (cd)-[:PART_OF]->(c)
+    UNION
+    MATCH (cd:Deployment {name: 'Deployment', cont_id: $cont_id})
+    MATCH (de:DockerEngine)-[*]->(kv:KernelVersion)
+    MERGE (cd)-[:PART_OF]->(kv)
+    UNION
+    MATCH (cd:Deployment {name: 'Deployment', cont_id: $cont_id})
+    MATCH (de:DockerEngine)-[*]->(dv:DockerVersion)
+    MERGE (cd)-[:PART_OF]->(dv)
+    UNION
+    MATCH (cd:Deployment {name: 'Deployment', cont_id: $cont_id})
+    MATCH (de:DockerEngine)-[*]->(cv:containerdVersion)
+    MERGE (cd)-[:PART_OF]->(cv)
+    UNION
+    MATCH (cd:Deployment {name: 'Deployment', cont_id: $cont_id})
+    MATCH (de:DockerEngine)-[*]->(rv:runcVersion)
+    MERGE (cd)-[:PART_OF]->(rv)
+    """, cont_id = cont.cont_id)
 

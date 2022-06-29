@@ -54,18 +54,3 @@ def create_relationships(tx, img) :
            "MERGE (i)-[:BUILT_FROM]->(df) "
            , img_id = img.img_id)
 
-
-# def import_graph(tx, img_id) :
-#     """
-#     Add comments
-#     """
-
-#     # Copy the GraphML file into the Neo4J import directory
-#     # CAREFULL: Neo4J graphml import does not parse the '_' underscore char in file's name!
-#     src = "./charts/" + img_id + "_chart.graphml"
-
-#     ### TO CHECK: how to automatically find the import dir of the neo4j dbms
-#     dst = "/Users/francescominna/Library/Application Support/Neo4j Desktop/Application/relate-data/dbmss/dbms-58a0642f-74c7-4d4a-a80b-53e06c50abc4/import/" + img_id + ".graphml"
-#     shutil.copyfile(src, dst)
-
-#     tx.run("CALL apoc.import.graphml('file://" + img_id + ".graphml', {readLabels: true});")

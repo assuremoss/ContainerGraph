@@ -1,48 +1,14 @@
 from neo4j import GraphDatabase
+from vuln_tree_taversal import reinitialize_fields, traverse_tree
 import os
 import docker
-import json
 
 
 def connect_to_Docker() : 
     return docker.from_env()
 
-
 def connect_to_neo4j(uri, user, password) :
     return GraphDatabase.driver(uri, auth=(user, password))
-
-
-def reset_ahp() : 
-    """  brief title.
-    
-    Arguments:
-    arg1 - desc
-    arg2 - desc
-
-    Description:
-    blablabla
-    """
-
-    try :
-        with open('./files/ahp_weights.json', 'r+') as f :
-            ahp_weights = json.load(f)
-
-            ahp_weights['version_upgrade'] = 0
-            ahp_weights['not_privileged'] = 0
-            ahp_weights['not_root'] = 0
-            ahp_weights['not_capability'] = 0
-            ahp_weights['not_syscall'] = 0
-            ahp_weights['read-only_fs'] = 0
-            ahp_weights['no_new_priv'] = 0
-
-            f.seek(0)
-            json.dump(ahp_weights, f, indent=4)
-            f.truncate()
-
-    except FileNotFoundError as error :
-        print(error)
-        exit(1)
-
 
 def neo4j_remove_all(NEO4J_ADDRESS):
     """
@@ -54,12 +20,7 @@ def neo4j_remove_all(NEO4J_ADDRESS):
         session.write_transaction(neo4jremove_data)
     driver.close()
 
-
 def neo4jremove_data(tx) :
-    """
-    TODO
-    """
-    
     tx.run("MATCH (n) DETACH DELETE n")
 
 
@@ -93,39 +54,18 @@ def data_remove_all(NEO4J_ADDRESS) :
     # Clean up Neo4J
     neo4j_remove_all(NEO4J_ADDRESS)
 
-    # Reset AHP weights
-    reset_ahp()
-
     print("Everything was cleaned up!")
 
 
 def remove_cont_Neo4j(NEO4J_ADDRESS, cont_id) :
-    """
-    TODO
-    """
-
     driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
     with driver.session() as session:
         session.write_transaction(neo4jremove_cont, cont_id)
     driver.close()
 
-
 def neo4jremove_cont(tx, cont_id) :
-    """
-    TODO
-    """
-    
-    ### SHOULD WE ALSO REMOVE ALL THE ASSOCIATED NODES (e.g. user, volumes, net, etc.)
-
-    tx.run("MATCH (c:Container)-[r]-() "
-           "WHERE c.cont_id = $cont_id "
-           "DELETE r, c; ",
-           cont_id = cont_id
-    )
-    
-    # Alternative:
-    # tx.run("MATCH (c:Container:Docker {cont_id: }) DETACH DELETE c", )
-
+    tx.run("MATCH (c:Container:Docker {cont_id: $cont_id}) DETACH DELETE c ", cont_id=cont_id)
+    tx.run("MATCH (d:Deployment {cont_id: $cont_id}) DETACH DELETE d", cont_id=cont_id)
 
 def remove_container(NEO4J_ADDRESS, cont_id) :
     """

@@ -1,212 +1,205 @@
 from neo4j import GraphDatabase
-from vuln_tree_taversal import traverse_tree
+import docker
+from vuln_tree_taversal import traverse_tree, append_node_property
 from colorama import Fore, Style
+from vuln_tree_taversal import get_node
 
 
 def connect_to_neo4j(uri, user, password) :
     return GraphDatabase.driver(uri, auth=(user, password))
 
-def query_deployment(NEO4J_ADDRESS) :
-    """  brief title.
+def connect_to_Docker() : 
+    return docker.from_env()
+
+
+def get_deployments(NEO4J_ADDRESS, cont_id=0) :
+    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
+    with driver.session() as session:
+        temp = session.read_transaction(query_deployments, cont_id)
+    driver.close()
+    return temp
+
+def query_deployments(tx, cont_id) :
     
-    Arguments:
+    # Return all Deployment nodes
+    if cont_id == 0 :
+        return tx.run("MATCH (n:Deployment) RETURN {node_id: ID(n), cont_id: n.cont_id, ignore: n.ignore}").value()
 
-    Description:
-    blablabla
-    """
-
-    traverse_tree(NEO4J_ADDRESS)
-
-
+    else : 
+        return tx.run("""
+        MATCH (n:Deployment {name: 'Deployment', cont_id: $cont_id})
+        RETURN {node_id: ID(n), cont_id: n.cont_id, ignore: n.ignore}
+        """, cont_id=cont_id).value()
 
 
-# def query_deployment(NEO4J_ADDRESS) :
-#     """  brief title.
+def analyze_deployment(NEO4J_ADDRESS, d) : 
+    # To check the container is running
+    client = connect_to_Docker()
+
+    try:
+        # Retrieve container object
+        cont = client.containers.get(d['cont_id'])
+
+        # Check the container is running
+        if cont.status == 'running' : 
+
+            # Traverse the AND/OR tree to check for possible vulnerabilities
+            CVEs = traverse_tree(NEO4J_ADDRESS, d['node_id'])
+            
+            # Iterate all exploitable vulnerabilities
+            for cve in CVEs : 
+                print("The container with ID " + d['cont_id'] + " is vulnerable to " + Fore.RED + cve['CVE'] + Style.RESET_ALL + "!")
+
+                # Ask the user whether she/he wants to fix the CVE
+                aws = input("Do you want to fix it? (y/n) ")
+
+                if aws == 'y' : 
+                    # If yes, suggest possible fixes
+                    suggest_fix(NEO4J_ADDRESS, cve)
+                else : 
+                    # Otherwise, ignore this CVE 
+                    append_node_property(NEO4J_ADDRESS, d['node_id'], 'ignore_CVEs', cve['CVE'])
+                    print(Fore.RED + cve['CVE'] + " affecting " + d['cont_id'] + " will be ignored!" + Style.RESET_ALL) 
+
+            if not CVEs : 
+                print(Fore.GREEN + "The container with ID " + d['cont_id'] + " is safe!" + Style.RESET_ALL)
+
+    # Raise an exception if the container doesn't exist/is not running
+    except docker.errors.NotFound as error :
+        print(error)
+        exit(1)
+    except docker.errors.APIError as error :
+        print(error)
+        exit(1)
+
+
+def analyze_single_deployment(NEO4J_ADDRESS, cont_id) :
     
-#     Arguments:
+    # Retrieve container ID
+    client = connect_to_Docker()
 
-#     Description:
-#     blablabla
-#     """
+    try:
+        # Retrieve container object
+        cont = client.containers.get(cont_id)
 
-#     try :
-#         # Standardize container ID
-#         # client = connect_to_Docker()
-#         # cont_id = client.containers.get(cont_id).short_id
+        # Get the deployment Neo4J node
+        deployment = get_deployments(NEO4J_ADDRESS, cont.short_id)[0]
+
+        # Analyze the container deployment
+        analyze_deployment(NEO4J_ADDRESS, deployment)
+    
+    # Raise an exception if the container doesn't exist/is not running
+    except docker.errors.NotFound as error :
+        print(error)
+        exit(1)
+    except docker.errors.APIError as error :
+        print(error)
+        exit(1)
+
+
+def analyze_all_deployment(NEO4J_ADDRESS) :
+
+    # Get a list of Deployment node IDs
+    deployments = get_deployments(NEO4J_ADDRESS)
+
+    # Iterate over each container
+    for d in deployments : 
+
+        # Analyze the container deployment
+        analyze_deployment(NEO4J_ADDRESS, d)
+ 
+    # If no containers are running, print safe deployment
+    if not deployments :
+        print(Fore.GREEN + "There are no running containers to analyze! Exiting..." + Style.RESET_ALL)
+
+
+def suggest_fix(NEO4J_ADDRESS, cve) : 
+    # Keep track if a fix was choosen
+    choosen = False
+
+    # Retrieve the leaves part of the valid path in the AND/OR tree
+    for node_id in cve['path'] : 
+
+        # Retrieve the leaf Neo4J node
+        # If the current node is not a leaf, just ignore    
+        leaf = get_node(NEO4J_ADDRESS, node_id)
+
+        if leaf['type'] == 'DockerVersion' or \
+            leaf['type'] == 'containerdVersion' or \
+            leaf['type'] == 'runcVersion' or \
+                leaf['type'] == 'KernelVersion' :
+                    aws = input('Do you want to update ' + leaf['type'] + '? (y/n) ')
+                    if aws == 'y' : 
+                        choosen = True
+                        # TODO
+                        # Specify the minimum version to which you should upgrade
+                        print_fix({'fix': 'version_upgrade', 'value': leaf['type']})
+
+        elif leaf['type'] == 'Permissions' and leaf['name'] == 'Privileged' :
+            aws = input('Do you want to run the container as privileged? (y/n) ')
+            if aws == 'n' : 
+                choosen = True
+                print_fix({'fix': 'not_privileged'})
         
-#         # Get the CVE node ID
-#         root_id = get_cve_nodes(NEO4J_ADDRESS, cve)
+        elif leaf['type'] == 'SystemCall' : 
+            aws = input('Do you need the ' + leaf['name'] + ' system call? (y/n) ')
+            if aws == 'n' : 
+                choosen = True
+                print_fix({'fix' : 'not_syscall', 'value': leaf['name']})
 
-#         # Traverse and evaluate the AND/OR vulnerability tree
-#         start = time.time()
-#         result = evaluate_tree(NEO4J_ADDRESS, root_id, cont_id)
-#         end = time.time()
+        elif leaf['type'] == 'Capability' : 
+            aws = input('Do you need the ' + leaf['name'] + ' capability? (y/n) ')
+            if aws == 'n' : 
+                choosen = True
+                print_fix({'fix' : 'not_capability', 'value': leaf['name']})
 
-#         # The container is vulnerable
-#         if result : 
-#             print("The container is vulnerable to " + Fore.RED + cve + Style.RESET_ALL + "!")
-#             result = (root_id, result)
-#         else : 
-#             print(Fore.GREEN + "The container configuration is safe!" + Style.RESET_ALL)
-        
+        elif leaf['type'] == 'ContainerConfig' : 
+            if leaf['name'] == 'root' :
+                aws = input('Do you want to run the container as root? (y/n) ')
+                if aws == 'n' : 
+                    choosen = True
+                    print_fix({'fix' : 'not_root'})
+                # elif
+                # TODO
+                # volumes, env, etc.
 
+        elif leaf['type'] == 'NewPriv' : 
+            aws = input('Do you want the container to gain additional privileges? (y/n) ')
+            if aws == 'n' : 
+                choosen = True
+                print_fix({'fix' : 'no_new_priv'})
 
-# def print_fix(fix) : 
+        elif leaf['type'] == 'NotReadOnly' : 
+            aws = input('Do you need write access to the filesystem? (y/n) ')
+            if aws == 'n' : 
+                choosen = True
+                print_fix({'fix' : 'read_only_fs'})
 
-#     if fix['fix'] == 'version_upgrade' :
-#         print(Fore.GREEN + "Upgrade " + Style.RESET_ALL + fix['value'] + " to a newer version.")
-
-#     elif fix['fix'] == 'not_privileged' : 
-#         print("Do not run the container with the privileged option: " + Fore.RED + "--privileged" + Style.RESET_ALL)
-
-#     elif fix['fix'] == 'not_root' :
-#         print("Run the container with the user option: " + Fore.GREEN + "--user UID:GID" + Style.RESET_ALL)
-
-#     elif fix['fix'] == 'not_capability' :
-#         print("Run the container with the option: " + Fore.GREEN + "--cap-drop " + fix['value'] + Style.RESET_ALL)
-
-#     elif fix['fix'] == 'not_syscall' :
-#         print("Add the following line to the container AppArmor profile: " + Fore.GREEN + "deny " + fix['value'] + Style.RESET_ALL)
-
-#     elif fix['fix'] == 'read_only_fs' :
-#         print("Run the container with the option: " + Fore.GREEN + "--read-only" + Style.RESET_ALL)
-
-#     elif fix['fix'] == 'no_new_priv' :
-#         print("Run the container with the option: " + Fore.GREEN + "--security-opt=no-new-privileges:true" + Style.RESET_ALL)
+    # If no fix has been choosen..
+    if not choosen :
+        print(Fore.RED + 'No fix has been choosen! ' + Style.RESET_ALL + 'Exiting...')   
 
 
-# def suggest_fix(NEO4J_ADDRESS, all_results) : 
-#     """  Computes and returns the weight of an AND/OR tree valid path
-    
-#     Arguments:
-#     path - list of node IDs representing a valid path in an AND/OR tree
+def print_fix(fix) : 
 
-#     Description:
-#     blablabla
-#     """
+    if fix['fix'] == 'version_upgrade' :
+        print(Fore.GREEN + "Upgrade " + Style.RESET_ALL + fix['value'] + " to a newer version.")
 
-#     # Only one valid path
-#     if len(all_results) == 1 : 
+    elif fix['fix'] == 'not_privileged' : 
+        print("Do not run the container with the privileged option: " + Fore.RED + "--privileged" + Style.RESET_ALL)
 
-#         leaves = all_results[0]['path_0'][-1]
+    elif fix['fix'] == 'not_root' :
+        print("Run the container with the user option: " + Fore.GREEN + "--user UID:GID" + Style.RESET_ALL)
 
-#         # Single leaf
-#         if type(leaves) == int : 
+    elif fix['fix'] == 'not_capability' :
+        print("Run the container with the option: " + Fore.GREEN + "--cap-drop " + fix['value'] + Style.RESET_ALL)
 
-#             # Retrieve ``type'' of the leaf
-#             leaf_type, leaf_value = get_leaf_type(NEO4J_ADDRESS, leaves)
+    elif fix['fix'] == 'not_syscall' :
+        print("Add the following line to the container AppArmor profile: " + Fore.GREEN + "deny " + fix['value'] + Style.RESET_ALL)
 
-#             # Based on the type, suggest the only possible fix
-#             if leaf_type == 'DockerVersion' or \
-#                 leaf_type == 'containerdVersion' or \
-#                   leaf_type == 'runcVersion' or \
-#                       leaf_type == 'KernelVersion' :
+    elif fix['fix'] == 'read_only_fs' :
+        print("Run the container with the option: " + Fore.GREEN + "--read-only" + Style.RESET_ALL)
 
-#                         # TODO
-#                         # Specify the minimum version to which you should upgrade
-#                         value = leaf_type[:-7]
-#                         fix = {'fix': 'version_upgrade', 'value': value}
-#                         print_fix(fix)
+    elif fix['fix'] == 'no_new_priv' :
+        print("Run the container with the option: " + Fore.GREEN + "--security-opt=no-new-privileges:true" + Style.RESET_ALL)
 
-#             elif leaf_value == 'PrivPermissions' :
-#                 fix = {'fix': 'not_privileged'}
-#                 print_fix(fix)
-
-#             else :
-#                 # TODO
-#                 print('TODO')
-
-#         # Multiple leaves - AND node
-#         elif type(leaves) == list :
-
-#             ahp_weights = parse_ahp_weights()
-#             ahp_fixes = []
-
-#             # Remove not relevant fixes
-#             for l in leaves : 
-#                 leaf_type, leaf_value = get_leaf_type(NEO4J_ADDRESS, l)
-#                 aux = {'type': leaf_type, 'value': leaf_value}
-                
-#                 if leaf_type == 'Privileged' : 
-#                     aux['weight'] = ahp_weights['not_privileged']
-#                     aux['fix'] = 'not_privileged'
-#                 elif leaf_type == 'Capability' : 
-#                     aux['weight'] = ahp_weights['not_capability']
-#                     aux['fix'] = 'not_capability'
-#                 elif leaf_type == 'SystemCall' : 
-#                     aux['weight'] = ahp_weights['not_syscall']
-#                     aux['fix'] = 'not_syscall'
-#                 elif leaf_type == 'NotReadOnly' : 
-#                     aux['weight'] = ahp_weights['read_only_fs']
-#                     aux['fix'] = 'read_only_fs'
-#                 elif leaf_type == 'NoNewPriv' : 
-#                     aux['weight'] = ahp_weights['no_new_priv']
-#                     aux['fix'] = 'no_new_priv'
-#                 elif leaf_type == 'ContainerConfig' : 
-#                     # TODO
-#                     pass
-                    
-#                 ahp_fixes.append(aux)
-
-#             # Sort fixes by weights (returns a list)
-#             ahp_fixes = sorted(ahp_fixes, key=lambda d: d['weight'], reverse=True) 
-
-#             aws = 'n'
-#             # Iterate possible fixes
-#             for f in ahp_fixes : 
-
-#                 if f['type'] == 'SystemCall' : 
-#                     aws = input("Deny systemcall " + f['value'] + " (y/n) ? ")
-
-#                 elif f['type'] == 'Capability' : 
-#                     aws = input("Deny capability " + f['value'] + " (y/n) ? ")
-                
-#                 else :
-#                     aws = input("Accept " + f['fix'] + " (y/n) ? ")
-                
-#                 if aws == '' or aws == 'y' : 
-#                     print_fix(f)
-#                     break 
-
-#             if aws == 'n' : 
-#                 print(Fore.RED + 'No fix has been choosen! ' + Style.RESET_ALL + 'Exiting...')        
-
-#     # AHP : Multiple valid paths with multiple possible fixes
-#     else :
-#         fix = apply_ahp(all_results)
-#         # print(fix)
-
-
-# def fix_deployment(NEO4J_ADDRESS, cve) :
-#     """  Computes and returns the weight of an AND/OR tree valid path
-    
-#     Arguments:
-#     path - list of node IDs representing a valid path in an AND/OR tree
-
-#     Description:
-#     blablabla
-#     """
-
-#     result = query_vulnerability(NEO4J_ADDRESS, '', cve)
-
-#     if not result : 
-#         return
-
-#     # TODO Fix this function
-#     # make it recursive
-#     all_path = extract_path(result)
-
-#     all_results = []
-#     for i, path in enumerate(all_path) : 
-#         w = weight_path(NEO4J_ADDRESS, path)
-#         aux = {'cve': cve, 'path_' + str(i): path, 'risk': w}
-#         all_results.append(aux)
-
-#     print(all_results)
-#     suggest_fix(NEO4J_ADDRESS, all_results)
-
-
-# ### CUSTOM FUNCTION ###
-# # NEO4J_ADDRESS = '192.168.2.5'
-# # cve = 'CVE_1'
-# # fix_deployment(NEO4J_ADDRESS, cve)

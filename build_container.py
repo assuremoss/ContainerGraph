@@ -58,8 +58,6 @@ def build_container(options, kernel_v):
         # retrieve container permissions
         permissions = build_permissions(cont_id, run_args, kernel_v)
 
-
-
     ############################
         print('Allowed CAPs: ' + str(len(permissions.caps)))
         # print(permissions.caps)
