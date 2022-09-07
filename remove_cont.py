@@ -1,5 +1,4 @@
 from neo4j import GraphDatabase
-from vuln_tree_taversal import reinitialize_fields, traverse_tree
 import os
 import docker
 

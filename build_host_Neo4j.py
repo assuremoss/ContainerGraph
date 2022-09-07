@@ -31,7 +31,7 @@ def query_kernel_v(tx) :
     Returns the Linux version version.
     """
 
-    result = tx.run("MATCH (d:Host:LinuxHost)-[:USES]->(kv:KernelVersion) RETURN kv.key")
+    result = tx.run("MATCH (d:Host:LinuxHost)-[:USES]->(kv:KernelVersion) RETURN kv.name")
 
     result = result.single()[0]
     return result
@@ -73,7 +73,7 @@ def create_host_relationship(tx, host) :
     kernel_v = host.host.kernel_v[:3]
 
     tx.run("MATCH (h:Host {name: $hostname}) "
-           "MATCH (kv:KernelVersion {key: $kernel_v}) "
+           "MATCH (kv:KernelVersion {name: $kernel_v}) "
            "SET kv.weight = 1 "
            "MERGE (h)-[:USES]->(kv) "
            "UNION "
@@ -82,7 +82,7 @@ def create_host_relationship(tx, host) :
            "MERGE (ce)-[:RUNS_ON_TOP]->(h) "
            "UNION "
            "MATCH (ce:ContainerEngine {name: $name}) "
-           "MATCH (kv:KernelVersion {key: $kernel_v}) "
+           "MATCH (kv:KernelVersion {name: $kernel_v}) "
            "MERGE (ce)-[:USES]->(kv) "
            , hostname = host.host.hostname, kernel_v = kernel_v, name = host.name
     )
@@ -90,17 +90,17 @@ def create_host_relationship(tx, host) :
     if host.name == "DockerEngine" :
 
         tx.run("MATCH (ce:ContainerEngine {name: $name}) "
-               "MATCH (de:DockerVersion {key: $docker_v}) "
+               "MATCH (de:DockerVersion {name: $docker_v}) "
                "SET de.weight = 1 "
                "MERGE (ce)-[:USES]->(de) "
                "UNION "
-               "MATCH (de:DockerVersion {key: $docker_v}) "
-               "MATCH (cv:containerdVersion {key: $containerd_v}) "
+               "MATCH (de:DockerVersion {name: $docker_v}) "
+               "MATCH (cv:containerdVersion {name: $containerd_v}) "
                "SET cv.weight = 1 "
                "MERGE (de)-[:USES]->(cv) "
                "UNION "
-               "MATCH (de:DockerVersion {key: $docker_v}) "
-               "MATCH (rv:runcVersion {key: $runc_v}) "
+               "MATCH (de:DockerVersion {name: $docker_v}) "
+               "MATCH (rv:runcVersion {name: $runc_v}) "
                "SET rv.weight = 1 "
                "MERGE (de)-[:USES]->(rv) "
                , name = host.name, docker_v = host.docker_v, containerd_v = host.containerd_v, runc_v = host.runc_v

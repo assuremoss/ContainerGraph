@@ -190,7 +190,7 @@ def create_perm_relationships(tx, cont) :
 
     tx.run("MATCH (c:Container:Docker {cont_id: $cont_id}) "
         "MATCH (p:Permissions:Privileged {name: 'Privileged'}) "
-        "SET p.weight = 1 "
+        "SET p.weight = 5 "
         "MERGE (c)-[:HAS]->(p) ",
         cont_id = cont.cont_id
     )
@@ -241,7 +241,7 @@ def create_cont_node(tx, cont) :
     tx.run("MERGE (c:Container:Docker {name: $name, cont_id: $cont_id, img_id: $img_id, start_t: $start_t, status: $status})", cont_id = cont.cont_id, img_id = cont.img_id, name = cont.name, start_t = cont.start_t, status = cont.status) 
 
     # Create Deployment node 
-    tx.run("MERGE (cd:Deployment {name: 'Deployment', cont_id: $cont_id, ignore_CVEs: []})", cont_id = cont.cont_id)
+    tx.run("MERGE (cd:Deployment {name: 'Deployment', cont_id: $cont_id})", cont_id = cont.cont_id)
 
 
 def create_cont_relationships(tx, cont) :
@@ -268,24 +268,16 @@ def create_cont_relationships(tx, cont) :
 
     # Deployment relationships
     tx.run("""
+    MATCH (AllD:AllDeployments {name: 'AllDeployments'})
+    MATCH (cd:Deployment {name: 'Deployment', cont_id: $cont_id})
+    MERGE (AllD)-[:CONTAINS]->(cd)
+    UNION
     MATCH (cd:Deployment {name: 'Deployment', cont_id: $cont_id})
     MATCH (c:Container:Docker {cont_id: $cont_id}) 
     MERGE (cd)-[:PART_OF]->(c)
     UNION
     MATCH (cd:Deployment {name: 'Deployment', cont_id: $cont_id})
-    MATCH (de:DockerEngine)-[*]->(kv:KernelVersion)
-    MERGE (cd)-[:PART_OF]->(kv)
-    UNION
-    MATCH (cd:Deployment {name: 'Deployment', cont_id: $cont_id})
-    MATCH (de:DockerEngine)-[*]->(dv:DockerVersion)
-    MERGE (cd)-[:PART_OF]->(dv)
-    UNION
-    MATCH (cd:Deployment {name: 'Deployment', cont_id: $cont_id})
-    MATCH (de:DockerEngine)-[*]->(cv:containerdVersion)
-    MERGE (cd)-[:PART_OF]->(cv)
-    UNION
-    MATCH (cd:Deployment {name: 'Deployment', cont_id: $cont_id})
-    MATCH (de:DockerEngine)-[*]->(rv:runcVersion)
-    MERGE (cd)-[:PART_OF]->(rv)
+    MATCH (ce:ContainerEngine:DockerEngine {name: 'DockerEngine'})
+    MERGE (cd)-[:PART_OF]->(ce)
     """, cont_id = cont.cont_id)
 

@@ -25,7 +25,25 @@ def perm_nodes(NEO4J_ADDRESS, capabilities, syscalls) :
         session.write_transaction(create_syscall_nodes, syscalls)
         session.write_transaction(create_perm_nodes)
 
+        # Create the AllDeployments and AttackSurface nodes 
+        session.write_transaction(create_alldep)
+
     driver.close()
+
+
+def create_alldep(tx) :
+    """  brief title.
+
+    Description:
+    blablabla
+    """
+
+    query = """
+    CREATE (AllD:AllDeployments {name: 'AllDeployments'}) 
+    CREATE (AS:AttackSurface {name: 'AttackSurface'})
+    """
+
+    tx.run(query)
 
 
 def create_caps_nodes(tx, capabilities) :
@@ -116,15 +134,15 @@ def create_eng_node(tx, docker_v, containerd_v, runc_v) :
     """
 
     for dv in docker_v :
-        query = "MERGE (dv:DockerVersion {key: '" + dv + "', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
+        query = "MERGE (dv:DockerVersion {name: '" + dv + "', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
         tx.run(query)
 
     for cv in containerd_v :
-        query = "MERGE (cv:containerdVersion {key: '" + cv + "', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
+        query = "MERGE (cv:containerdVersion {name: '" + cv + "', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
         tx.run(query)
 
     for rv in runc_v :
-        query = "MERGE (rv:runcVersion {key: '" + rv + "', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
+        query = "MERGE (rv:runcVersion {name: '" + rv + "', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
         tx.run(query)
 
 
@@ -158,7 +176,7 @@ def create_kernel_v_node(tx, kernel_v) :
     """
 
     for kv in kernel_v :
-        query = "MERGE (kv:KernelVersion {key: '" + kv + "', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
+        query = "MERGE (kv:KernelVersion {name: '" + kv + "', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
         tx.run(query)
 
 

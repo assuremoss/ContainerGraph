@@ -1,5 +1,49 @@
 
 
+
+# DEMO TOOL
+
+For terminal demos, use Demo Magic
+https://github.com/paxtonhare/demo-magic
+
+
+
+
+# EVALUATION
+
+> Test with many (~50/100) qualitatively different CVEs
+    - we assume the CVE pre/post conditions are given
+
+> Trovare diverse configurazioni docker o report in cui dicono che x% of containers run as root, with CVE CVSS score 9, etc.
+ - write to the report authors if we can get the docker run configurations (Linkedin)
+ - check Files Capabilities (also in DockerHub) https://www.cyberark.com/resources/threat-research-blog/how-docker-made-me-more-capable-and-the-host-less-secure
+
+> Scaling up. Demonstrate that the tool can scale up to 1...n containers
+
+
+
+# TODO
+
+> CVEs automatic integration
+
+> Runtime events integration ?
+
+> Remove the "Deployment" nodes?
+    - As of now, we only use the Container and DockerEngine nodes to run the algorithm
+
+> Allow users to customize CVE assumption (tree leaf) weights. 
+   - we assume the same custom weight is the same for all containers
+   - alternatively, we could assign a weight to the edge going from Deployment to the leaf
+
+> Allow users to rank CVEs based on the CVSS score
+    - Eventually, we can ask the user to provide custom values for the Impact Subscore Modifiers (e.g., in a config file).
+      https://nvd.nist.gov/vuln-metrics/cvss/v3-calculator
+
+> Share the tool as a Docker container
+
+
+
+
 ---
 # Proof of Concept
 
@@ -39,7 +83,7 @@ Show Neo4J graph.
 
 ```bash
 
-python main.py --run docker run --name test -it --rm -d nginx 
+python main.py --run docker run --name nginx -it --rm -d nginx 
 
 docker ps 
 ```
@@ -73,10 +117,10 @@ https://blog.trailofbits.com/2019/07/19/understanding-docker-container-escapes/
 `python main.py --run docker run -it --rm -d nginx`
 
 2. Privileged container (41 CAPs and 364 syscalls):
-`python main.py --run docker run -it --rm -d --privileged nginx`
+`python main.py --run docker run --name nginxpriv -it --rm -d --privileged nginx`
 
 3. Unconfined security profile:
-`python main.py --run docker run -it --rm -d --security-opt apparmor=unconfined --cap-add=SYS_ADMIN nginx`
+`python main.py --run docker run --name nginxcustom -it --rm -d --security-opt apparmor=unconfined --cap-add=SYS_ADMIN nginx`
 
 4. Custom security profiles:
 `python main.py --run docker run -it --rm -d --security-opt apparmor=custom nginx`

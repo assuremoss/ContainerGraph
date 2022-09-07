@@ -90,7 +90,7 @@ def main() :
         NEO4J_ADDRESS = os.environ.get('NEO4J_ADDRESS')
 
     # Eduroam
-    # NEO4J_ADDRESS = ""
+    # NEO4J_ADDRESS = "130.37.63.171"
 
     if args.remove :
         remove_option(NEO4J_ADDRESS, args.remove)

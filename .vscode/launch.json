@@ -8,7 +8,7 @@
             "request": "launch",
             "program": "/Users/francescominna/Desktop/repos/ContainerGraph/main.py",
             "console": "integratedTerminal",
-            "args": ["--analyze"]
+            "args": ["--analyze", "all"]
         }
     ]
 }
