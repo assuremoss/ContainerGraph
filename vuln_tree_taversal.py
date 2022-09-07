@@ -1,17 +1,13 @@
-from lib2to3.pgen2.token import PLUSEQUAL
 import docker
-from neo4j import GraphDatabase
-from pyparsing import empty
+from Neo4j_connection import connect_to_neo4j
 
-def connect_to_neo4j(uri, user, password) :
-    return GraphDatabase.driver(uri, auth=(user, password))
 
 def connect_to_Docker() : 
     return docker.from_env()
 
 
-def check_ignored(NEO4J_ADDRESS, cve, cont_id) :
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
+def check_ignored(cve, cont_id) :
+    driver = connect_to_neo4j()
     with driver.session() as session:
         aux = session.read_transaction(query_ignored, cve, cont_id)
     driver.close()
@@ -27,8 +23,8 @@ def query_ignored(tx, cve, cont_id) :
     """, cont_id=cont_id, cve=cve).single()[0]
 
 
-def get_deployment_children(NEO4J_ADDRESS, cont_id) :
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
+def get_deployment_children(cont_id) :
+    driver = connect_to_neo4j()
     with driver.session() as session:
         leaves = session.read_transaction(query_dep, cont_id)
     driver.close()
@@ -61,8 +57,8 @@ def query_dep(tx, cont_id):
     return aux[0] + aux[1]
     
 
-def get_node(NEO4J_ADDRESS, node_id) :
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
+def get_node(node_id) :
+    driver = connect_to_neo4j()
     with driver.session() as session:
         node = session.read_transaction(tree_node, node_id)
     driver.close()
@@ -88,8 +84,8 @@ def tree_node(tx, node_id):
     """, node_id=node_id).single().value()
 
 
-def append_node_property(NEO4J_ADDRESS, node_id, property, value) :
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
+def append_node_property(node_id, property, value) :
+    driver = connect_to_neo4j()
     with driver.session() as session:
         session.write_transaction(append_property, node_id, property, value)
     driver.close()
@@ -99,8 +95,8 @@ def append_property(tx, node_id, key, value):
     , node_id=node_id, value=value)
 
 
-def set_node_property(NEO4J_ADDRESS, node_id, property, value) :
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
+def set_node_property(node_id, property, value) :
+    driver = connect_to_neo4j()
     with driver.session() as session:
         session.write_transaction(set_property, node_id, property, value)
     driver.close()
@@ -110,8 +106,8 @@ def set_property(tx, node_id, key, value):
     , node_id=node_id, value=value)
 
 
-def get_OR_parents(NEO4J_ADDRESS, node_id) :
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
+def get_OR_parents(node_id) :
+    driver = connect_to_neo4j()
     with driver.session() as session:
         OR_parent_list = session.read_transaction(OR_parents, node_id)
     driver.close()
@@ -125,8 +121,8 @@ def OR_parents(tx, node_id) :
     """, node_id=node_id).value()
 
 
-def get_AND_parents(NEO4J_ADDRESS, node_id) :
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
+def get_AND_parents(node_id) :
+    driver = connect_to_neo4j()
     with driver.session() as session:
         AND_parent_list = session.read_transaction(AND_parents, node_id)
     driver.close()
@@ -140,8 +136,8 @@ def AND_parents(tx, node_id) :
     """, node_id=node_id).value()
 
 
-def get_weight_sum(NEO4J_ADDRESS, node_id) :
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
+def get_weight_sum(node_id) :
+    driver = connect_to_neo4j()
     with driver.session() as session:
         temp = session.read_transaction(get_sum, node_id)
     driver.close()
@@ -156,8 +152,8 @@ def get_sum(tx, node_id) :
     """, node_id=node_id).single().value()
 
 
-def get_parent_node(NEO4J_ADDRESS, node_id) :
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
+def get_parent_node(node_id) :
+    driver = connect_to_neo4j()
     with driver.session() as session:
         temp = session.read_transaction(get_parent, node_id)
     driver.close()
@@ -174,7 +170,7 @@ def get_parent(tx, node_id) :
     return temp[0] if temp else temp
 
 
-def traverse_tree(NEO4J_ADDRESS, cont_id) : 
+def traverse_tree(cont_id) : 
 
     # List of exploitable CVEs as dict
     CVEs = {}
@@ -183,7 +179,7 @@ def traverse_tree(NEO4J_ADDRESS, cont_id) :
     tree_nodes = {}
 
     # Initialize Priority Queue (ordered by weights)
-    pq = get_deployment_children(NEO4J_ADDRESS, cont_id)
+    pq = get_deployment_children(cont_id)
 
     while len(pq) > 0 :
 
@@ -191,14 +187,14 @@ def traverse_tree(NEO4J_ADDRESS, cont_id) :
 
         # Add node to the tree dictionary
         if not current_node_id in tree_nodes : 
-            tree_nodes[current_node_id] = get_node(NEO4J_ADDRESS, current_node_id)
+            tree_nodes[current_node_id] = get_node(current_node_id)
 
         # If the parent node is the root, i.e., CVE node, append CVE to the list of CVEs
-        parent_node = get_parent_node(NEO4J_ADDRESS, current_node_id)
+        parent_node = get_parent_node(current_node_id)
         if parent_node and parent_node['type'] == 'CVE' : 
             needed = tree_nodes[current_node_id]['needed'] + [parent_node['nodeID']]
             # Check if the CVE is ignored for the current container
-            ignored = check_ignored(NEO4J_ADDRESS, parent_node['name'], cont_id)
+            ignored = check_ignored(parent_node['name'], cont_id)
             CVEs[parent_node['name']] = {'name': parent_node['name'], 'path': needed, 'ignored': ignored}
 
         # If the current node has not been traversed yet
@@ -207,11 +203,11 @@ def traverse_tree(NEO4J_ADDRESS, cont_id) :
             tree_nodes[current_node_id]['todo'] = 0
 
             # Retrieve the list of OR parent nodes IDs
-            OR_parent_list = get_OR_parents(NEO4J_ADDRESS, current_node_id)  
+            OR_parent_list = get_OR_parents(current_node_id)  
             for OR_parent_ID in OR_parent_list :
 
                 if not OR_parent_ID in tree_nodes :
-                    tree_nodes[OR_parent_ID] = get_node(NEO4J_ADDRESS, OR_parent_ID)
+                    tree_nodes[OR_parent_ID] = get_node(OR_parent_ID)
 
                 # If the OR_parent node was not already traversed
                 if tree_nodes[OR_parent_ID]['todo'] != 0 :
@@ -225,11 +221,11 @@ def traverse_tree(NEO4J_ADDRESS, cont_id) :
                         if not OR_parent_ID in pq : pq.append(OR_parent_ID)
 
             # Retrieve the list of AND parent nodes
-            AND_parent_list = get_AND_parents(NEO4J_ADDRESS, current_node_id)
+            AND_parent_list = get_AND_parents(current_node_id)
             for AND_parent_ID in AND_parent_list :
                 
                 if not AND_parent_ID in tree_nodes :
-                    tree_nodes[AND_parent_ID] = get_node(NEO4J_ADDRESS, AND_parent_ID)
+                    tree_nodes[AND_parent_ID] = get_node(AND_parent_ID)
 
                 # Decrement AND_NODE TODO 
                 tree_nodes[AND_parent_ID]['todo'] -= 1
@@ -245,29 +241,29 @@ def traverse_tree(NEO4J_ADDRESS, cont_id) :
 
                     tree_nodes[AND_parent_ID]['needed'] = needed 
                     tree_nodes[AND_parent_ID]['pred'] = current_node_id
-                    tree_nodes[AND_parent_ID]['weight'] = get_weight_sum(NEO4J_ADDRESS, AND_parent_ID)
+                    tree_nodes[AND_parent_ID]['weight'] = get_weight_sum(AND_parent_ID)
 
                     # Case in which the AND_node is the last node before the CVE node
-                    parent_node = get_parent_node(NEO4J_ADDRESS, AND_parent_ID)
+                    parent_node = get_parent_node(AND_parent_ID)
                     if parent_node and parent_node['type'] == 'CVE' : 
                         needed = tree_nodes[AND_parent_ID]['needed'] + [AND_parent_ID]
                         # Check if the CVE is ignored for the current container
-                        ignored = check_ignored(NEO4J_ADDRESS, parent_node['name'], cont_id)
+                        ignored = check_ignored(parent_node['name'], cont_id)
                         CVEs[parent_node['name']] = {'name': parent_node['name'], 'path': needed, 'ignored': ignored}
 
                     # Retrieve the list of OR parent nodes
-                    OR_parent_list = get_OR_parents(NEO4J_ADDRESS, AND_parent_ID)
+                    OR_parent_list = get_OR_parents(AND_parent_ID)
                     for OR_parent_ID in OR_parent_list :
 
                         if not OR_parent_ID in tree_nodes :
-                            tree_nodes[OR_parent_ID] = get_node(NEO4J_ADDRESS, OR_parent_ID)
+                            tree_nodes[OR_parent_ID] = get_node(OR_parent_ID)
 
                         # If the OR_parent node was not already traversed
                         if tree_nodes[OR_parent_ID]['todo'] != 0 :
 
                             # Retrieve the update AND_parent Neo4J node
                             if not AND_parent_ID in tree_nodes :
-                                tree_nodes[AND_parent_ID] = get_node(NEO4J_ADDRESS, AND_parent_ID)
+                                tree_nodes[AND_parent_ID] = get_node(AND_parent_ID)
 
                             if tree_nodes[AND_parent_ID]['weight'] > tree_nodes[OR_parent_ID]['weight'] :
                                 # Update the OR_parent fields

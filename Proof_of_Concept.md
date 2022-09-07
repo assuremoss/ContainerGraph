@@ -28,6 +28,9 @@ https://github.com/paxtonhare/demo-magic
 
 > Runtime events integration ?
 
+> Optimaze Neo4j nodes/edges structure
+> Python best practices
+
 > Remove the "Deployment" nodes?
     - As of now, we only use the Container and DockerEngine nodes to run the algorithm
 
@@ -47,7 +50,7 @@ https://github.com/paxtonhare/demo-magic
 ---
 # Proof of Concept
 
-This file shows the list of commands to use for a proof of concept of this tool.
+This file shows the list of commands to use for a proof of concept of this tool. Read the README.md file.
 
 First of all, became root `sudo su` and create a pipenv shell `pipenv shell`. Then, install Python requirements `pipenv install`.
 

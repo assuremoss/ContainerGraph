@@ -1,11 +1,7 @@
-from neo4j import GraphDatabase
+from Neo4j_connection import connect_to_neo4j
 
 
-def connect_to_neo4j(uri, user, password) :
-    return GraphDatabase.driver(uri, auth=(user, password))
-
-
-def get_kernel_v(NEO4J_ADDRESS):
+def get_kernel_v():
     """ This function returns the kernel version currently in use.
     
     Description:
@@ -13,7 +9,7 @@ def get_kernel_v(NEO4J_ADDRESS):
     For example, version 4.9.
     """
 
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
+    driver = connect_to_neo4j()
     with driver.session() as session:
         result = session.read_transaction(query_kernel_v)
     driver.close()
@@ -37,12 +33,12 @@ def query_kernel_v(tx) :
     return result
 
 
-def host_node(NEO4J_ADDRESS, host) :
+def host_node(host) :
     """
     TODO
     """
 
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
+    driver = connect_to_neo4j()
     with driver.session() as session:
 
         session.write_transaction(create_host_node, host)
@@ -107,7 +103,7 @@ def create_host_relationship(tx, host) :
         )
 
 
-def host_Neo4j(NEO4J_ADDRESS, host) :
+def host_Neo4j(host) :
     """
     TODO
     """
@@ -115,7 +111,7 @@ def host_Neo4j(NEO4J_ADDRESS, host) :
     # host.print_docker_host()
 
     # Create Host and Container Engine nodes
-    host_node(NEO4J_ADDRESS, host)
+    host_node(host)
 
     # Print info
     print('Added the host and Docker nodes.\n')

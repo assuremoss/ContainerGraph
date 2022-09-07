@@ -1,12 +1,8 @@
-from neo4j import GraphDatabase
+from Neo4j_connection import connect_to_neo4j
 from parse_perm_file import parse_perm_taxonomy
 
 
-def connect_to_neo4j(uri, user, password) :
-    return GraphDatabase.driver(uri, auth=(user, password))
-
-
-def perm_nodes(NEO4J_ADDRESS, capabilities, syscalls) :
+def perm_nodes(capabilities, syscalls) :
     """  brief title.
     
     Arguments:
@@ -17,7 +13,7 @@ def perm_nodes(NEO4J_ADDRESS, capabilities, syscalls) :
     blablabla
     """
 
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
+    driver = connect_to_neo4j()
     
     with driver.session() as session:
 
@@ -104,7 +100,7 @@ def create_perm_nodes(tx) :
     """)
 
 
-def eng_v_nodes(NEO4J_ADDRESS, docker_v, containerd_v, runc_v) :
+def eng_v_nodes(docker_v, containerd_v, runc_v) :
     """  brief title.
     
     Arguments:
@@ -115,7 +111,7 @@ def eng_v_nodes(NEO4J_ADDRESS, docker_v, containerd_v, runc_v) :
     blablabla
     """
 
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
+    driver = connect_to_neo4j()
     
     with driver.session() as session:
         session.write_transaction(create_eng_node, docker_v, containerd_v, runc_v)
@@ -146,7 +142,7 @@ def create_eng_node(tx, docker_v, containerd_v, runc_v) :
         tx.run(query)
 
 
-def kernel_v_nodes(NEO4J_ADDRESS, kernel_v) :
+def kernel_v_nodes(kernel_v) :
     """  brief title.
     
     Arguments:
@@ -157,7 +153,7 @@ def kernel_v_nodes(NEO4J_ADDRESS, kernel_v) :
     blablabla
     """
 
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
+    driver = connect_to_neo4j()
     
     with driver.session() as session:
         session.write_transaction(create_kernel_v_node, kernel_v)
@@ -180,7 +176,7 @@ def create_kernel_v_node(tx, kernel_v) :
         tx.run(query)
 
 
-def init_Neo4j(NEO4J_ADDRESS) :
+def init_Neo4j() :
     """  brief title.
     
     Arguments:
@@ -195,9 +191,9 @@ def init_Neo4j(NEO4J_ADDRESS) :
     result = parse_perm_taxonomy()
 
     # Load the data into Neo4J
-    perm_nodes(NEO4J_ADDRESS, result['capabilities'], result['syscalls'])
-    kernel_v_nodes(NEO4J_ADDRESS, result['kernel_v'])
-    eng_v_nodes(NEO4J_ADDRESS, result['docker_v'], result['containerd_v'], result['runc_v'])
+    perm_nodes(result['capabilities'], result['syscalls'])
+    kernel_v_nodes(result['kernel_v'])
+    eng_v_nodes(result['docker_v'], result['containerd_v'], result['runc_v'])
 
     # Print info
     print("Added " + str(len(result['capabilities'])) + " capabilities.")

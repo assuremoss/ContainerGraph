@@ -1,4 +1,4 @@
-from neo4j import GraphDatabase
+from Neo4j_connection import connect_to_neo4j
 import os
 import docker
 
@@ -6,15 +6,13 @@ import docker
 def connect_to_Docker() : 
     return docker.from_env()
 
-def connect_to_neo4j(uri, user, password) :
-    return GraphDatabase.driver(uri, auth=(user, password))
 
-def neo4j_remove_all(NEO4J_ADDRESS):
+def neo4j_remove_all():
     """
     TODO
     """
     
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
+    driver = connect_to_neo4j()
     with driver.session() as session:
         session.write_transaction(neo4jremove_data)
     driver.close()
@@ -42,7 +40,7 @@ def cont_remove_all() :
         pass
 
 
-def data_remove_all(NEO4J_ADDRESS) : 
+def data_remove_all() : 
     """
     TODO
     """
@@ -51,13 +49,13 @@ def data_remove_all(NEO4J_ADDRESS) :
     cont_remove_all()
 
     # Clean up Neo4J
-    neo4j_remove_all(NEO4J_ADDRESS)
+    neo4j_remove_all()
 
     print("Everything was cleaned up!")
 
 
-def remove_cont_Neo4j(NEO4J_ADDRESS, cont_id) :
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
+def remove_cont_Neo4j(cont_id) :
+    driver = connect_to_neo4j()
     with driver.session() as session:
         session.write_transaction(neo4jremove_cont, cont_id)
     driver.close()
@@ -66,7 +64,7 @@ def neo4jremove_cont(tx, cont_id) :
     tx.run("MATCH (c:Container:Docker {cont_id: $cont_id}) DETACH DELETE c ", cont_id=cont_id)
     tx.run("MATCH (d:Deployment {cont_id: $cont_id}) DETACH DELETE d", cont_id=cont_id)
 
-def remove_container(NEO4J_ADDRESS, cont_id) :
+def remove_container(cont_id) :
     """
     TODO
     """
@@ -86,7 +84,7 @@ def remove_container(NEO4J_ADDRESS, cont_id) :
         os.system(cmd2)
 
         # remove the container from Neo4J
-        remove_cont_Neo4j(NEO4J_ADDRESS, cont_id)
+        remove_cont_Neo4j(cont_id)
 
         print("Successfully removed the container with ID " + cont_id)
 

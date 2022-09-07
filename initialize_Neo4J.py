@@ -1,15 +1,11 @@
-from neo4j import GraphDatabase
+from Neo4j_connection import connect_to_neo4j
 from build_infrastructure import get_Infrastructure
 from build_host_Neo4j import host_Neo4j
 from init_Neo4j import init_Neo4j
 import json
 
 
-def connect_to_neo4j(uri, user, password) :
-    return GraphDatabase.driver(uri, auth=(user, password))
-
-
-def graph_info(NEO4J_ADDRESS) :
+def graph_info() :
     """  brief title.
     
     Arguments:
@@ -20,8 +16,7 @@ def graph_info(NEO4J_ADDRESS) :
     blablabla
     """
 
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
-
+    driver = connect_to_neo4j()
     with driver.session() as session:
         n_nodes, n_edges = session.read_transaction(query_graph_info)
     driver.close()
@@ -49,7 +44,7 @@ def query_graph_info(tx) :
     return n_nodes, n_edges
 
 
-def is_db_initialize(NEO4J_ADDRESS) :
+def is_db_initialize() :
     """  brief title.
     
     Arguments:
@@ -60,7 +55,7 @@ def is_db_initialize(NEO4J_ADDRESS) :
     blablabla
     """
 
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
+    driver = connect_to_neo4j()
     with driver.session() as session:
         result = session.read_transaction(query_db)
     driver.close()
@@ -85,7 +80,7 @@ def query_db(tx) :
     return result
 
 
-def vuln_Neo4j(NEO4J_ADDRESS, vuln) :
+def vuln_Neo4j(vuln) :
     """  brief title.
     
     Arguments:
@@ -96,7 +91,7 @@ def vuln_Neo4j(NEO4J_ADDRESS, vuln) :
     blablabla
     """
 
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
+    driver = connect_to_neo4j()
     with driver.session() as session:
         session.write_transaction(create_vuln, vuln)
     driver.close()
@@ -133,7 +128,7 @@ def parse_vuln_file() :
         exit(1)
 
 
-def init_vuln(NEO4J_ADDRESS, vuln) : 
+def init_vuln(vuln) : 
     """  brief title.
     
     Arguments:
@@ -145,10 +140,10 @@ def init_vuln(NEO4J_ADDRESS, vuln) :
     """
 
     # FOR NOW I DO IT MANUALLY
-    vuln_Neo4j(NEO4J_ADDRESS, vuln)
+    vuln_Neo4j(vuln)
 
 
-def initialize_Neo4j_db(NEO4J_ADDRESS) :
+def initialize_Neo4j_db() :
     """  brief title.
     
     Arguments:
@@ -160,7 +155,7 @@ def initialize_Neo4j_db(NEO4J_ADDRESS) :
     """
 
     # If Neo4J is not empty
-    if not is_db_initialize(NEO4J_ADDRESS) :
+    if not is_db_initialize() :
 
         print('Initializing the graph database...\n')
 
@@ -168,22 +163,22 @@ def initialize_Neo4j_db(NEO4J_ADDRESS) :
         host = get_Infrastructure()
 
         # Initialize CAPs & syscalls, engines and kernel versions.
-        init_Neo4j(NEO4J_ADDRESS)
+        init_Neo4j()
 
         # Initialize Host
-        host_Neo4j(NEO4J_ADDRESS, host)
+        host_Neo4j(host)
 
         # Print graph info
-        n_nodes, n_edges = graph_info(NEO4J_ADDRESS)
+        n_nodes, n_edges = graph_info()
         print('Total: ' + str(n_nodes) + ' nodes and ' + str(n_edges) + ' relationships.\n')
 
         # Initialize Vulnerabilities
-        init_vuln(NEO4J_ADDRESS, vuln1)
-        init_vuln(NEO4J_ADDRESS, vuln2)
-        init_vuln(NEO4J_ADDRESS, vuln3)
+        init_vuln(vuln1)
+        init_vuln(vuln2)
+        init_vuln(vuln3)
 
         # Print graph info
-        # n_nodes, n_edges = graph_info(NEO4J_ADDRESS)
+        # n_nodes, n_edges = graph_info()
         # print('Total: ' + str(n_nodes) + ' nodes and ' + str(n_edges) + ' relationships.\n')
 
 
@@ -227,10 +222,12 @@ vuln2 = """
 MERGE (m:MITRE:TACTIC {name: 'Privilege Escalation'})
 MERGE (mm:MITRE:TECHNIQUE {name: 'Exploitation'})
 CREATE (c:CVE {name: 'CVE-2022-0847'})
+CREATE (cvss:CVSS {name: 'CVSS_score', cve: 'CVE-2022-0847', score_v3: 7.8})
 CREATE (b:OR_NODE {name: 'OR_NODE', vuln: 'vuln2', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})
 MERGE (mm)-[:LEADS_TO]->(m)
 MERGE (c)-[:USES]->(mm)
 MERGE (b)-[:ROOT]->(c)
+MARGE (c:CVE {name: 'CVE-2022-0847'})-[:HAS_SEVERITY]->(cvss:CVSS {name: 'CVSS_score', cve: 'CVE-2022-0847', score_v3: 7.8})
 UNION 
 MATCH (kv:KernelVersion {name: '5.4'})
 MATCH (b:OR_NODE {name: 'OR_NODE', vuln: 'vuln2'})
@@ -259,6 +256,7 @@ MERGE (cc:ContainerConfig {name: 'root'})
 MERGE (m:MITRE:TACTIC {name: 'Privilege Escalation'})
 MERGE (mm:MITRE:TECHNIQUE {name: 'Exploitation'})
 CREATE (c:CVE {name: 'CVE-2022-0185'})
+CREATE (cvss:CVSS {name: 'CVSS_score', cve: 'CVE-2022-0185', score_v3: 8.4})
 CREATE (a:AND_NODE {name: 'AND_NODE', vuln: 'vuln3', key: 'and1', weight: 0, todo: 2, needed: [], pred: gds.util.NaN()})
 CREATE (a1:AND_NODE {name: 'AND_NODE', vuln: 'vuln3', key: 'and2', weight: 0, todo: 2, needed: [], pred: gds.util.NaN()})
 CREATE (b:OR_NODE {name: 'OR_NODE', vuln: 'vuln3', key: 'or1', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})
@@ -268,6 +266,7 @@ MERGE (c)-[:USES]->(mm)
 MERGE (a)-[:ROOT]->(c)
 MERGE (b)-[:AND]->(a)
 MERGE (b2)-[:AND]->(a)
+MERGE (c:CVE {name: 'CVE-2022-0185'})-[:HAS_SEVERITY]->(cvss:CVSS {name: 'CVSS_score', cve: 'CVE-2022-0185', score_v3: 8.4})
 UNION 
 MATCH (b2:OR_NODE {name: 'OR_NODE', vuln: 'vuln3', key: 'or1'})
 MATCH (p:Permissions:Privileged)

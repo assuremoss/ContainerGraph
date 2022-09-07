@@ -8,7 +8,7 @@ setup(
     version='1.0.0',
     author='Francesco Minna',
     email='f.minna@vu.nl',
-    description='A tool to generate security charts (in XML and Neo4J) for containers.',
+    description='A tool for automatic detection and mitigation of vulnerabilities and misconfigurations for Docker containers.',
     # packages=['containergraph'],
     install_requires=reqs
 )

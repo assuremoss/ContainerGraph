@@ -27,9 +27,13 @@ To run the tool, follow these steps:
     `sudo adduser $USER docker`
     `newgrp docker`
 
-4. `sudo nano /etc/environment` and append the following line: `NEO4J_ADDRESS="neo4j_server_ip"`
+4. `sudo nano ~/.bashrc` and append the following lines: 
+        `NEO4J_ADDRESS="neo4j_server_ip"` (e.g., localhost)
+        `NEO4J_PORT="neo4j_server_port"` (e.g., 7687)
+        `NEO4J_USER="neo4j_db_user"`
+        `NEO4J_PASSWORD="neo4j_db_password"`
 
-5. Log out and log in again (to make the env variable persistent).
+5. Log out and log in again (to make the env variables persistent).
 
 6. `pipenv install`
 
@@ -44,7 +48,5 @@ To run the tool within a `Vagrant` virtual machine you have to allow remote conn
 
 `dbms.connector.bolt.listen_address=0.0.0.0:7687`
 
-The ContainerGraph tool will read the Neo4J database address to use from the local environmental variable `NEO4J_ADDRESS`.
-
-You can specify your own address using the following commands: `export NEO4J_ADDRESS="neo4j_server_ip"`. By default, `localhost` will be used. 
+The ContainerGraph tool will read the Neo4J database address to use from the local environmental variable `NEO4J_ADDRESS`, as well as the port, user, and password to use. You can specify your own address using the following commands: `export NEO4J_ADDRESS="neo4j_server_ip"`. 
 

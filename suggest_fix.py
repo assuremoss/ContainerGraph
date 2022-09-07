@@ -1,19 +1,16 @@
-from neo4j import GraphDatabase
+from Neo4j_connection import connect_to_neo4j
 import docker
 from vuln_tree_taversal import traverse_tree
 from colorama import Fore, Style
 from vuln_tree_taversal import get_node
 
 
-def connect_to_neo4j(uri, user, password) :
-    return GraphDatabase.driver(uri, auth=(user, password))
-
 def connect_to_Docker() : 
     return docker.from_env()
 
 
-def get_deployments(NEO4J_ADDRESS, cont_id=0) :
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
+def get_deployments(cont_id=0) :
+    driver = connect_to_neo4j()
     with driver.session() as session:
         temp = session.read_transaction(query_deployments, cont_id)
     driver.close()
@@ -32,7 +29,7 @@ def query_deployments(tx, cont_id) :
         """, cont_id=cont_id).value()
 
 
-def analyze_deployment(NEO4J_ADDRESS, d) : 
+def analyze_deployment(d) : 
     # To check the container is running
     client = connect_to_Docker()
 
@@ -44,7 +41,7 @@ def analyze_deployment(NEO4J_ADDRESS, d) :
         if cont.status == 'running' : 
 
             # Traverse the AND/OR tree to check for possible vulnerabilities
-            CVEs = traverse_tree(NEO4J_ADDRESS, d['cont_id'])
+            CVEs = traverse_tree(d['cont_id'])
 
             # If the container is vulnerable to any CVE in the dataset
             if CVEs :
@@ -74,7 +71,7 @@ def analyze_deployment(NEO4J_ADDRESS, d) :
 
                         if aws == 'y' : 
                             # If yes, suggest possible fixes and return the list of selected mitigations
-                            rsp = suggest_fix(NEO4J_ADDRESS, value)
+                            rsp = suggest_fix(value)
                             fixes += rsp
 
                             # Check if the selected fixes mitigate other CVEs
@@ -101,7 +98,7 @@ def analyze_deployment(NEO4J_ADDRESS, d) :
                 if cve_ignored :
 
                     # Build the (ignored) node
-                    build_ignore(NEO4J_ADDRESS, d['cont_id'], cve_ignored)
+                    build_ignore(d['cont_id'], cve_ignored)
 
                     cve_ignored = ", ".join( map(str, cve_ignored) )
                     print("The following CVEs are being ignored " + Fore.RED + cve_ignored + Style.RESET_ALL)
@@ -119,8 +116,8 @@ def analyze_deployment(NEO4J_ADDRESS, d) :
         exit(1)
 
 
-def build_ignore(NEO4J_ADDRESS, cont_id, CVEs) :
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
+def build_ignore(cont_id, CVEs) :
+    driver = connect_to_neo4j()
     with driver.session() as session:
         session.write_transaction(ignore_node, cont_id, CVEs)
     driver.close()
@@ -148,7 +145,7 @@ def ignore_node(tx, cont_id, CVEs) :
         tx.run(query, cont_id=cont_id, cve=cve)
 
 
-def analyze_single_deployment(NEO4J_ADDRESS, cont_id) :
+def analyze_single_deployment(cont_id) :
     
     # Retrieve container ID
     client = connect_to_Docker()
@@ -158,10 +155,10 @@ def analyze_single_deployment(NEO4J_ADDRESS, cont_id) :
         cont = client.containers.get(cont_id)
 
         # Get the deployment Neo4J node
-        deployment = get_deployments(NEO4J_ADDRESS, cont.short_id)[0]
+        deployment = get_deployments(cont.short_id)[0]
 
         # Analyze the container deployment
-        analyze_deployment(NEO4J_ADDRESS, deployment)
+        analyze_deployment(deployment)
     
     # Raise an exception if the container doesn't exist/is not running
     except docker.errors.NotFound as error :
@@ -172,23 +169,23 @@ def analyze_single_deployment(NEO4J_ADDRESS, cont_id) :
         exit(1)
 
 
-def analyze_all_deployment(NEO4J_ADDRESS) :
+def analyze_all_deployment() :
 
     # Get a list of Deployment node IDs
-    deployments = get_deployments(NEO4J_ADDRESS)
+    deployments = get_deployments()
 
     # Iterate over each container
     for d in deployments : 
 
         # Analyze the container deployment
-        analyze_deployment(NEO4J_ADDRESS, d)
+        analyze_deployment(d)
  
     # If no containers are running, print safe deployment
     if not deployments :
         print(Fore.GREEN + "There are no running containers to analyze! Exiting..." + Style.RESET_ALL)
 
 
-def suggest_fix(NEO4J_ADDRESS, cve) : 
+def suggest_fix(cve) : 
     # Keep track of which fix (node_id in the path) were selected
     choosen = []
 
@@ -197,7 +194,7 @@ def suggest_fix(NEO4J_ADDRESS, cve) :
 
         # Retrieve the leaf Neo4J node
         # If the current node is not a leaf, just ignore    
-        leaf = get_node(NEO4J_ADDRESS, node_id)
+        leaf = get_node(node_id)
 
         if leaf['type'] == 'DockerVersion' or \
             leaf['type'] == 'containerdVersion' or \

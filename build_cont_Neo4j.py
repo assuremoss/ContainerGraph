@@ -1,11 +1,7 @@
-from neo4j import GraphDatabase
+from Neo4j_connection import connect_to_neo4j
 
 
-def connect_to_neo4j(uri, user, password) :
-    return GraphDatabase.driver(uri, auth=(user, password))
-
-
-def cont_Neo4j_chart(NEO4J_ADDRESS, cont) :
+def cont_Neo4j_chart(cont) :
     """  brief title.
     
     Arguments:
@@ -16,7 +12,7 @@ def cont_Neo4j_chart(NEO4J_ADDRESS, cont) :
     blablabla
     """
 
-    driver = connect_to_neo4j("bolt://" + NEO4J_ADDRESS + ":7687", "neo4j", "password")
+    driver = connect_to_neo4j()
     with driver.session() as session:
 
         session.write_transaction(create_cont_node, cont)
