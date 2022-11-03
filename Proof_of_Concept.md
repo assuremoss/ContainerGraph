@@ -14,6 +14,8 @@ https://github.com/paxtonhare/demo-magic
 > Test with many (~50/100) qualitatively different CVEs
     - we assume the CVE pre/post conditions are given
 
+> An alternative is also to find what is the best combination of Linux kernel and Docker engine versions, and what is the impact of different container configurations on that.
+
 > Trovare diverse configurazioni docker o report in cui dicono che x% of containers run as root, with CVE CVSS score 9, etc.
  - write to the report authors if we can get the docker run configurations (Linkedin)
  - check Files Capabilities (also in DockerHub) https://www.cyberark.com/resources/threat-research-blog/how-docker-made-me-more-capable-and-the-host-less-secure
@@ -24,15 +26,38 @@ https://github.com/paxtonhare/demo-magic
 
 # TODO
 
+> Fix the algorithm (green and blue paths)
+
 > CVEs automatic integration
+    Check following papers (mainly, we need to find references on previous work representing CVEs as AND/OR trees and automatic "integration" of CVE in databases)
+    - https://link.springer.com/content/pdf/10.1007/978-3-319-18467-8.pdf
+    - https://ieeexplore.ieee.org/document/5161653
+    - https://link.springer.com/content/pdf/10.1007/978-3-319-24249-1.pdf
+    - https://link.springer.com/content/pdf/10.1007/978-3-319-03964-0.pdf
+    - https://link.springer.com/content/pdf/10.1007/b104908.pdf
+    - https://link.springer.com/content/pdf/10.1007/978-3-030-57024-8.pdf
+    - https://mal-lang.org/
+
+> Process & File Capabilities for evaluation
+    - https://man7.org/linux/man-pages/man7/capabilities.7.html
+    - https://github.com/RHsyseng/container-security-demos
+    - Check File CAPs in container images in DockerHub:
+        `` export an image to a rootfs folder https://blog.heroku.com/terrier-open-source-identifying-analyzing-containers
+        `getcap -r /path/to/image/root/fs/ 2>/dev/null` 
+
+    https://sysdig.com/blog/vulnerability-score-cvss-meaning/
+    https://man7.org/linux/man-pages/man7/capabilities.7.html
+    https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/33528.pdf
+    https://sites.google.com/site/fullycapable/inheriting-privilege?authuser=0
+    https://www.linuxjournal.com/magazine/making-root-unprivileged
+    https://blog.heroku.com/terrier-open-source-identifying-analyzing-containers
+    
 
 > Runtime events integration ?
 
 > Optimaze Neo4j nodes/edges structure
 > Python best practices
 
-> Remove the "Deployment" nodes?
-    - As of now, we only use the Container and DockerEngine nodes to run the algorithm
 
 > Allow users to customize CVE assumption (tree leaf) weights. 
    - we assume the same custom weight is the same for all containers
@@ -41,10 +66,6 @@ https://github.com/paxtonhare/demo-magic
 > Allow users to rank CVEs based on the CVSS score
     - Eventually, we can ask the user to provide custom values for the Impact Subscore Modifiers (e.g., in a config file).
       https://nvd.nist.gov/vuln-metrics/cvss/v3-calculator
-
-> Share the tool as a Docker container
-
-
 
 
 ---
@@ -115,7 +136,7 @@ The Docker (Seccomp and Apparmor) default profiles block 45 system calls and gra
 ## Example with Escape_1
 
 https://blog.trailofbits.com/2019/07/19/understanding-docker-container-escapes/
-
+ 
 1. Default container (14 CAPs and 320 syscalls):
 `python main.py --run docker run -it --rm -d nginx`
 
@@ -132,23 +153,6 @@ https://blog.trailofbits.com/2019/07/19/understanding-docker-container-escapes/
 
 6. `docker ps` & Analyze containers.
 `python main.py --analyze <container_id> Escape_1`
-
-
----
-## Fixing Container Configurations
-
-The list of possible fixes depends on the set of leaves belonging to valid paths within the vulnerability AND/OR tree. Invalidating one or more assumptions of an attack not part of a valid path, perhaps makes the configuration more secure (e.g., by restricting the set of available system calls), although without invalidating the attack itself.
-
-Steps to suggest effective fixes: 
-
-1. Split the set of assumptions (leaves in the tree) into an effective set (blocking the attack) and an evocative set (making the configuration more secure without blocking the attack).
-    - any existing algorithm for AND/OR trees? Perhaps we need a custom procedure for this.
-
-2. Rank the fixes effective set using AHP.
-    - we need to define a list of criteria
-
-3. Apply the choosen fix. There is no need to run again the vulnerability query because based on the set from which the fix comes from (effective or evocative), we already know if the attack is still possible or not.
-
 
 
 ### Multi-vulnerabilities

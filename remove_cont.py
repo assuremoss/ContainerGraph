@@ -11,7 +11,7 @@ def neo4j_remove_all():
     """
     TODO
     """
-    
+
     driver = connect_to_neo4j()
     with driver.session() as session:
         session.write_transaction(neo4jremove_data)
@@ -62,7 +62,6 @@ def remove_cont_Neo4j(cont_id) :
 
 def neo4jremove_cont(tx, cont_id) :
     tx.run("MATCH (c:Container:Docker {cont_id: $cont_id}) DETACH DELETE c ", cont_id=cont_id)
-    tx.run("MATCH (d:Deployment {cont_id: $cont_id}) DETACH DELETE d", cont_id=cont_id)
 
 def remove_container(cont_id) :
     """

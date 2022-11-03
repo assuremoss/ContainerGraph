@@ -14,9 +14,7 @@ def perm_nodes(capabilities, syscalls) :
     """
 
     driver = connect_to_neo4j()
-    
-    with driver.session() as session:
-
+    with driver.session() as session :
         session.write_transaction(create_caps_nodes, capabilities)
         session.write_transaction(create_syscall_nodes, syscalls)
         session.write_transaction(create_perm_nodes)
@@ -35,8 +33,8 @@ def create_alldep(tx) :
     """
 
     query = """
-    CREATE (AllD:AllDeployments {name: 'AllDeployments'}) 
-    CREATE (AS:AttackSurface {name: 'AttackSurface'})
+    MERGE (AllD:AllDeployments {name: 'AllDeployments'}) 
+    MERGE (AS:AttackSurface {name: 'AttackSurface'})
     """
 
     tx.run(query)
@@ -54,8 +52,8 @@ def create_caps_nodes(tx, capabilities) :
     """
 
     for cap in capabilities :
-        query = "MERGE (cap:Capability {name: '" + cap['name'] + "', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
-        tx.run(query)
+        query = "CREATE (cap:Capability {name:$cap, tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
+        tx.run(query, cap=cap['name'])
 
 
 def create_syscall_nodes(tx, syscalls) :
@@ -70,8 +68,8 @@ def create_syscall_nodes(tx, syscalls) :
     """
 
     for syscall in syscalls :
-        query = "MERGE (sysc:SystemCall {name: '" + syscall['name'] + "', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
-        tx.run(query)
+        query = "CREATE(sysc:SystemCall {name:$syscall, tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
+        tx.run(query, syscall=syscall['name'])
 
 
 def create_perm_nodes(tx) :
@@ -130,16 +128,16 @@ def create_eng_node(tx, docker_v, containerd_v, runc_v) :
     """
 
     for dv in docker_v :
-        query = "MERGE (dv:DockerVersion {name: '" + dv + "', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
-        tx.run(query)
+        query = "CREATE(dv:DockerVersion {name:$dv, tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
+        tx.run(query, dv=dv)
 
     for cv in containerd_v :
-        query = "MERGE (cv:containerdVersion {name: '" + cv + "', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
-        tx.run(query)
+        query = "CREATE(cv:containerdVersion {name:$cv, tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
+        tx.run(query, cv=cv)
 
     for rv in runc_v :
-        query = "MERGE (rv:runcVersion {name: '" + rv + "', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
-        tx.run(query)
+        query = "CREATE(rv:runcVersion {name:$rv, tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
+        tx.run(query, rv=rv)
 
 
 def kernel_v_nodes(kernel_v) :
@@ -172,8 +170,8 @@ def create_kernel_v_node(tx, kernel_v) :
     """
 
     for kv in kernel_v :
-        query = "MERGE (kv:KernelVersion {name: '" + kv + "', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
-        tx.run(query)
+        query = "CREATE(kv:KernelVersion {name:$kv, tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
+        tx.run(query, kv=kv)
 
 
 def init_Neo4j() :

@@ -6,7 +6,6 @@ import os
 try:
 
     NEO4J_ADDRESS = os.environ.get('NEO4J_ADDRESS')
-    # NEO4J_ADDRESS = "xxx.xxx.x.x" # For custom networks, e.g., Eduroam
     NEO4J_PORT = os.environ.get('NEO4J_PORT')
     NEO4J_USER = os.environ.get('NEO4J_USER')
     NEO4J_PWS = os.environ.get('NEO4J_PWS')

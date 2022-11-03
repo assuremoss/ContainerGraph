@@ -1,52 +1,45 @@
 
-# ContainerGraph
+# ContainerGraph Tool
 
-A tool to generate a Knowledge Graph of Docker containers, unveil the presence of vulnerabilities, and suggest security policies. 
-
-## Requirements
-
- - python
-
- - docker
-
- - Neo4J
-
-## Run the tool as a Docker container
-
-**TODO**
-
-## How to run the tool
-
-To run the tool, follow these steps:
-
-1. `git clone https://github.com/fminna/ContainerGraph.git`
-
-2. `cd ContainerGraph`
-
-3.  `sudo addgroup --system docker`
-    `sudo adduser $USER docker`
-    `newgrp docker`
-
-4. `sudo nano ~/.bashrc` and append the following lines: 
-        `NEO4J_ADDRESS="neo4j_server_ip"` (e.g., localhost)
-        `NEO4J_PORT="neo4j_server_port"` (e.g., 7687)
-        `NEO4J_USER="neo4j_db_user"`
-        `NEO4J_PASSWORD="neo4j_db_password"`
-
-5. Log out and log in again (to make the env variables persistent).
-
-6. `pipenv install`
-
-7. `pipenv shell`
-
-8. `python main.py --help`
+A Python-based tool for automatic detection and mitigation of vulnerabilities and misconfigurations for Docker containers. 
 
 
-### Neo4J Database Connection
+## Requirement - Docker
 
-To run the tool within a `Vagrant` virtual machine you have to allow remote connections to the Neo4J database. To do so, change the following Database settings:
+ContainerGraph uses the Neo4J graph database as a back-end storage. You can run both the ContainerGraph tool and Neo4J database as Docker containers.
 
-`dbms.connector.bolt.listen_address=0.0.0.0:7687`
+This tool has been tested on MacOS and Ubuntu laptops.
 
-The ContainerGraph tool will read the Neo4J database address to use from the local environmental variable `NEO4J_ADDRESS`, as well as the port, user, and password to use. You can specify your own address using the following commands: `export NEO4J_ADDRESS="neo4j_server_ip"`. 
+
+## How-to Run
+
+
+
+
+
+## Usage Examples
+
+To display all options, you can use: `... --help`
+
+1. Execute a new privileged container: `... --run docker run --name nginxpriv -it --rm -d --privileged nginx`
+
+2. Analyze the container for misconfigurations and vulnerabilities: `... --analyze`
+
+
+## Interaction with the Neo4J Database
+
+You can access the Neo4J browser interface to interact with the data stored in the database at the following address:
+
+<http://localhost:7474/browser/>
+
+The credentials to login in are the ones used to start the Neo4J container, by default user: `neo4j`, and password: `password`.
+
+ - To query the database, check some [query examples](https://neo4j.com/developer/cypher/querying/).
+
+ - To change the number of nodes displayed in the browser, check the [Neo4j documentation](https://neo4j.com/docs/browser-manual/current/operations/browser-settings/#adjust-in-browser).
+
+
+## Issues and Bugs
+
+For any issue and bug you encounter while using the tool, please open an issue on this repository.
 

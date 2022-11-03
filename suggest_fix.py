@@ -2,274 +2,238 @@ from Neo4j_connection import connect_to_neo4j
 import docker
 from vuln_tree_taversal import traverse_tree
 from colorama import Fore, Style
-from vuln_tree_taversal import get_node
-
+from remove_cont import remove_container
+from parse_perm_file import get_all_CAPs, get_all_syscalls
+from build_cont_Neo4j import create_cont_exploit_rel
 
 def connect_to_Docker() : 
     return docker.from_env()
 
-
-def get_deployments(cont_id=0) :
+def restore_graph_edges(removed_edges_dict) : 
     driver = connect_to_neo4j()
     with driver.session() as session:
-        temp = session.read_transaction(query_deployments, cont_id)
+        cont_IDs = session.write_transaction(restore_edges, removed_edges_dict)
+    driver.close()
+
+    if cont_IDs :
+        with driver.session() as session:
+            for cont_id in cont_IDs :
+                session.write_transaction(create_cont_exploit_rel, cont_id)
+        driver.close()
+        
+
+def restore_edges(tx, removed_edges_dict) : 
+    cont_IDs = []
+
+    for key, value in removed_edges_dict.items() :
+
+        if value['type'] == 'engine' :                
+            # Delete new version edge
+            tx.run("""
+                MATCH (eng)-[r]->(v) WHERE ID(eng)=$eng_id AND ID(v)=$new_v
+                DELETE r
+            """, eng_id=value['engine_id'], new_v=value['new_v_id'])
+
+            # Restore new version edge
+            tx.run("""
+                MATCH (eng) WHERE ID(eng)=$eng_id
+                MATCH (v) WHERE ID(v)=$old_v
+                MERGE (eng)-[:HAS_PROPERTY]->(v)
+                UNION
+                MATCH (eng) WHERE ID(eng)=$eng_id
+                MATCH (v) WHERE ID(v)=$old_v
+                MERGE (eng)-[:EXPLOITS]->(v)
+            """, eng_id=value['engine_id'], old_v=value['old_v_id'])
+
+        elif value['type'] == 'privileged' :
+            tx.run("""
+                MATCH (p:Permissions {name: 'Permissions', container: $cont_id}) 
+                SET p.profile = 'docker-privileged'
+                UNION
+                MATCH (p:Permissions {name: 'Permissions', container: $cont_id})
+                MATCH (aa:AppArmor {name: 'AppArmor', container: $cont_id, object: 'Container'})
+                DETACH DELETE (aa)
+                UNION
+                MATCH (p:Permissions {name: 'Permissions', container: $cont_id})
+                MATCH (sc:SecComp {name: 'SecComp', container: $cont_id})
+                DETACH DELETE (sc)
+            """, cont_id=value['cont_id'])
+
+            all_sysc = get_all_syscalls()
+            all_caps = get_all_CAPs()
+
+            for sysc in all_sysc :
+                tx.run("""
+                MATCH (perm:Permissions {name: 'Permissions', container: $cont_id})
+                MATCH (s:SystemCall {name: $name})
+                MERGE (perm)-[:HAS_PROPERTY]->(s)
+                """, cont_id=value['cont_id'], name=sysc)
+
+            for cap in all_caps :
+                tx.run("""
+                MATCH (perm:Permissions {name: 'Permissions', container: $cont_id})
+                MATCH (c:Capability {name: $name})
+                MERGE (perm)-[:HAS_PROPERTY]->(c)
+                """, cont_id=value['cont_id'], name=cap)
+
+            tx.run("""
+            MATCH (perm:Permissions {name: 'Permissions', container: $cont_id})
+            MATCH (priv:Permissions:Privileged {name: 'Privileged'})
+            MERGE (perm)-[:HAS_PROPERTY]->(priv)
+            """, cont_id=value['cont_id'])
+
+            cont_IDs.append(value['cont_id'])
+
+        elif value['type'] == 'container' :
+            for perm_id in value['perm'] :
+                tx.run("""
+                MATCH (perm:Permissions {name: 'Permissions', container: $cont_id})
+                MATCH (p) WHERE ID(p)=$perm_id
+                MERGE (perm)-[:HAS_PROPERTY]->(p)
+                """, cont_id=value['cont_id'], perm_id=perm_id)
+
+            for cap_id in value['caps'] :
+                tx.run("""
+                MATCH (aa:AppArmor {name: 'AppArmor', container: $cont_id, object: 'Container'})
+                MATCH (c:Capability) WHERE ID(c)=$cap_id
+                MERGE (aa)-[:HAS_PROPERTY]->(c)
+                """, cont_id=value['cont_id'], cap_id=cap_id)
+
+            for sysc_id in value['syscalls'] :
+                tx.run("""
+                MATCH (sc:SecComp {name: 'SecComp', container: $cont_id}) 
+                MATCH (s:SystemCall) WHERE ID(s)=$sysc_id
+                MERGE (sc)-[:HAS_PROPERTY]->(s)
+                """, cont_id=value['cont_id'], sysc_id=sysc_id)
+
+            cont_IDs.append(value['cont_id'])
+
+    return cont_IDs
+
+
+def analyze_all_deployment() :
+    """Description ...
+    
+    Parameters
+    ----------
+    param1 : desc ...
+
+    Return
+    ----------
+    object
+    """
+
+    # Initialize Priority Queue (ordered by weights -- highest to lowest)
+    PQ = initialize_pq()
+
+    if not bool(PQ) :
+        print(Fore.GREEN + "The current configuration is safe! Exiting..." + Style.RESET_ALL)
+        return
+
+    # List of all fixes
+    dict_of_fixes, removed_edges_dict = traverse_tree(PQ)   
+
+    # Print list of all fixes to eventually implement
+    if dict_of_fixes : 
+        # Restore the delete edges
+        restore_graph_edges(removed_edges_dict)
+
+        print("\nThe following is the list of all fixes choosen to be implemented.")
+        print("To implement those, all containers must be stopped and started again with the new configuration.\n")
+
+        for node_id in dict_of_fixes :
+            list_of_fixes = dict_of_fixes[node_id]
+
+            for fix in list_of_fixes :
+                n = list(fix.keys())[0]
+                print(' -', fix[n]['output'])
+
+        print('\n')
+
+
+def initialize_pq() : 
+    """Description ...
+    
+    Parameters
+    ----------
+    param1 : desc ...
+
+    Return
+    ----------
+    object
+    """
+   
+    # Get all container IDs children of DockerDeployment
+    cont_IDs = get_cont_IDs()
+    # Check that each container is running otherwise, remove container
+    for cont_id in cont_IDs : 
+        check_container(cont_id[0])
+
+    return get_leaves()
+
+
+def get_cont_IDs() :
+    """Returns the list of container IDs connected to the Deployment node. 
+    If no containers are running, it returns an empty list.
+    
+    Return
+    ----------
+    List of container IDs.
+    """
+   
+    driver = connect_to_neo4j()
+    with driver.session() as session:
+        temp = session.read_transaction(query_deployment)
     driver.close()
     return temp
 
-def query_deployments(tx, cont_id) :
+
+def query_deployment(tx) :
+    return tx.run("""
+    MATCH (dd:DockerDeployment {name: 'DockerDeployment'})-[:HAS]->(c:Container:Docker)
+    WITH COLLECT(c.cont_id) as cont_IDs
+    RETURN cont_IDs
+    """).value()[0]
+
+
+def get_leaves() :
+    """Returns all leaves (CVE assumptions) connected to at least one container, 
+    ordered by weights, from highest to lowest, that are part of at least
+    one CVE tree (i.e., that have at least an AND or OR edge).
     
-    # Return all Deployment nodes
-    if cont_id == 0 :
-        return tx.run("MATCH (n:Deployment) RETURN {node_id: ID(n), cont_id: n.cont_id}").value()
-
-    else : 
-        return tx.run("""
-        MATCH (n:Deployment {name: 'Deployment', cont_id: $cont_id})
-        RETURN {node_id: ID(n), cont_id: n.cont_id}
-        """, cont_id=cont_id).value()
-
-
-def analyze_deployment(d) : 
-    # To check the container is running
-    client = connect_to_Docker()
-
-    try:
-        # Retrieve container object
-        cont = client.containers.get(d['cont_id'])
-
-        # Check the container is running
-        if cont.status == 'running' : 
-
-            # Traverse the AND/OR tree to check for possible vulnerabilities
-            CVEs = traverse_tree(d['cont_id'])
-
-            # If the container is vulnerable to any CVE in the dataset
-            if CVEs :
-
-                # Concatenate the CVEs as strings
-                CVEs_string = ", ".join( map(str, CVEs.keys()) )
-                print("The container with ID " + d['cont_id'] + " is vulnerable to " + Fore.RED + CVEs_string + Style.RESET_ALL)
-
-                # List of ignored CVEs for the current container
-                cve_ignored = []
-                # List of selected fixes
-                fixes = []
-
-                # Iterate all exploitable vulnerabilities
-                for key, value in CVEs.items() : 
-
-                    # Check if this CVE is being ignored for this container
-                    if value['ignored'] :
-                        cve_ignored += [key]
-
-                    # Check if any selected fix (node_id) is in the path of the current CVE
-                    # In such a case, ignore the CVE because it is already fixed by a previous mitigation
-                    elif not any(item in fixes for item in value['path']) :
-
-                        # Ask the user whether she/he wants to fix the CVE
-                        aws = input("Do you want to fix " + Fore.RED + key + Style.RESET_ALL + "? (y/n) ")
-
-                        if aws == 'y' : 
-                            # If yes, suggest possible fixes and return the list of selected mitigations
-                            rsp = suggest_fix(value)
-                            fixes += rsp
-
-                            # Check if the selected fixes mitigate other CVEs
-                            if rsp :
-                                cve_mitigated = []
-                                for k, v in CVEs.items() :
-                                    if k!= key and any(item in rsp for item in v['path']) :
-                                        cve_mitigated += [k]
-                                
-                                if cve_mitigated :
-                                    cve_mitigated = ", ".join( map(str, cve_mitigated) )
-                                    print('This fix or fixes would also mitigate ' + cve_mitigated)
-
-                            # Otherwise, no fix was selected
-                            else : cve_ignored += [key]
-
-                        # Otherwise, ignore this CVE 
-                        else : cve_ignored += [key]
-                    
-                    # Otherwise skip CVE because it's already mitigated by a previous fix
-                    else : continue
-
-                # If any CVE is currently ignored
-                if cve_ignored :
-
-                    # Build the (ignored) node
-                    build_ignore(d['cont_id'], cve_ignored)
-
-                    cve_ignored = ", ".join( map(str, cve_ignored) )
-                    print("The following CVEs are being ignored " + Fore.RED + cve_ignored + Style.RESET_ALL)
-
-            # Otherwise, the configuration is safe, to the best of our knowledge
-            else : 
-                print(Fore.GREEN + "The container with ID " + d['cont_id'] + " is safe!" + Style.RESET_ALL)
-
-    # Raise an exception if the container doesn't exist/is not running
-    except docker.errors.NotFound as error :
-        print(error)
-        exit(1)
-    except docker.errors.APIError as error :
-        print(error)
-        exit(1)
-
-
-def build_ignore(cont_id, CVEs) :
+    Return
+    ----------
+    List of leaf IDs.
+    """
     driver = connect_to_neo4j()
     with driver.session() as session:
-        session.write_transaction(ignore_node, cont_id, CVEs)
+        leaves = session.read_transaction(query_leaves)
     driver.close()
+    return leaves
 
-def ignore_node(tx, cont_id, CVEs) :
-
-    for cve in CVEs : 
-
-        query = """
-        MERGE (ign:IsIgnored {name: 'IsIgnored', cve:$cve, cont_id:$cont_id})
-        UNION
-        MATCH (ign:IsIgnored {name: 'IsIgnored', cve:$cve, cont_id:$cont_id})
-        MATCH (AS:AttackSurface {name: 'AttackSurface'})
-        MERGE (ign)-[:BELONGS_TO]->(AS)
-        UNION
-        MATCH (ign:IsIgnored {name: 'IsIgnored', cve:$cve, cont_id:$cont_id})
-        MATCH (cve:CVE {name:$cve})
-        MERGE (cve)-[:IGNORE]->(ign)
-        UNION
-        MATCH (ign:IsIgnored {name: 'IsIgnored', cve:$cve, cont_id:$cont_id})
-        MATCH (d:Deployment {cont_id:$cont_id})
-        MERGE (d)-[:IGNORE]->(ign) 
-        """
-
-        tx.run(query, cont_id=cont_id, cve=cve)
+    
+def query_leaves(tx):
+    return tx.run("""
+        MATCH ()-[:EXPLOITS]->(l)
+        WHERE EXISTS( (l)-[:AND]->(:AND_NODE) ) OR EXISTS( (l)-[:OR]->(:OR_NODE) )
+        WITH DISTINCT l ORDER BY l.weight DESC 
+        WITH COLLECT(ID(l)) AS leaves_IDs RETURN leaves_IDs
+    """).value()[0]
 
 
-def analyze_single_deployment(cont_id) :
+def check_container(cont_id) :
     
     # Retrieve container ID
     client = connect_to_Docker()
 
     try:
         # Retrieve container object
-        cont = client.containers.get(cont_id)
-
-        # Get the deployment Neo4J node
-        deployment = get_deployments(cont.short_id)[0]
-
-        # Analyze the container deployment
-        analyze_deployment(deployment)
+        client.containers.get(cont_id)
     
     # Raise an exception if the container doesn't exist/is not running
     except docker.errors.NotFound as error :
-        print(error)
-        exit(1)
+        remove_container(cont_id)
+
     except docker.errors.APIError as error :
-        print(error)
-        exit(1)
-
-
-def analyze_all_deployment() :
-
-    # Get a list of Deployment node IDs
-    deployments = get_deployments()
-
-    # Iterate over each container
-    for d in deployments : 
-
-        # Analyze the container deployment
-        analyze_deployment(d)
- 
-    # If no containers are running, print safe deployment
-    if not deployments :
-        print(Fore.GREEN + "There are no running containers to analyze! Exiting..." + Style.RESET_ALL)
-
-
-def suggest_fix(cve) : 
-    # Keep track of which fix (node_id in the path) were selected
-    choosen = []
-
-    # Retrieve the leaves part of the valid path in the AND/OR tree
-    for node_id in cve['path'] : 
-
-        # Retrieve the leaf Neo4J node
-        # If the current node is not a leaf, just ignore    
-        leaf = get_node(node_id)
-
-        if leaf['type'] == 'DockerVersion' or \
-            leaf['type'] == 'containerdVersion' or \
-            leaf['type'] == 'runcVersion' or \
-                leaf['type'] == 'KernelVersion' :
-                    aws = input('Do you want to upgrade ' + leaf['type'].strip('Version') + ' version? (y/n) ')
-                    if aws == 'y' : 
-                        choosen += [node_id]
-                        print_fix({'fix': 'version_upgrade', 'value': leaf['type'].strip('Version'), 'version': leaf['name']})
-
-        elif leaf['type'] == 'Permissions' and leaf['name'] == 'Privileged' :
-            aws = input('Do you want to run the container as privileged? (y/n) ')
-            if aws == 'n' : 
-                choosen += [node_id]
-                print_fix({'fix': 'not_privileged'})
-        
-        elif leaf['type'] == 'SystemCall' : 
-            aws = input('Do you need the ' + leaf['name'] + ' system call? (y/n) ')
-            if aws == 'n' : 
-                choosen += [node_id]
-                print_fix({'fix' : 'not_syscall', 'value': leaf['name']})
-
-        elif leaf['type'] == 'Capability' : 
-            aws = input('Do you need the ' + leaf['name'] + ' capability? (y/n) ')
-            if aws == 'n' : 
-                choosen += [node_id]
-                print_fix({'fix' : 'not_capability', 'value': leaf['name']})
-
-        elif leaf['type'] == 'ContainerConfig' : 
-            if leaf['name'] == 'root' :
-                aws = input('Do you want to run the container as root? (y/n) ')
-                if aws == 'n' : 
-                    choosen += [node_id]
-                    print_fix({'fix' : 'not_root'})
-                # elif
-                # TODO
-                # volumes, env, etc.
-
-        elif leaf['type'] == 'NewPriv' : 
-            aws = input('Do you want the container to gain additional privileges? (y/n) ')
-            if aws == 'n' : 
-                choosen += [node_id]
-                print_fix({'fix' : 'no_new_priv'})
-
-        elif leaf['type'] == 'NotReadOnly' : 
-            aws = input('Do you need write access to the filesystem? (y/n) ')
-            if aws == 'n' : 
-                choosen += [node_id]
-                print_fix({'fix' : 'read_only_fs'})
-
-    # Return the list of choosen fixes or an empty list
-    # print(Fore.RED + 'No fix has been choosen! ' + Style.RESET_ALL + 'Exiting...') 
-    return choosen
-
-
-def print_fix(fix) : 
-
-    if fix['fix'] == 'version_upgrade' :
-        print(Fore.GREEN + "Upgrade " + Style.RESET_ALL + fix['value'] + " to a version > " + fix['version'])
-
-    elif fix['fix'] == 'not_privileged' : 
-        print("Do not run the container with the privileged option: " + Fore.RED + "--privileged" + Style.RESET_ALL)
-
-    elif fix['fix'] == 'not_root' :
-        print("Run the container with the user option: " + Fore.GREEN + "--user UID:GID" + Style.RESET_ALL)
-
-    elif fix['fix'] == 'not_capability' :
-        print("Run the container with the option: " + Fore.GREEN + "--cap-drop " + fix['value'] + Style.RESET_ALL)
-
-    elif fix['fix'] == 'not_syscall' :
-        print("Add the following line to the container AppArmor profile: " + Fore.GREEN + "deny " + fix['value'] + Style.RESET_ALL)
-
-    elif fix['fix'] == 'read_only_fs' :
-        print("Run the container with the option: " + Fore.GREEN + "--read-only" + Style.RESET_ALL)
-
-    elif fix['fix'] == 'no_new_priv' :
-        print("Run the container with the option: " + Fore.GREEN + "--security-opt=no-new-privileges:true" + Style.RESET_ALL)
+        remove_container(cont_id)
 

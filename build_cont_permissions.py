@@ -69,7 +69,7 @@ def build_permissions(cont_id, run_args, kernel_v) :
             if '=' in arg : value = arg.split('=')[1].replace('"', '')
             else : value = run_args[i+1].replace('"', '')
 
-            profile = cont_id + '_custom'
+            profile = 'custom'
 
             if value == 'all' or value == 'ALL' : 
                 d_caps = all_caps
@@ -87,7 +87,7 @@ def build_permissions(cont_id, run_args, kernel_v) :
             if '=' in arg : value = arg.split('=')[1].replace('"', '')
             else : value = run_args[i+1].replace('"', '')
 
-            profile = cont_id + '_custom'
+            profile = 'custom'
 
             if value == 'all' or value == 'ALL' : 
                 a_caps = all_caps
@@ -124,7 +124,7 @@ def build_permissions(cont_id, run_args, kernel_v) :
             if '=' in arg : value = arg.split('=')[1].replace('"', '')
             else : value = run_args[i+1].replace('"', '')
 
-            profile = cont_id + '_custom'
+            profile = 'custom'
 
             # NoNewPriv: the container can not start a process with more privileges than its own.
             # Syntax: --security-opt=no-new-privileges:true
@@ -194,19 +194,12 @@ def build_permissions(cont_id, run_args, kernel_v) :
 
     # Remove CAPs and syscalls not supported from the current version of the kernel
     caps, sysc = remove_unsupported_perm(caps, sysc, kernel_v)
-
+    
     return Permission(profile, Seccomp_p, AppArmor_p, read_only, no_new_priv, caps, sysc)
 
 
 def remove_unsupported_perm(caps, sysc, kernel_v):
     """  brief title.
-    
-    Arguments:
-    arg1 - desc
-    arg2 - desc
-
-    Description:
-    blablabla
     """
 
     result = parse_perm_taxonomy()
