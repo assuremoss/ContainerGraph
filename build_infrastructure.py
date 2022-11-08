@@ -76,16 +76,6 @@ def connect_to_Docker() :
 def build_DockerHost(host):
     """ 
     Description
-
-    Parameters
-    ---------
-    name: type
-        Description
-
-    Returns
-    -------
-    type:
-        Description
     """
 
     try:
@@ -96,21 +86,20 @@ def build_DockerHost(host):
 
         # Equivalent to run `docker version`
         version = client.version()
+
+        docker_v = version["Components"][0]["Version"]
         containerd_v = version["Components"][1]["Version"]
-        containerd_v = containerd_v[:5]
+        runc_v = version["Components"][2]["Version"]
 
-        # runc_v = info["RuncCommit"]["ID"]
-        runc_v = subprocess.check_output(["runc", "-v"])
-        runc_v = runc_v.decode('utf-8')
-        runc_v = runc_v[13:18]
-
-        aux = DockerHost(host, 
-                info["ServerVersion"],
+        kernel_v = version["Components"][0]["Details"]["KernelVersion"].split('.')
+        host.kernel_v = str(kernel_v[0]) + '.' + str(kernel_v[1])
+        
+        return DockerHost(host, 
+                docker_v,
                 containerd_v, 
                 runc_v, 
                 info["Driver"],
                 info["IndexServerAddress"])
-        return aux
 
     except docker.errors.DockerException as error :
         print(error)
@@ -185,18 +174,18 @@ def build_host(os_platform) :
         h_platform = "MacOS"
         hostname = socket.gethostname()
         processor = platform.machine()
-        kernel_v = platform.release()
+        kernel_v = ''
         cpus = os.popen("sysctl -n hw.ncpu").readline()
         mem = os.popen("sysctl -n hw.physmem").readline()
         mem = round(int(mem) / (1024*1024), 2)
         mem = str(mem) + "GB"
 
     elif os_platform == "Windows" :
+
         print("Change OS :)")
         exit(1)
 
-    h = Host(name, h_platform, hostname, processor, kernel_v, cpus, mem)
-    return h
+    return Host(name, h_platform, hostname, processor, kernel_v, cpus, mem)
 
 
 def detect_os() :

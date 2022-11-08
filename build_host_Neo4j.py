@@ -19,12 +19,8 @@ def get_kernel_v():
 
 
 def query_kernel_v(tx) :
-    temp = tx.run("MATCH (d:Host:LinuxHost)-[:HAS_PROPERTY]->(kv:KernelVersion) RETURN kv.name").single()
-    if temp : 
-        return temp[0]
-    else : 
-        return ''
-    
+    return tx.run("MATCH (d:Host)-[:HAS_PROPERTY]->(kv:KernelVersion) RETURN kv.name").single().value()
+
 
 def host_node(host) :
     """Description ...
@@ -133,7 +129,7 @@ def create_host_relationship(tx, host) :
     object
     """
 
-    kernel_v = host.host.kernel_v[:3]
+    kernel_v = host.host.kernel_v
     tx.run("""
         MATCH (h:Host {name: $hostname}) 
         MATCH (kv:KernelVersion {name: $kernel_v}) 

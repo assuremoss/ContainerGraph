@@ -44,12 +44,12 @@ def data_remove_all() :
     """
     TODO
     """
-    
-    # Clean up containers
-    cont_remove_all()
 
     # Clean up Neo4J
     neo4j_remove_all()
+    
+    # Clean up containers
+    cont_remove_all()
 
     print("Everything was cleaned up!")
 

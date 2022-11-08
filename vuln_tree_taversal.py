@@ -355,8 +355,7 @@ def suggest_fix(leaves_list, cont_id) :
                     if aws == 'Y' : 
                         new_v = input('Insert the new version (e.g., 5.5): ')
                         output = "Upgrade the " + leaf['type'][:-7] + " to version " + new_v
-                        temp_d = {'fix': 'version_upgrade', 'type': leaf['type'].strip('Version'), 'version': leaf['name'], 'new_version': new_v, 'output': output}
-                        temp_d = {leaf['nodeID']: temp_d}
+                        temp_d = {leaf['nodeID']: {'fix': 'version_upgrade', 'type': leaf['type'].strip('Version'), 'version': leaf['name'], 'new_version': new_v, 'output': output}}
                         
         elif leaf['type'] == 'Permissions' and leaf['name'] == 'Privileged' :
             aws = input('Do you want to run the container as privileged [y/N] ? ')
@@ -463,6 +462,8 @@ def reached_CVE(cve_name, path) :
         
         # Get list of leaves dictionaries from the path
         leaves_list = session.read_transaction(get_leaves_list, path)
+        # Retrieve vulnerable container configurations
+        vulnerable_cont = session.read_transaction(get_vulnerable_cont, leaves_list)
 
         # Retrieve, if exists, the Engine leaf
         eng_dict = list(filter(lambda item : item['type'][-7:] == 'Version', leaves_list))
@@ -479,7 +480,13 @@ def reached_CVE(cve_name, path) :
             # Otherwise, ask to fix it
             else : 
                 if eng == 'Kernel' : eng = 'the Linux Kernel'
-                aws = input("Do you want to fix " + cve_name + " affecting " + eng + " [Y/n] ? ")
+
+                if vulnerable_cont :
+                    qst = "Do you want to fix " + cve_name + " affecting " + eng + " and container config. [Y/n] ? "
+                else : 
+                    qst = "Do you want to fix " + cve_name + " affecting " + eng + " [Y/n] ? "
+
+                aws = input(qst)
                 if aws == 'Y' : 
                     list_of_fixes, removed_edges_dict = fix_vuln(cve_name, [eng_dict], eng_dict['nodeID'])
                     if list_of_fixes : # If the engine was fixes, return
@@ -488,11 +495,13 @@ def reached_CVE(cve_name, path) :
                         return fix_dict, removed_edges_dict
                 
                 else :
+
+                    # TODO
+                    # Get DockerEngine node_id
+                    # Create the :IGNORES edge between the Engine and the CVE
+                    
                     session.write_transaction(create_ignore, eng_dict['nodeID'], cve_name)
                     print(Fore.RED + cve_name + " will be ignored! Continuing..." + Style.RESET_ALL)
-
-        # Otherwise, only container configurations are vulnerable
-        vulnerable_cont = session.read_transaction(get_vulnerable_cont, leaves_list)
 
         # Check if the CVE is a false positive
         if not vulnerable_cont : 
@@ -553,8 +562,13 @@ def traverse_tree(PQ) :
         if parent_node and parent_node['type'] == 'CVE' : 
             fix_temp, removed_edges_temp = reached_CVE(parent_node['name'], tree_nodes[current_node_id]['needed'] + [parent_node['nodeID']])
             if fix_temp : 
+
+                # TODO
+                # APPEND NEW KERNEL VERSION
+
                 dict_of_fixes.update(fix_temp)
                 removed_edges_dict.update(removed_edges_temp)
+                # PQ.append(new_v)
                 continue
 
         # If the current node has not been traversed yet
@@ -603,6 +617,7 @@ def traverse_tree(PQ) :
                     if fix_temp : 
                         dict_of_fixes.update(fix_temp)
                         removed_edges_dict.update(removed_edges_temp)
+                        PQ.append(new_v)
                         continue
 
                 # Retrieve the list of OR parent nodes

@@ -9,7 +9,7 @@ from suggest_fix import analyze_all_deployment
 import argparse
 
 
-parser = argparse.ArgumentParser(description="ContainerGraph - A tool to generate security charts (in XML and Neo4J) and detect drift of Docker containers.")
+parser = argparse.ArgumentParser(description="ContainerGraph - A tool for automatic detection and mitigation of vulnerabilities and misconfigurations for Docker containers.")
 group = parser.add_mutually_exclusive_group(required=True)
 
 group.add_argument("--add", metavar="<image_id>", help="add a new image")

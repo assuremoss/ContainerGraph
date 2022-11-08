@@ -4,7 +4,6 @@ neo4j_query_example
 # Ignore PoC file
 Proof_of_Concept.md
 RetrieveImages.md
-Dockerfile
 
 # Ignore notes file
 resources.md
@@ -16,9 +15,6 @@ charts/
 # Ignore folders
 Resources/
 .vscode
-
-Dockerfile
-inspect_output.js
 
 # Ignore notes
 linux_capabilities.md

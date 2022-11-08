@@ -4,6 +4,7 @@ from build_host_Neo4j import host_Neo4j
 from init_Neo4j import init_Neo4j
 from build_host_Neo4j import host_exploits
 import json
+import files.CVEs  
 
 
 def graph_info() :
@@ -46,39 +47,16 @@ def query_graph_info(tx) :
 
 
 def is_db_initialize() :
-    """  brief title.
-    
-    Arguments:
-    arg1 - desc
-    arg2 - desc
-
-    Description:
-    blablabla
+    """  descr
     """
-
     driver = connect_to_neo4j()
     with driver.session() as session:
         result = session.read_transaction(query_db)
     driver.close()
-    
     return result
-
 
 def query_db(tx) :
-    """  brief title.
-    
-    Arguments:
-    arg1 - desc
-    arg2 - desc
-
-    Description:
-    blablabla
-    """
-
-    result = tx.run("MATCH (n) RETURN COUNT(n)>0")
-
-    result = result.single()[0]
-    return result
+    return tx.run("MATCH (n) RETURN COUNT(n)>0").single()[0]
 
 
 def vuln_Neo4j(vuln) :
@@ -129,14 +107,9 @@ def parse_vuln_file() :
         exit(1)
 
 
-def init_vuln() : 
-    """  brief title.
-    """
-    import files.CVEs   
-    
-    vuln_Neo4j(files.CVEs.vuln1)
-    vuln_Neo4j(files.CVEs.vuln2)
-    vuln_Neo4j(files.CVEs.vuln3)
+def init_vuln() :    
+    for query in files.CVEs.CVEs.values(): 
+        vuln_Neo4j(query)
 
 
 def initialize_Neo4j_db() :

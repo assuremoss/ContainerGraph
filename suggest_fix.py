@@ -148,26 +148,17 @@ def analyze_all_deployment() :
                 n = list(fix.keys())[0]
                 print(' -', fix[n]['output'])
 
-        print('\n')
-
 
 def initialize_pq() : 
     """Description ...
-    
-    Parameters
-    ----------
-    param1 : desc ...
-
-    Return
-    ----------
-    object
     """
    
     # Get all container IDs children of DockerDeployment
     cont_IDs = get_cont_IDs()
+
     # Check that each container is running otherwise, remove container
     for cont_id in cont_IDs : 
-        check_container(cont_id[0])
+        check_container(cont_id)
 
     return get_leaves()
 
