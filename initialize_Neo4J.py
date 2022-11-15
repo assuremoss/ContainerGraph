@@ -108,8 +108,13 @@ def parse_vuln_file() :
 
 
 def init_vuln() :    
-    for query in files.CVEs.CVEs.values(): 
-        vuln_Neo4j(query)
+
+    for key, value in files.CVEs.CVEs.items() :
+        if key == 'vuln1' or key == 'vuln3' or key == 'vuln5' :
+            vuln_Neo4j(value)
+
+    # for query in files.CVEs.CVEs.values(): 
+    #     vuln_Neo4j(query)
 
 
 def initialize_Neo4j_db() :

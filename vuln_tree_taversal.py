@@ -30,7 +30,7 @@ def tree_node(tx, node_id):
     return tx.run("""
     MATCH (n) WHERE ID(n)=$node_id AND ( EXISTS(()-[:EXPLOITS]->(n)) OR EXISTS(()-[:OR]->(n)) OR EXISTS(()-[:AND]->(n)) )
     OPTIONAL MATCH (c)-[*1]->(n) 
-    WITH n, COLLECT(ID(c)) AS children 
+    WITH n, COLLECT(DISTINCT ID(c)) AS children 
     RETURN {nodeID: ID(n), name: n.name, type: labels(n)[0], children: children, needed: n.needed, pred: n.pred, todo: n.todo, weight: n.weight} AS node_dict 
     """, node_id=node_id).value()[0]
 
@@ -181,9 +181,14 @@ def remove_engine_edge(tx, leaf_id, fix_dict) :
     query += "MERGE (eng)-[:HAS_PROPERTY]->(l) " 
     tx.run(query, engine_id=engine_id, new_v=fix['new_version'])  
 
-    new_v_id = tx.run("MATCH (l:" + fix['type'] + 'Version' +" {name: $new_v}) RETURN ID(l)", new_v=fix['new_version']).single().value()
+    new_v_id = tx.run("MATCH (l:" + fix['type'] + 'Version' +" {name: $new_v}) RETURN ID(l)", new_v=fix['new_version'])
+
+    # Check whether the new selected version is supported in Neo4J
+    if not new_v_id.peek() : 
+        print('The new selected version is not currently supported! Exiting...')
+        exit(1)
     
-    return engine_id, new_v_id
+    return engine_id, new_v_id.single().value()
 
 
 def remove_cont_edge(tx, node_id, list_of_fixes) :
@@ -449,7 +454,20 @@ def fix_vuln(cve_name, leaves_list, node_id, cont_id=0) :
     removed_edges_dict = implement_fixes(node_id, list_of_fixes)
 
     return list_of_fixes, removed_edges_dict
+
+
+def update_new_v(tx, label, new_v) : 
+    tx.run("MATCH (v:" + label + " {name:$new_v}) SET v.weight=1", new_v=new_v)
+
+def get_v_ID(tx, label, new_v) : 
+    return tx.run("MATCH (v:" + label + " {name:$new_v}) RETURN ID(v)", new_v=new_v).single().value()
                 
+def get_version_ID(label, new_v) : 
+    driver = connect_to_neo4j()
+    with driver.session() as session:
+        session.read_transaction(get_v_ID, label, new_v)
+    driver.close()
+
 
 def reached_CVE(cve_name, path) : 
     """Desc ...
@@ -482,7 +500,7 @@ def reached_CVE(cve_name, path) :
                 if eng == 'Kernel' : eng = 'the Linux Kernel'
 
                 if vulnerable_cont :
-                    qst = "Do you want to fix " + cve_name + " affecting " + eng + " and container config. [Y/n] ? "
+                    qst = "Do you want to fix " + cve_name + " affecting " + eng + " (and container config.) [Y/n] ? "
                 else : 
                     qst = "Do you want to fix " + cve_name + " affecting " + eng + " [Y/n] ? "
 
@@ -491,22 +509,18 @@ def reached_CVE(cve_name, path) :
                     list_of_fixes, removed_edges_dict = fix_vuln(cve_name, [eng_dict], eng_dict['nodeID'])
                     if list_of_fixes : # If the engine was fixes, return
                         driver.close()
-                        fix_dict = {eng_dict['nodeID']: list_of_fixes}
-                        return fix_dict, removed_edges_dict
+                        session.write_transaction(update_new_v, eng_dict['type'], list_of_fixes[0][eng_dict['nodeID']]['new_version'])
+                        new_v_ID = session.read_transaction(get_v_ID, eng_dict['type'], list_of_fixes[0][eng_dict['nodeID']]['new_version'])
+                        return list_of_fixes, removed_edges_dict, new_v_ID
                 
                 else :
-
-                    # TODO
-                    # Get DockerEngine node_id
-                    # Create the :IGNORES edge between the Engine and the CVE
-                    
                     session.write_transaction(create_ignore, eng_dict['nodeID'], cve_name)
                     print(Fore.RED + cve_name + " will be ignored! Continuing..." + Style.RESET_ALL)
 
         # Check if the CVE is a false positive
         if not vulnerable_cont : 
             driver.close()
-            return fix_dict, removed_edges_dict
+            return fix_dict, removed_edges_dict, ''
 
         # Otherwise, iterate over the vulnerable containers
         for cont in vulnerable_cont :            
@@ -520,15 +534,65 @@ def reached_CVE(cve_name, path) :
             if aws == 'Y' : 
                 list_of_fixes, removed_edges_dict = fix_vuln(cve_name, leaves_list, cont['nodeID'], cont['cont_id'])
                 if list_of_fixes :
-                    temp_dict = {cont['nodeID']: list_of_fixes}
-                    fix_dict.update(temp_dict)
+                    fix_dict.update(list_of_fixes)
                   
             else :
                 session.write_transaction(create_ignore, cont['nodeID'], cve_name)
                 print(Fore.RED + cve_name + " will be ignored! Continuing..." + Style.RESET_ALL)
 
     driver.close()
-    return fix_dict, removed_edges_dict
+    return fix_dict, removed_edges_dict, ''
+
+
+def updateTree(leaf_id, path, tree_nodes) :
+    tree_nodes = tree_nodes
+    
+    # Initialize the PQ
+    PQ = [leaf_id]
+
+    while len(PQ) > 0 :
+        current_node_id = PQ.pop(0)
+
+        if tree_nodes[current_node_id]['type'] == 'CVE' : 
+            break
+
+        # Update the current node properties
+        tree_nodes[current_node_id]['todo'] = 1 
+        tree_nodes[current_node_id]['needed'] = [] 
+        tree_nodes[current_node_id]['pred'] = float("NaN")
+        tree_nodes[current_node_id]['weight'] = -float('Inf')
+
+        # Traverse OR_parent nodes
+        OR_parent_list = get_OR_parents(current_node_id)  
+        for OR_parent_ID in OR_parent_list :
+
+            if OR_parent_ID in path and not OR_parent_ID in PQ :
+                PQ.append(OR_parent_ID)
+
+        # Traverse AND_parent nodes
+        AND_parent_list = get_AND_parents(current_node_id)
+        for AND_parent_ID in AND_parent_list :
+
+            if AND_parent_ID in path :
+                
+                tree_nodes[AND_parent_ID]['todo'] += 1 
+                tree_nodes[AND_parent_ID]['needed'] = [] 
+                tree_nodes[AND_parent_ID]['pred'] = float("NaN")
+                tree_nodes[AND_parent_ID]['weight'] = 0
+
+                # Case in which the AND_node is the last node before the CVE node
+                parent_node = get_parent_node(AND_parent_ID)
+                if parent_node and parent_node['type'] == 'CVE' :
+                    break
+
+                # Retrieve the list of OR parent nodes
+                OR_parent_list = get_OR_parents(AND_parent_ID)
+                for OR_parent_ID in OR_parent_list :
+
+                    if OR_parent_ID in path and not OR_parent_ID in PQ :
+                        PQ.append(OR_parent_ID)
+
+    return tree_nodes
 
 
 def traverse_tree(PQ) :
@@ -543,37 +607,38 @@ def traverse_tree(PQ) :
     """ 
 
     # List of all fixes
-    dict_of_fixes = {}
+    list_of_fixes = []
     removed_edges_dict = {}
 
     # Dict of tree nodes saved locally
     tree_nodes = {}
 
     while len(PQ) > 0 :
-
         current_node_id = PQ.pop(0)
 
         # Add node to the tree dictionary
         if not current_node_id in tree_nodes : 
             tree_nodes[current_node_id] = get_node(current_node_id)
 
-        # Check whether we reached a CVE node
-        parent_node = get_parent_node(current_node_id)
-        if parent_node and parent_node['type'] == 'CVE' : 
-            fix_temp, removed_edges_temp = reached_CVE(parent_node['name'], tree_nodes[current_node_id]['needed'] + [parent_node['nodeID']])
-            if fix_temp : 
-
-                # TODO
-                # APPEND NEW KERNEL VERSION
-
-                dict_of_fixes.update(fix_temp)
-                removed_edges_dict.update(removed_edges_temp)
-                # PQ.append(new_v)
-                continue
-
         # If the current node has not been traversed yet
         if tree_nodes[current_node_id]['todo'] != 0 :
             tree_nodes[current_node_id]['todo'] = 0
+
+        # Check whether we reached a CVE node
+        parent_node = get_parent_node(current_node_id)
+        if parent_node and parent_node['type'] == 'CVE' : 
+            path = tree_nodes[current_node_id]['needed'] + [parent_node['nodeID']]
+            fix_temp, removed_edges_temp, new_v = reached_CVE(parent_node['name'], path)
+            if fix_temp : 
+
+                for fix in fix_temp :    
+                    tree_nodes = updateTree(list(fix.keys())[0], path, tree_nodes)
+
+                list_of_fixes += fix_temp
+                removed_edges_dict.update(removed_edges_temp)
+                
+                if new_v : PQ.append(new_v)
+                continue
 
         # Retrieve the list of OR parent nodes IDs
         OR_parent_list = get_OR_parents(current_node_id)  
@@ -613,11 +678,17 @@ def traverse_tree(PQ) :
                 # Case in which the AND_node is the last node before the CVE node
                 parent_node = get_parent_node(AND_parent_ID)
                 if parent_node and parent_node['type'] == 'CVE' : 
-                    fix_temp, removed_edges_temp = reached_CVE(parent_node['name'], tree_nodes[AND_parent_ID]['needed'] + [parent_node['nodeID']])
+                    path = tree_nodes[AND_parent_ID]['needed'] + [parent_node['nodeID']]
+                    fix_temp, removed_edges_temp, new_v = reached_CVE(parent_node['name'], path)
                     if fix_temp : 
-                        dict_of_fixes.update(fix_temp)
+
+                        for fix in fix_temp :    
+                            tree_nodes = updateTree(list(fix.keys())[0], path, tree_nodes)
+                        
+                        list_of_fixes += fix_temp
                         removed_edges_dict.update(removed_edges_temp)
-                        PQ.append(new_v)
+                        
+                        if new_v : PQ.append(new_v)
                         continue
 
                 # Retrieve the list of OR parent nodes
@@ -637,4 +708,4 @@ def traverse_tree(PQ) :
                         if not OR_parent_ID in PQ : 
                             PQ.append(OR_parent_ID)
 
-    return dict_of_fixes, removed_edges_dict
+    return list_of_fixes, removed_edges_dict

@@ -38,6 +38,29 @@ CVEs = {
     """,
 
     'vuln2': """
+    CREATE (c:CVE {name: 'ContainerEscape2'})
+    CREATE (a:AND_NODE {name: 'AND_NODE', vuln: 'ContainerEscape2', weight: 0, todo: 2, needed: [], pred: gds.util.NaN()})
+    CREATE (b:OR_NODE {name: 'OR_NODE', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN(), vuln: 'ContainerEscape2'})
+    WITH a, b, c
+    MATCH (mm:MITRE:TECHNIQUE {name: 'Escape to Host'})
+    MERGE (c)-[:USES]->(mm)
+    MERGE (b)-[:ROOT]->(c)
+    MERGE (a)-[:OR]->(b)
+    UNION
+    MATCH (b:OR_NODE {name: 'OR_NODE', vuln: 'ContainerEscape2'})
+    MATCH (p:Permissions:Privileged {name: 'Privileged'})
+    MERGE (p)-[:OR]->(b)
+    UNION
+    MATCH (c:Capability {name: 'CAP_SYS_MODULE'})
+    MATCH (a:AND_NODE {name: 'AND_NODE', vuln: 'ContainerEscape2'})
+    MERGE (c)-[:AND]->(a)
+    UNION
+    MATCH (cc:ContainerConfig {name: 'root', type: 'user'})
+    MATCH (a:AND_NODE {name: 'AND_NODE', vuln: 'ContainerEscape2'})
+    MERGE (cc)-[:AND]->(a)
+    """,
+
+    'vuln3': """
     MERGE (m:MITRE:TACTIC {name: 'Privilege Escalation'})
     MERGE (mm:MITRE:TECHNIQUE {name: 'Exploitation'})
     CREATE (c:CVE {name: 'CVE-2022-0847'})
@@ -48,7 +71,7 @@ CVEs = {
     MERGE (b)-[:ROOT]->(c)
     MERGE (c)-[:HAS_SEVERITY]->(cvss)
     UNION 
-    MATCH (kv:KernelVersion {name: '5.4'})
+    MATCH (kv:KernelVersion {name: '5.8'})
     MATCH (b:OR_NODE {name: 'OR_NODE', vuln: 'vuln2'})
     MERGE (kv)-[:OR]->(b)
     UNION
@@ -69,7 +92,11 @@ CVEs = {
     MERGE (kv)-[:OR]->(b)
     """,
 
-    'vuln3': """
+    'vuln4': """
+    CREATE (c:CVE {name: 'CVE-2022-0492'})
+    """,
+
+    'vuln5': """
     MERGE (m:MITRE:TACTIC {name: 'Privilege Escalation'})
     MERGE (mm:MITRE:TECHNIQUE {name: 'Exploitation'})
     CREATE (c:CVE {name: 'CVE-2022-0185'})
@@ -164,7 +191,72 @@ CVEs = {
     MATCH (kv:KernelVersion {name: '5.16'})
     MATCH (b:OR_NODE {name: 'OR_NODE', vuln: 'vuln3', key: 'or2'})
     MERGE (kv)-[:OR]->(b)
+    """,
+
+    'vuln6': """
+    CREATE (c:CVE {name: 'CVE-2020-14386'})
+    """,
+
+    'vuln7': """
+    CREATE (c:CVE {name: 'CVE-2017-7308'})
+    """,
+
+    'vuln8': """
+    CREATE (c:CVE {name: 'CVE-2017-5123'})
+    """,
+
+    'vuln9': """
+    CREATE (c:CVE {name: 'CVE-2016-8655'})
+    """,
+
+    'vuln10': """
+    CREATE (c:CVE {name: 'CVE-2016-4997'})
+    """,
+
+    'vuln11': """
+    CREATE (c:CVE {name: 'CVE-2017-6074'})
+    """,
+
+    'vuln12': """
+    CREATE (c:CVE {name: 'CVE-2017-1000112'})
+    """,
+
+
+
+
+
+
+
+
+
+
+
+
+
+    'vuln13': """
+    CREATE (c:CVE {name: 'CVE-2019-14271'})
+    """,
+
+    'vuln14': """
+    CREATE (c:CVE {name: 'CVE-2020-15257'})
+    """,
+
+    'vuln15': """
+    CREATE (c:CVE {name: 'CVE-2016-9962'})
+    """,
+
+    'vuln16': """
+    CREATE (c:CVE {name: 'CVE-2018-15664'})
+    """,
+
+    'vuln17': """
+    CREATE (c:CVE {name: 'CVE-2019-5736'})
+    """,
+
+    'vuln18': """
+    CREATE (c:CVE {name: 'CVE-2020-13401'})
     """
+
 
 
 

@@ -164,18 +164,14 @@ def get_caps_syscalls(profile) :
     return caps, a_syscalls, d_syscalls
 
 
-def apparmor_parser(profile_name='', uri='/etc/apparmor.d/containers/docker-default') :
-    """  brief title.
-    
-    Arguments:
-    arg1 - desc
-    arg2 - desc
-
-    Description:
-    blablabla
+def apparmor_parser(profile_name='', uri='') :
+    """  Description
     """
 
-    if not uri.startswith('/etc/apparmor.d/containers/') : 
+    if not uri : 
+        uri = './files/Apparmor/docker-default'
+
+    elif not uri.startswith('/etc/apparmor.d/containers/') : 
         uri = '/etc/apparmor.d/containers/' + uri
 
     profile = parse_apparmor_file(uri)

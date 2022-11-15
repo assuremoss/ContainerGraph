@@ -7,6 +7,7 @@ RetrieveImages.md
 
 # Ignore notes file
 resources.md
+files/vuln_poc
 
 # Ignore container security chart
 charts/
