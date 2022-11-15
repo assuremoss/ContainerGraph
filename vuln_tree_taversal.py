@@ -27,12 +27,17 @@ def get_node(node_id) :
 
 def tree_node(tx, node_id):
 
-    return tx.run("""
+    node = tx.run("""
     MATCH (n) WHERE ID(n)=$node_id AND ( EXISTS(()-[:EXPLOITS]->(n)) OR EXISTS(()-[:OR]->(n)) OR EXISTS(()-[:AND]->(n)) )
     OPTIONAL MATCH (c)-[*1]->(n) 
     WITH n, COLLECT(DISTINCT ID(c)) AS children 
     RETURN {nodeID: ID(n), name: n.name, type: labels(n)[0], children: children, needed: n.needed, pred: n.pred, todo: n.todo, weight: n.weight} AS node_dict 
-    """, node_id=node_id).value()[0]
+    """, node_id=node_id)
+    
+    if not node.peek() : 
+        return None
+    else : 
+        return node.value()[0]
 
 
 def get_parent_node(node_id) :
@@ -441,7 +446,6 @@ def print_fix(fix, cont_id) :
 
 
 def fix_vuln(cve_name, leaves_list, node_id, cont_id=0) :
-
     # Provide the user a list of possible fixes for the current CVE
     list_of_fixes = suggest_fix(leaves_list, str(cont_id))
 
@@ -472,10 +476,13 @@ def get_version_ID(label, new_v) :
 def reached_CVE(cve_name, path) : 
     """Desc ...
     """ 
+
+    print(cve_name, path)
+
     driver = connect_to_neo4j()
     with driver.session() as session:
 
-        fix_dict = {}
+        fix_list = []
         removed_edges_dict = {}
         
         # Get list of leaves dictionaries from the path
@@ -520,7 +527,7 @@ def reached_CVE(cve_name, path) :
         # Check if the CVE is a false positive
         if not vulnerable_cont : 
             driver.close()
-            return fix_dict, removed_edges_dict, ''
+            return fix_list, removed_edges_dict, ''
 
         # Otherwise, iterate over the vulnerable containers
         for cont in vulnerable_cont :            
@@ -534,14 +541,14 @@ def reached_CVE(cve_name, path) :
             if aws == 'Y' : 
                 list_of_fixes, removed_edges_dict = fix_vuln(cve_name, leaves_list, cont['nodeID'], cont['cont_id'])
                 if list_of_fixes :
-                    fix_dict.update(list_of_fixes)
+                    fix_list += list_of_fixes
                   
             else :
                 session.write_transaction(create_ignore, cont['nodeID'], cve_name)
                 print(Fore.RED + cve_name + " will be ignored! Continuing..." + Style.RESET_ALL)
 
     driver.close()
-    return fix_dict, removed_edges_dict, ''
+    return fix_list, removed_edges_dict, ''
 
 
 def updateTree(leaf_id, path, tree_nodes) :
@@ -566,31 +573,29 @@ def updateTree(leaf_id, path, tree_nodes) :
         OR_parent_list = get_OR_parents(current_node_id)  
         for OR_parent_ID in OR_parent_list :
 
-            if OR_parent_ID in path and not OR_parent_ID in PQ :
+            if not OR_parent_ID in PQ :
                 PQ.append(OR_parent_ID)
 
         # Traverse AND_parent nodes
         AND_parent_list = get_AND_parents(current_node_id)
         for AND_parent_ID in AND_parent_list :
 
-            if AND_parent_ID in path :
-                
-                tree_nodes[AND_parent_ID]['todo'] += 1 
-                tree_nodes[AND_parent_ID]['needed'] = [] 
-                tree_nodes[AND_parent_ID]['pred'] = float("NaN")
-                tree_nodes[AND_parent_ID]['weight'] = 0
+            tree_nodes[AND_parent_ID]['todo'] += 1 
+            tree_nodes[AND_parent_ID]['needed'] = [] 
+            tree_nodes[AND_parent_ID]['pred'] = float("NaN")
+            tree_nodes[AND_parent_ID]['weight'] = 0
 
-                # Case in which the AND_node is the last node before the CVE node
-                parent_node = get_parent_node(AND_parent_ID)
-                if parent_node and parent_node['type'] == 'CVE' :
-                    break
+            # Case in which the AND_node is the last node before the CVE node
+            parent_node = get_parent_node(AND_parent_ID)
+            if parent_node and parent_node['type'] == 'CVE' :
+                break
 
-                # Retrieve the list of OR parent nodes
-                OR_parent_list = get_OR_parents(AND_parent_ID)
-                for OR_parent_ID in OR_parent_list :
+            # Retrieve the list of OR parent nodes
+            OR_parent_list = get_OR_parents(AND_parent_ID)
+            for OR_parent_ID in OR_parent_list :
 
-                    if OR_parent_ID in path and not OR_parent_ID in PQ :
-                        PQ.append(OR_parent_ID)
+                if not OR_parent_ID in PQ :
+                    PQ.append(OR_parent_ID)
 
     return tree_nodes
 
@@ -618,7 +623,11 @@ def traverse_tree(PQ) :
 
         # Add node to the tree dictionary
         if not current_node_id in tree_nodes : 
-            tree_nodes[current_node_id] = get_node(current_node_id)
+            node = get_node(current_node_id)
+            if node : 
+                tree_nodes[current_node_id] = node
+            else : 
+                continue
 
         # If the current node has not been traversed yet
         if tree_nodes[current_node_id]['todo'] != 0 :
@@ -636,7 +645,10 @@ def traverse_tree(PQ) :
 
                 list_of_fixes += fix_temp
                 removed_edges_dict.update(removed_edges_temp)
-                
+
+                leaves_ID = [list(d.keys())[0] for d in fix_temp]
+                PQ = [el for el in PQ if el not in leaves_ID]
+
                 if new_v : PQ.append(new_v)
                 continue
 
@@ -650,7 +662,7 @@ def traverse_tree(PQ) :
             # if the path from the current node is more risky than the previous path saved into the OR_parent
             if tree_nodes[current_node_id]['weight'] > tree_nodes[OR_parent_ID]['weight'] :
                 tree_nodes[OR_parent_ID]['weight'] = tree_nodes[current_node_id]['weight']
-                tree_nodes[OR_parent_ID]['needed'] = tree_nodes[current_node_id]['needed'] + [current_node_id] + [OR_parent_ID]
+                tree_nodes[OR_parent_ID]['needed'] = list(set(tree_nodes[current_node_id]['needed'] + [current_node_id] + [OR_parent_ID]))
                 tree_nodes[OR_parent_ID]['pred'] = current_node_id
 
                 # If not in the PQ already, append the OR_node id
@@ -667,27 +679,30 @@ def traverse_tree(PQ) :
 
             # Decrement AND_NODE TODO 
             tree_nodes[AND_parent_ID]['todo'] -= 1
-            tree_nodes[AND_parent_ID]['needed'] += tree_nodes[current_node_id]['needed'] + [current_node_id]
+            tree_nodes[AND_parent_ID]['needed'] += list(set(tree_nodes[current_node_id]['needed'] + [current_node_id]))
 
             # If all AND_parent children have been traversed
             if tree_nodes[AND_parent_ID]['todo'] == 0 : 
-                tree_nodes[AND_parent_ID]['needed'] += [AND_parent_ID]
+                tree_nodes[AND_parent_ID]['needed'] += list(set([AND_parent_ID]))
                 tree_nodes[AND_parent_ID]['pred'] = current_node_id
                 tree_nodes[AND_parent_ID]['weight'] = get_weight_sum(AND_parent_ID)
 
                 # Case in which the AND_node is the last node before the CVE node
                 parent_node = get_parent_node(AND_parent_ID)
                 if parent_node and parent_node['type'] == 'CVE' : 
-                    path = tree_nodes[AND_parent_ID]['needed'] + [parent_node['nodeID']]
+                    path = list(set(tree_nodes[AND_parent_ID]['needed'] + [parent_node['nodeID']]))
                     fix_temp, removed_edges_temp, new_v = reached_CVE(parent_node['name'], path)
                     if fix_temp : 
 
                         for fix in fix_temp :    
                             tree_nodes = updateTree(list(fix.keys())[0], path, tree_nodes)
-                        
+
                         list_of_fixes += fix_temp
                         removed_edges_dict.update(removed_edges_temp)
-                        
+
+                        leaves_ID = [list(d.keys())[0] for d in fix_temp]
+                        PQ = [el for el in PQ if el not in leaves_ID]
+                
                         if new_v : PQ.append(new_v)
                         continue
 
@@ -702,7 +717,7 @@ def traverse_tree(PQ) :
                     # if the path from the current AND node is more risky than the previous path saved into the OR_parent
                     if tree_nodes[AND_parent_ID]['weight'] > tree_nodes[OR_parent_ID]['weight'] :
                         tree_nodes[OR_parent_ID]['weight'] = tree_nodes[AND_parent_ID]['weight']
-                        tree_nodes[OR_parent_ID]['needed'] = tree_nodes[AND_parent_ID]['needed'] + [OR_parent_ID]
+                        tree_nodes[OR_parent_ID]['needed'] = list(set(tree_nodes[AND_parent_ID]['needed'] + [OR_parent_ID]))
                         tree_nodes[OR_parent_ID]['pred'] = AND_parent_ID
                         # If not in the PQ already, append the OR_node id
                         if not OR_parent_ID in PQ : 
