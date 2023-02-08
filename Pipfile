@@ -15,6 +15,7 @@ lxml = "*"
 networkx = "*"
 colorama = "*"
 ahpy = "*"
+packaging = "*"
 
 [dev-packages]
 

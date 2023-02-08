@@ -3,8 +3,8 @@ from build_infrastructure import get_Infrastructure
 from build_host_Neo4j import host_Neo4j
 from init_Neo4j import init_Neo4j
 from build_host_Neo4j import host_exploits
-import json
-import files.CVEs  
+from CVEs import initialize_escape_cves, initialize_engine_cves, initialize_kernel_cves
+import re
 
 
 def graph_info() :
@@ -61,7 +61,6 @@ def query_db(tx) :
 
 def vuln_Neo4j(vuln) :
     """  brief title.
-
     """
     driver = connect_to_neo4j()
     with driver.session() as session:
@@ -80,41 +79,32 @@ def create_host_exploits() :
     driver.close()
 
 
-def parse_vuln_file() :
-    """  brief title.
-    
-    Arguments:
-    arg1 - desc
-    arg2 - desc
+def init_vuln() : 
 
-    Description:
-    blablabla
-    """
+    # Initialize Container Escape vulnerabilities
+    queries = initialize_escape_cves()
+    for query in queries :
+        vuln_Neo4j(query)
+    print('Added Container Escape vulnerabilities!')
 
-    try :
-        with open('./files/vulns.json', 'r') as vulns_file :
-            vulns = json.load(vulns_file)
+    # Initialize Container Engine vulnerabilities
+    queries = initialize_engine_cves()
+    for query in queries :
+        vuln_Neo4j(query)
+    print('Added Container Engine vulnerabilities!')
 
-            # Return each vuln as a dictionary
-            container_attacks = vulns['container_attacks']
-            kernel_attacks = vulns['kernel_attacks'][0]
-            engine_attacks = vulns['engine_attacks'][0]
+    # Initialize Linux kernel vulnerabilities
+    queries = initialize_kernel_cves()
+    for query in queries :
+        
+        # Print the CVE we are currently adding into Neo4J
+        # cve_pattern = r'CVE-\d{4}-\d{4,7}'
+        # cve = re.findall(cve_pattern, query)[0]
+        # print('Adding ' + cve + ' ...')
 
-            return container_attacks, kernel_attacks, engine_attacks
+        vuln_Neo4j(query)
 
-    except FileNotFoundError as error :
-        print(error)
-        exit(1)
-
-
-def init_vuln() :    
-
-    for key, value in files.CVEs.CVEs.items() :
-        if key == 'vuln1' or key == 'vuln3' or key == 'vuln5' :
-            vuln_Neo4j(value)
-
-    # for query in files.CVEs.CVEs.values(): 
-    #     vuln_Neo4j(query)
+    print('Added Linux kernel vulnerabilities!\n')
 
 
 def initialize_Neo4j_db() :
@@ -144,7 +134,7 @@ def initialize_Neo4j_db() :
 
         # Print graph info
         n_nodes, n_edges = graph_info()
-        print('Total: ' + str(n_nodes) + ' nodes and ' + str(n_edges) + ' relationships.\n')
+        print('    > Initialization: ' + str(n_nodes) + ' nodes and ' + str(n_edges) + ' relationships.\n')
 
         # Initialize Vulnerabilities and the :EXPLOITS edges for the Host (engine versions)
         init_vuln()
@@ -153,7 +143,6 @@ def initialize_Neo4j_db() :
         create_host_exploits()
 
         # Print graph info
-        # n_nodes, n_edges = graph_info()
-        # print('Total: ' + str(n_nodes) + ' nodes and ' + str(n_edges) + ' relationships.\n')
-
+        n_nodes, n_edges = graph_info()
+        print('    > Vulnerabilities: ' + str(n_nodes) + ' nodes and ' + str(n_edges) + ' relationships.\n')
 

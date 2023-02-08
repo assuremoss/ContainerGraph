@@ -138,13 +138,15 @@ def analyze_all_deployment() :
         # Restore the delete edges
         restore_graph_edges(removed_edges_dict)
 
-        print("\nThe following is the list of all fixes choosen to be implemented.")
-        print("To implement those, all containers must be stopped and started again with the new configuration.\n")
+        print("---------")
+        print('')
+        print("The following is the list of all fixes choosen to be implemented.")
+        print("All containers must be stopped and started again with the new configuration.\n")
 
         for fix in list_of_fixes :
 
             n = list(fix.keys())[0]
-            print(' -', fix[n]['output'])
+            print(' •', fix[n]['output'])
 
         print() # add a new empty line to the output
 

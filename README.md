@@ -55,6 +55,8 @@ docker run \
     neo4j:5
 ```
 
+Also, make sure Docker is running.
+
 6. Finally, we can run the ContainerGraph tool, using the following command: `python main.py --help`
 
 

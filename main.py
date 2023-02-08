@@ -3,7 +3,7 @@ from build_container import build_container
 from build_cont_Neo4j import cont_Neo4j_chart
 from build_img_Neo4j import image_Neo4j_chart
 from build_host_Neo4j import get_kernel_v
-from remove_cont import data_remove_all, remove_container
+from remove_cont import data_remove_all, data_remove_cont, remove_container
 from initialize_Neo4J import initialize_Neo4j_db, graph_info
 from suggest_fix import analyze_all_deployment
 import argparse
@@ -14,7 +14,7 @@ group = parser.add_mutually_exclusive_group(required=True)
 
 group.add_argument("--add", metavar="<image_id>", help="add a new image")
 group.add_argument("--run", action='append', nargs=argparse.REMAINDER, help="run a container")
-group.add_argument("--remove", nargs=1, metavar="<container_id> OR <all>", help="remove and delete one container or all containers")
+group.add_argument("--remove", nargs=1, metavar="<container_id> OR <containers> OR <all>", help="remove and delete one container, all containers, or everything")
 group.add_argument('--analyze', action='store_true', help='analyze all vulnerabilities/misconfigurations')
 
 args = parser.parse_args()
@@ -55,19 +55,27 @@ def run_option(options) :
     # Print graph info
     n_nodes, n_edges = graph_info()
     print("Successfully added the container with ID " + cont.cont_id)
-    print('Total: ' + str(n_nodes) + ' nodes and ' + str(n_edges) + ' relationships.\n')
+    print('Container: ' + str(n_nodes) + ' nodes and ' + str(n_edges) + ' relationships.\n')
 
 
 # Analyze all vulnerabilities/misconfigurations
 def analyze_option() :
+    
+    print('Analyzing current Docker deployment...\n')
+
     analyze_all_deployment()
 
 
 # Remove container/s and clean DB
 def remove_option(option) :
-    # Remove all containers
+    # Remove everything
     if option[0] == 'all' : 
         data_remove_all()
+    
+    # Remove all containers
+    elif option[0] == 'containers' :
+        data_remove_cont()
+
     # Remove single container
     else :
         remove_container(option[0])

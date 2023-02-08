@@ -128,15 +128,15 @@ def create_eng_node(tx, docker_v, containerd_v, runc_v) :
     """
 
     for dv in docker_v :
-        query = "CREATE(dv:DockerVersion {name:$dv, tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
+        query = "CREATE (dv:DockerVersion {name:$dv, tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
         tx.run(query, dv=dv)
 
     for cv in containerd_v :
-        query = "CREATE(cv:containerdVersion {name:$cv, tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
+        query = "CREATE (cv:containerdVersion {name:$cv, tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
         tx.run(query, cv=cv)
 
     for rv in runc_v :
-        query = "CREATE(rv:runcVersion {name:$rv, tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
+        query = "CREATE (rv:runcVersion {name:$rv, tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
         tx.run(query, rv=rv)
 
 

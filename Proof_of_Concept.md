@@ -1,4 +1,54 @@
 
+# TESTING
+
+Test the tool on the following sequence of containers:
+
+    1, 2, 5, 10, 20, 50, 100, 200, 500
+
+
+First plot shows the time to add containers to the tool/database:
+
+    `$ time ./testing.sh N`
+
+
+Second plot shows the time to fix all (privileged) containers; we automatically reply yes each time the tool prompts whether to fix a given container for a specific vulnerability (`yes | python main.py --analyze`)
+
+    `$ yes | time python main.py --analyze`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # DEMO TOOL

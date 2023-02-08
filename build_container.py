@@ -65,8 +65,6 @@ def build_container(options, kernel_v):
         # print(permissions.syscalls)
     ############################
 
-
-
         # build container object
         cont = build_cont_obj(cont, start_t, cconfig, permissions)
         # cont.print_cont()

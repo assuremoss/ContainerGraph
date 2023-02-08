@@ -92,7 +92,13 @@ def build_DockerHost(host):
         runc_v = version["Components"][2]["Version"]
 
         kernel_v = version["Components"][0]["Details"]["KernelVersion"].split('.')
-        host.kernel_v = str(kernel_v[0]) + '.' + str(kernel_v[1])
+        # host.kernel_v = str(kernel_v[0]) + '.' + str(kernel_v[1])
+        temp_v = str(kernel_v[0]) + '.' + str(kernel_v[1])
+        if len(kernel_v) > 2 :
+            temp_v += '.' + str(kernel_v[2]).split('-')[0]
+        else :
+            temp_v += '.0'
+        host.kernel_v = temp_v
         
         return DockerHost(host, 
                 docker_v,

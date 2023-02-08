@@ -361,22 +361,24 @@ def suggest_fix(leaves_list, cont_id) :
             leaf['type'] == 'containerdVersion' or \
             leaf['type'] == 'runcVersion' or \
                 leaf['type'] == 'KernelVersion' :
-                    aws = input('Do you want to upgrade the ' + leaf['type'].strip('Version') + ' version [Y/n] ? ')
+                    aws = input('    > Do you want to upgrade the ' + leaf['type'].strip('Version') + ' version [Y/n] ? ')
                     if aws == 'Y' : 
-                        new_v = input('Insert the new version (e.g., 5.5): ')
-                        output = "Upgrade the " + leaf['type'][:-7] + " to version " + new_v
+                        new_v = input('    Insert the new version: ')
+                        print('')
+                        output = "Upgrade " + leaf['type'][:-7] + " to version " + new_v
                         temp_d = {leaf['nodeID']: {'fix': 'version_upgrade', 'type': leaf['type'].strip('Version'), 'version': leaf['name'], 'new_version': new_v, 'output': output}}
                         
         elif leaf['type'] == 'Permissions' and leaf['name'] == 'Privileged' :
-            aws = input('Do you want to run the container as privileged [y/N] ? ')
-            if aws == 'N' : 
+            aws = input('    > Do you want to run the container as privileged [y/N] ? ')
+            if aws == 'y' : 
+            # if aws == 'N' : 
                 temp_d = {'fix': 'not_privileged', 'type': 'Privileged'}
                 output_d = {'output': print_fix(temp_d, cont_id)}
                 temp_d.update(output_d)
                 temp_d = {leaf['nodeID']: temp_d}
         
         elif leaf['type'] == 'SystemCall' : 
-            aws = input('Do you need the ' + leaf['name'] + ' system call [y/N] ? ')
+            aws = input('    > Do you need the ' + leaf['name'] + ' system call [y/N] ? ')
             if aws == 'N' : 
                 temp_d = {'fix': 'not_syscall', 'type': leaf['name']}
                 output_d = {'output': print_fix(temp_d, cont_id)}
@@ -384,7 +386,7 @@ def suggest_fix(leaves_list, cont_id) :
                 temp_d = {leaf['nodeID']: temp_d}
 
         elif leaf['type'] == 'Capability' : 
-            aws = input('Do you need the ' + leaf['name'] + ' capability [y/N] ? ')
+            aws = input('    > Do you need the ' + leaf['name'] + ' capability [y/N] ? ')
             if aws == 'N' : 
                 temp_d = {'fix': 'not_capability', 'type': leaf['name']}
                 output_d = {'output': print_fix(temp_d, cont_id)}
@@ -393,7 +395,7 @@ def suggest_fix(leaves_list, cont_id) :
 
         elif leaf['type'] == 'ContainerConfig' : 
             if leaf['name'] == 'root' :
-                aws = input('Do you want to run the container as root [y/N] ? ')
+                aws = input('    > Do you want to run the container as root [y/N] ? ')
                 if aws == 'N' : 
                     temp_d = {'fix': 'not_root', 'type': ''}
                     output_d = {'output': print_fix(temp_d, cont_id)}
@@ -405,7 +407,7 @@ def suggest_fix(leaves_list, cont_id) :
                 # volumes, env, etc.
 
         elif leaf['type'] == 'NewPriv' : 
-            aws = input('Do you want the container to gain additional privileges [y/N] ? ')
+            aws = input('    > Do you want the container to gain additional privileges [y/N] ? ')
             if aws == 'N' : 
                 temp_d = {'fix': 'no_new_priv', 'type': ''}
                 output_d = {'output': print_fix(temp_d, cont_id)}
@@ -413,7 +415,7 @@ def suggest_fix(leaves_list, cont_id) :
                 temp_d = {leaf['nodeID']: temp_d}
 
         elif leaf['type'] == 'NotReadOnly' : 
-            aws = input('Do you need write access to the filesystem [y/N] ? ')
+            aws = input('    > Do you need write access to the filesystem [y/N] ? ')
             if aws == 'N' : 
                 temp_d = {'fix': 'read_only_fs', 'type': ''}
                 output_d = {'output': print_fix(temp_d, cont_id)}
@@ -452,7 +454,8 @@ def fix_vuln(cve_name, leaves_list, node_id, cont_id=0) :
     # If no fix was choosen
     if not list_of_fixes : 
         create_ignore_node(node_id, cve_name)
-        print(Fore.RED + cve_name + " will be ignored! Continuing..." + Style.RESET_ALL)
+        # print(Fore.RED + cve_name + " will be ignored! Continuing..." + Style.RESET_ALL)
+        print("    > " + cve_name + " will be ignored! Continuing...\n")
 
     # Implement the selected fixes, i.e., removing the :EXPLOITS edge 
     removed_edges_dict = implement_fixes(node_id, list_of_fixes)
@@ -477,7 +480,7 @@ def reached_CVE(cve_name, path) :
     """Desc ...
     """ 
 
-    print(cve_name, path)
+    # print(cve_name, path)
 
     driver = connect_to_neo4j()
     with driver.session() as session:
@@ -499,19 +502,22 @@ def reached_CVE(cve_name, path) :
 
             # Check whether the engine ignores this CVE
             if session.read_transaction(check_ignored, eng_dict['nodeID'], cve_name) :
+                print('---------')
                 print(Fore.RED +"This " + eng + " (v. " + eng_dict['name'] + ") ignores " + cve_name + "! Continuing..." + Style.RESET_ALL)
                 session.write_transaction(create_ignore, eng_dict['nodeID'], cve_name)
+                print('')
 
             # Otherwise, ask to fix it
             else : 
                 if eng == 'Kernel' : eng = 'the Linux Kernel'
-
+                
                 if vulnerable_cont :
-                    qst = "Do you want to fix " + cve_name + " affecting " + eng + " (and container config.) [Y/n] ? "
+                    qst = "---------\nDo you want to fix " + cve_name + " affecting " + eng + " (and container config.) [Y/n] ? "
                 else : 
-                    qst = "Do you want to fix " + cve_name + " affecting " + eng + " [Y/n] ? "
+                    qst = "---------\nDo you want to fix " + cve_name + " affecting " + eng + " [Y/n] ? "
 
                 aws = input(qst)
+                print('')
                 if aws == 'Y' : 
                     list_of_fixes, removed_edges_dict = fix_vuln(cve_name, [eng_dict], eng_dict['nodeID'])
                     if list_of_fixes : # If the engine was fixes, return
@@ -522,7 +528,8 @@ def reached_CVE(cve_name, path) :
                 
                 else :
                     session.write_transaction(create_ignore, eng_dict['nodeID'], cve_name)
-                    print(Fore.RED + cve_name + " will be ignored! Continuing..." + Style.RESET_ALL)
+                    # print(Fore.RED + cve_name + " will be ignored! Continuing..." + Style.RESET_ALL)
+                    print("    > " + cve_name + " will be ignored! Continuing...\n")
 
         # Check if the CVE is a false positive
         if not vulnerable_cont : 
@@ -534,25 +541,28 @@ def reached_CVE(cve_name, path) :
             cont = vulnerable_cont[cont]           
             # Check if this container ignores this CVE
             if session.read_transaction(check_ignored, cont['nodeID'], cve_name) :
-                print(Fore.RED +"The container with ID " + cont['cont_id'] + " ignores " + cve_name + "! Continuing..." + Style.RESET_ALL)
+                print(Fore.RED +"The container with ID " + cont['cont_id'] + " ignores " + cve_name + "! Continuing...\n" + Style.RESET_ALL)
                 continue
-            
-            aws = input("Do you want to fix " + cve_name + " for container " + cont['cont_id'] + " [Y/n] ? ")
-            if aws == 'Y' : 
+
+            aws = input("---------\nDo you want to fix " + cve_name + " for container " + cont['cont_id'] + " [Y/n] ? ")
+            print('')
+            if aws == 'y' : 
+            # if aws == 'Y' : 
                 list_of_fixes, removed_edges_dict = fix_vuln(cve_name, leaves_list, cont['nodeID'], cont['cont_id'])
                 if list_of_fixes :
                     fix_list += list_of_fixes
                   
             else :
                 session.write_transaction(create_ignore, cont['nodeID'], cve_name)
-                print(Fore.RED + cve_name + " will be ignored! Continuing..." + Style.RESET_ALL)
-
+                # print(Fore.RED + cve_name + " will be ignored! Continuing...\n" + Style.RESET_ALL)
+                print("    > " + cve_name + " will be ignored! Continuing...\n")
+    print('')
     driver.close()
     return fix_list, removed_edges_dict, ''
 
 
 def updateTree(leaf_id, path, tree_nodes) :
-    tree_nodes = tree_nodes
+    # tree_nodes = tree_nodes
     
     # Initialize the PQ
     PQ = [leaf_id]
@@ -561,13 +571,15 @@ def updateTree(leaf_id, path, tree_nodes) :
         current_node_id = PQ.pop(0)
 
         if tree_nodes[current_node_id]['type'] == 'CVE' : 
-            break
+            continue
 
         # Update the current node properties
         tree_nodes[current_node_id]['todo'] = 1 
-        tree_nodes[current_node_id]['needed'] = [] 
-        tree_nodes[current_node_id]['pred'] = float("NaN")
-        tree_nodes[current_node_id]['weight'] = -float('Inf')
+
+        if tree_nodes[current_node_id]['type'] != 'leaf' :
+            tree_nodes[current_node_id]['needed'] = [] 
+            tree_nodes[current_node_id]['pred'] = float("NaN")
+            tree_nodes[current_node_id]['weight'] = -float('Inf')
 
         # Traverse OR_parent nodes
         OR_parent_list = get_OR_parents(current_node_id)  
@@ -588,7 +600,7 @@ def updateTree(leaf_id, path, tree_nodes) :
             # Case in which the AND_node is the last node before the CVE node
             parent_node = get_parent_node(AND_parent_ID)
             if parent_node and parent_node['type'] == 'CVE' :
-                break
+                continue
 
             # Retrieve the list of OR parent nodes
             OR_parent_list = get_OR_parents(AND_parent_ID)
@@ -639,9 +651,11 @@ def traverse_tree(PQ) :
             path = tree_nodes[current_node_id]['needed'] + [parent_node['nodeID']]
             fix_temp, removed_edges_temp, new_v = reached_CVE(parent_node['name'], path)
             if fix_temp : 
-
+                
+                ### WE CAN DO THE FOLLOWING INSIDE THE REACHED_CVE FUNCTION - TO CHECK ###
                 for fix in fix_temp :    
                     tree_nodes = updateTree(list(fix.keys())[0], path, tree_nodes)
+                ######
 
                 list_of_fixes += fix_temp
                 removed_edges_dict.update(removed_edges_temp)
@@ -694,9 +708,11 @@ def traverse_tree(PQ) :
                     fix_temp, removed_edges_temp, new_v = reached_CVE(parent_node['name'], path)
                     if fix_temp : 
 
+                        ### WE CAN DO THE FOLLOWING INSIDE THE REACHED_CVE FUNCTION - TO CHECK ###
                         for fix in fix_temp :    
                             tree_nodes = updateTree(list(fix.keys())[0], path, tree_nodes)
-
+                        ######
+                
                         list_of_fixes += fix_temp
                         removed_edges_dict.update(removed_edges_temp)
 

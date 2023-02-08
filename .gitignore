@@ -1,6 +1,8 @@
 # Ignore neo4j files
 neo4j_query_example
 
+testing.sh
+
 # Ignore PoC file
 Proof_of_Concept.md
 RetrieveImages.md

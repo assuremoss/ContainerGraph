@@ -129,7 +129,6 @@ def create_host_relationship(tx, host) :
     object
     """
 
-    kernel_v = host.host.kernel_v
     tx.run("""
         MATCH (h:Host {name: $hostname}) 
         MATCH (kv:KernelVersion {name: $kernel_v}) 
@@ -143,7 +142,7 @@ def create_host_relationship(tx, host) :
         MATCH (ce:ContainerEngine {name: $name}) 
         MATCH (kv:KernelVersion {name: $kernel_v}) 
         MERGE (ce)-[:HAS_PROPERTY]->(kv) 
-        """, hostname = host.host.hostname, kernel_v = kernel_v, name = host.name
+        """, hostname = host.host.hostname, kernel_v = host.host.kernel_v, name = host.name
     )
 
     if host.name == "DockerEngine" :

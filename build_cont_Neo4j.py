@@ -41,27 +41,28 @@ def create_cconfig_nodes(tx, cont) :
     tx.run("MERGE (c:Container:Docker {name: $name, cont_id: $cont_id, img_id: $img_id, start_t: $start_t, status: $status})", cont_id = cont.cont_id, img_id = cont.img_id, name = cont.name, start_t = cont.start_t, status = cont.status) 
    
     # For each docker run arg (e.g. user, volume, etc.) create a node 
-    for key in cont.cconfig.fields :
-        value = cont.cconfig.fields[key]
+    for key, value in cont.cconfig.fields.items() :
 
         # Do not add a node for the container name
-        if not key == 'name' :
+        if key != 'name' :
             if type(value) == list :
                 tx.run("MERGE (cc:ContainerConfig {name: $key, value: $value, tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})", key=key, value=value)
 
             else :
-                if not value == 'root' and key == 'user' :
+                if key == 'user' and value != 'root' :
                     query = "MERGE (cc:ContainerConfig {name: $value, type: $type, tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
-                    tx.run(query, type=key, value=value
-                    )
+                    tx.run(query, type=key, value=value)
+
+                # elif key == 'pid_ns' : 
+                #     query = "MERGE (cc:ContainerConfig {name: 'PidNamespace', type: 'host', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
+                #     tx.run(query, type=key, value=value)
 
 
 def create_cconfig_relationships(tx, cont) :
     # For each docker run arg (e.g. user, volume, etc.) create a node 
-    for key in cont.cconfig.fields :
-        value = cont.cconfig.fields[key]
+    for key, value in cont.cconfig.fields.items() :
 
-        if not key == 'name' :
+        if key != 'name' :
             if type(value) == list :
 
                 tx.run("""
@@ -72,12 +73,21 @@ def create_cconfig_relationships(tx, cont) :
                 """, cont_id = cont.cont_id, key = key, value = value)
                 
             else :
-                tx.run("""
-                MATCH (p:Permissions {container: $cont_id}) 
-                MATCH (cc:ContainerConfig {name: $value, type: $type}) 
-                SET cc.weight = 1 
-                MERGE (p)-[:HAS_PROPERTY]->(cc) 
-                """, cont_id = cont.cont_id, type = key, value = value)
+                if key == 'pid_ns' :
+                    tx.run("""
+                    MATCH (cc:ContainerConfig {name: 'PidNamespace', type: 'host'})
+                    MATCH (p:Permissions {container: $cont_id}) 
+                    SET cc.weight = 1 
+                    MERGE (p)-[:HAS_PROPERTY]->(cc) 
+                    """, cont_id = cont.cont_id)
+
+                else :
+                    tx.run("""
+                    MATCH (p:Permissions {container: $cont_id}) 
+                    MATCH (cc:ContainerConfig {name: $value, type: $type}) 
+                    SET cc.weight = 1 
+                    MERGE (p)-[:HAS_PROPERTY]->(cc) 
+                    """, cont_id = cont.cont_id, type = key, value = value)
 
 
 def create_sec_prof_nodes(tx, cont) :

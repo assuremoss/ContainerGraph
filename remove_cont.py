@@ -9,7 +9,7 @@ def connect_to_Docker() :
 
 def neo4j_remove_all():
     """
-    TODO
+    This code connects to a Neo4j database using the connect_to_neo4j() function. It then creates a session with the driver and uses the write_transaction() method to execute the neo4jremove_data() function. Finally, it closes the driver connection.
     """
 
     driver = connect_to_neo4j()
@@ -18,7 +18,24 @@ def neo4j_remove_all():
     driver.close()
 
 def neo4jremove_data(tx) :
-    tx.run("MATCH (n) DETACH DELETE n")
+    # tx.run("MATCH (n) DETACH DELETE n")
+    print("THIS WILL DELETE EVERYTHING!")
+    
+    tx.run("MATCH (c:Container:Docker) DETACH DELETE c")
+
+
+def neo4j_remove_cont():
+    """
+    This code connects to a Neo4j database using the connect_to_neo4j() function. It then creates a session with the driver and uses the write_transaction() method to execute the neo4jremove_data() function. Finally, it closes the driver connection.
+    """
+
+    driver = connect_to_neo4j()
+    with driver.session() as session:
+        session.write_transaction(neo4jremove_cont)
+    driver.close()
+
+def neo4jremove_cont(tx) :
+    tx.run("MATCH (c:Container:Docker) DETACH DELETE c")
 
 
 def cont_remove_all() :
@@ -52,6 +69,21 @@ def data_remove_all() :
     cont_remove_all()
 
     print("Everything was cleaned up!")
+
+
+def data_remove_cont() : 
+    """
+    TODO
+    """
+
+    # Clean up Neo4J
+    neo4j_remove_cont()
+    
+    # Clean up containers
+    cont_remove_all()
+
+    print("All containers were cleaned up!")
+
 
 
 def remove_cont_Neo4j(cont_id) :
