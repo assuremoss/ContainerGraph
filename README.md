@@ -59,6 +59,8 @@ Also, make sure Docker is running.
 
 6. Finally, we can run the ContainerGraph tool, using the following command: `python main.py --help`
 
+_Keep in mind that the first time you run the tool, it may take a while (~ 1 hour) to initialize all vulnerabilities into the Neo4J database._
+
 
 ## Usage Examples
 

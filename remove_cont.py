@@ -18,11 +18,7 @@ def neo4j_remove_all():
     driver.close()
 
 def neo4jremove_data(tx) :
-    # tx.run("MATCH (n) DETACH DELETE n")
-    print("THIS WILL DELETE EVERYTHING!")
-    
-    tx.run("MATCH (c:Container:Docker) DETACH DELETE c")
-
+    tx.run("MATCH (n) DETACH DELETE n")
 
 def neo4j_remove_cont():
     """

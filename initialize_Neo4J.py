@@ -92,15 +92,15 @@ def init_vuln() :
     for query in queries :
         vuln_Neo4j(query)
     print('Added Container Engine vulnerabilities!')
-
+    
     # Initialize Linux kernel vulnerabilities
     queries = initialize_kernel_cves()
     for query in queries :
         
         # Print the CVE we are currently adding into Neo4J
-        # cve_pattern = r'CVE-\d{4}-\d{4,7}'
-        # cve = re.findall(cve_pattern, query)[0]
-        # print('Adding ' + cve + ' ...')
+        cve_pattern = r'CVE-\d{4}-\d{4,7}'
+        cve = re.findall(cve_pattern, query)[0]
+        print('Adding ' + cve + ' ...')
 
         vuln_Neo4j(query)
 
