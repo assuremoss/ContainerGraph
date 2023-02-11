@@ -17,7 +17,7 @@ def initialize_escape_cves() :
 
     # ContainerEscape1 --- using cgroup notify_on_release()
     query = """
-    CREATE (c:CVE {name: 'ContainerEscape'})
+    CREATE (c:CVE {name: 'ContainerEscape1'})
     CREATE (a:AND_NODE {name: 'AND_NODE', weight: 0, todo: 5, needed: [], pred: gds.util.NaN()})
     CREATE (b:OR_NODE {name: 'OR_NODE', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})
     WITH a, b, c
@@ -704,7 +704,7 @@ def initialize_kernel_cves() :
     CREATE (a:AND_NODE {name: 'AND_NODE', weight: 0, todo: 2, needed: [], pred: gds.util.NaN(), key: 'CVE-2016-1583'})
     CREATE (b:OR_NODE {name: 'OR_NODE', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN(), key: 'CVE-2016-1583'})
     CREATE (e:OR_NODE {name: 'OR_NODE2', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN(), key: 'CVE-2016-1583'})
-    CREATE (d:AND_NODE {name: 'AND_NODE2', weight: 0, todo: 41, needed: [], pred: gds.util.NaN(), key: 'CVE-2016-1583'})
+    CREATE (d:AND_NODE {name: 'AND_NODE2', weight: 0, todo: 42, needed: [], pred: gds.util.NaN(), key: 'CVE-2016-1583'})
     WITH c, a, b, e, d
     MERGE (a)-[:ROOT]->(c)
     MERGE (b)-[:AND]->(a)
@@ -714,6 +714,10 @@ def initialize_kernel_cves() :
     MATCH (p:Permissions:Privileged {name: 'Privileged'})  
     MATCH (b:OR_NODE {name: 'OR_NODE', key: 'CVE-2016-1583'})
     MERGE (p)-[:OR]->(b)
+    UNION
+    MATCH (aa:AND_NODE {name: 'AND_NODE2', key: 'CVE-2016-1583'})
+    MATCH (s:SystemCall {name: 'mount'})
+    MERGE (s)-[:AND]->(aa)
     UNION
     """
     # Append all CAPs
@@ -733,7 +737,7 @@ def initialize_kernel_cves() :
     CREATE (a:AND_NODE {name: 'AND_NODE', weight: 0, todo: 2, needed: [], pred: gds.util.NaN(), key: 'CVE-2015-8660'})
     CREATE (b:OR_NODE {name: 'OR_NODE', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN(), key: 'CVE-2015-8660'})
     CREATE (e:OR_NODE {name: 'OR_NODE2', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN(), key: 'CVE-2015-8660'})
-    CREATE (d:AND_NODE {name: 'AND_NODE2', weight: 0, todo: 41, needed: [], pred: gds.util.NaN(), key: 'CVE-2015-8660'})
+    CREATE (d:AND_NODE {name: 'AND_NODE2', weight: 0, todo: 42, needed: [], pred: gds.util.NaN(), key: 'CVE-2015-8660'})
     WITH c, a, b, e, d
     MERGE (a)-[:ROOT]->(c)
     MERGE (b)-[:AND]->(a)
@@ -744,6 +748,10 @@ def initialize_kernel_cves() :
     MATCH (b:OR_NODE {name: 'OR_NODE', key: 'CVE-2015-8660'})
     MERGE (p)-[:OR]->(b)
     UNION
+    MATCH (d:AND_NODE {name: 'AND_NODE2', key: 'CVE-2015-8660'})
+    MATCH (s:SystemCall {name: 'mount'})
+    MERGE (s)-[:AND]->(d) 
+    UNION 
     """
     # Append all CAPs
     for cap in result['capabilities'] :
@@ -760,7 +768,7 @@ def initialize_kernel_cves() :
     # CVE-2016-5195
     query = """
     CREATE (c:CVE {name: 'CVE-2016-5195'})
-    CREATE (a:AND_NODE {name: 'AND_NODE', weight: 0, todo: 3, needed: [], pred: gds.util.NaN(), key: 'CVE-2016-5195'})
+    CREATE (a:AND_NODE {name: 'AND_NODE', weight: 0, todo: 2, needed: [], pred: gds.util.NaN(), key: 'CVE-2016-5195'})
     CREATE (aa:AND_NODE {name: 'AND_NODE2', weight: 0, todo: 2, needed: [], pred: gds.util.NaN(), key: 'CVE-2016-5195'})
     CREATE (b:OR_NODE {name: 'OR_NODE', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN(), key: 'CVE-2016-5195'})
     CREATE (bb:OR_NODE {name: 'OR_NODE2', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN(), key: 'CVE-2016-5195'})
@@ -796,7 +804,7 @@ def initialize_kernel_cves() :
     CREATE (a:AND_NODE {name: 'AND_NODE', weight: 0, todo: 2, needed: [], pred: gds.util.NaN(), key: 'CVE-2016-4557'})
     CREATE (b:OR_NODE {name: 'OR_NODE', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN(), key: 'CVE-2016-4557'})
     CREATE (e:OR_NODE {name: 'OR_NODE2', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN(), key: 'CVE-2016-4557'})
-    CREATE (d:AND_NODE {name: 'AND_NODE2', weight: 0, todo: 41, needed: [], pred: gds.util.NaN(), key: 'CVE-2016-4557'})
+    CREATE (d:AND_NODE {name: 'AND_NODE2', weight: 0, todo: 43, needed: [], pred: gds.util.NaN(), key: 'CVE-2016-4557'})
     WITH c, a, b, e, d
     MERGE (a)-[:ROOT]->(c)
     MERGE (b)-[:AND]->(a)
@@ -811,6 +819,10 @@ def initialize_kernel_cves() :
     WITH cc
     MATCH (a:AND_NODE {name: 'AND_NODE2', key: 'CVE-2016-4557'})
     MERGE (cc)-[:AND]->(a)
+    UNION
+    MATCH (aa:AND_NODE {name: 'AND_NODE2', key: 'CVE-2016-4557'})
+    MATCH (s:SystemCall {name: 'bpf'})
+    MERGE (s)-[:AND]->(aa)
     UNION
     """
     # Append all CAPs
@@ -893,59 +905,6 @@ def initialize_kernel_cves() :
     query = query[:-7].strip().replace('\n', '')
     list_of_queries.append(query)
 
-    # CVE-2016-4997
-    query = """
-    CREATE (c:CVE {name: 'CVE-2016-4997'})
-    CREATE (a:AND_NODE {name: 'AND_NODE', weight: 0, todo: 2, needed: [], pred: gds.util.NaN(), key: 'CVE-2016-4997'})
-    CREATE (b:OR_NODE {name: 'OR_NODE', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN(), key: 'CVE-2016-4997'})
-    CREATE (bb:OR_NODE {name: 'OR_NODE2', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN(), key: 'CVE-2016-4997'})
-    WITH c, a, b, bb
-    MERGE (a)-[:ROOT]->(c)
-    MERGE (b)-[:AND]->(a)
-    MERGE (bb)-[:AND]->(a)
-    UNION
-    MATCH (bb:OR_NODE {name: 'OR_NODE2', key: 'CVE-2016-4997'})
-    MATCH (cap:Capability {name: 'CAP_NET_ADMIN'})
-    MERGE (cap)-[:OR]->(bb)
-    UNION
-    MATCH (bb:OR_NODE {name: 'OR_NODE2', key: 'CVE-2016-4997'})
-    MATCH (p:Permissions:Privileged {name: 'Privileged'})
-    MERGE (p)-[:OR]->(bb)
-    UNION
-    """
-    for k_v in reversed(result['kernel_v']) :
-        if compare_versions_range('2.16.17', k_v, '3.2.79') or compare_versions_range('3.3.0', k_v, '3.10.102') or compare_versions_range('3.11.0', k_v, '3.12.61') or compare_versions_range('3.13.0', k_v, '3.14.72') or compare_versions_range('3.15.0', k_v, '3.16.36') or compare_versions_range('3.17.0', k_v, '3.18.36') or compare_versions_range('3.19.0', k_v, '4.1.27') or compare_versions_range('4.2.0', k_v, '4.4.13') or compare_versions_range('4.5.0', k_v, '4.6.2') :
-            query += "MATCH (kv:KernelVersion {name: '" + k_v + "'}) MATCH (b:OR_NODE {name: 'OR_NODE', key: 'CVE-2016-4997'}) MERGE (kv)-[:OR]->(b) UNION "
-    query = query[:-7].strip().replace('\n', '')
-    list_of_queries.append(query)
-
-    # CVE-2017-6074
-    query = """
-    CREATE (c:CVE {name: 'CVE-2017-6074'})
-    CREATE (a:AND_NODE {name: 'AND_NODE', weight: 0, todo: 2, needed: [], pred: gds.util.NaN(), key: 'CVE-2017-6074'})
-    CREATE (b:OR_NODE {name: 'OR_NODE', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN(), key: 'CVE-2017-6074'})
-    CREATE (bb:OR_NODE {name: 'OR_NODE2', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN(), key: 'CVE-2017-6074'})
-    WITH c, a, b, bb
-    MERGE (a)-[:ROOT]->(c)
-    MERGE (b)-[:AND]->(a)
-    MERGE (bb)-[:AND]->(a)
-    UNION
-    MATCH (bb:OR_NODE {name: 'OR_NODE2', key: 'CVE-2017-6074'})
-    MATCH (cap:Capability {name: 'CAP_NET_ADMIN'})
-    MERGE (cap)-[:OR]->(bb)
-    UNION
-    MATCH (bb:OR_NODE {name: 'OR_NODE2', key: 'CVE-2017-6074'})
-    MATCH (p:Permissions:Privileged {name: 'Privileged'})
-    MERGE (p)-[:OR]->(bb)
-    UNION
-    """
-    for k_v in reversed(result['kernel_v']) :
-        if version.Version(k_v) <= version.Version('4.9.11') :
-            query += "MATCH (kv:KernelVersion {name: '" + k_v + "'}) MATCH (b:OR_NODE {name: 'OR_NODE', key: 'CVE-2017-6074'}) MERGE (kv)-[:OR]->(b) UNION "
-        else : break
-    query = query[:-7].strip().replace('\n', '')
-    list_of_queries.append(query)
-
     # CVE-2016-9793
     query = """
     CREATE (c:CVE {name: 'CVE-2016-9793'})
@@ -969,35 +928,6 @@ def initialize_kernel_cves() :
     for k_v in reversed(result['kernel_v']) :
         if compare_versions_range('3.5.0', k_v, '3.12.68') or compare_versions_range('3.13.0', k_v, '3.16.39') or compare_versions_range('3.17.0', k_v, '3.18.51') or compare_versions_range('3.19.0', k_v, '4.1.49') or compare_versions_range('4.2.0', k_v, '4.4.37') or compare_versions_range('4.5.0', k_v, '4.8.13') :
             query += "MATCH (kv:KernelVersion {name: '" + k_v + "'}) MATCH (b:OR_NODE {name: 'OR_NODE', key: 'CVE-2016-9793'}) MERGE (kv)-[:OR]->(b) UNION "
-    query = query[:-7].strip().replace('\n', '')
-    list_of_queries.append(query)
-
-    # CVE-2016-1583
-    query = """
-    CREATE (c:CVE {name: 'CVE-2016-1583'})
-    CREATE (a:AND_NODE {name: 'AND_NODE', weight: 0, todo: 2, needed: [], pred: gds.util.NaN(), key: 'CVE-2016-1583'})
-    CREATE (b:OR_NODE {name: 'OR_NODE', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN(), key: 'CVE-2016-1583'})
-    CREATE (e:OR_NODE {name: 'OR_NODE2', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN(), key: 'CVE-2016-1583'})
-    CREATE (d:AND_NODE {name: 'AND_NODE2', weight: 0, todo: 41, needed: [], pred: gds.util.NaN(), key: 'CVE-2016-1583'})
-    WITH c, a, b, e, d
-    MERGE (a)-[:ROOT]->(c)
-    MERGE (b)-[:AND]->(a)
-    MERGE (e)-[:AND]->(a)
-    MERGE (d)-[:AND]->(b)
-    UNION
-    MATCH (p:Permissions:Privileged {name: 'Privileged'})  
-    MATCH (b:OR_NODE {name: 'OR_NODE', key: 'CVE-2016-1583'})
-    MERGE (p)-[:OR]->(b)
-    UNION
-    """
-    # Append all CAPs
-    for cap in result['capabilities'] :
-        cap = cap['name']
-        query += "MATCH (cap:Capability {name: '" + cap + "'}) MATCH (d:AND_NODE {name: 'AND_NODE2', key: 'CVE-2016-1583'}) MERGE (cap)-[:AND]->(d) UNION "
-    # Append kernel versions
-    for k_v in reversed(result['kernel_v']) :
-        if compare_versions_range('2.6.19', k_v, '3.18.53') or compare_versions_range('3.19.0', k_v, '4.4.13') or compare_versions_range('4.5.0', k_v, '4.6.2') :
-            query += "MATCH (kv:KernelVersion {name: '" + k_v + "'}) MATCH (b:OR_NODE {name: 'OR_NODE2', key: 'CVE-2016-1583'}) MERGE (kv)-[:OR]->(b) UNION "
     query = query[:-7].strip().replace('\n', '')
     list_of_queries.append(query)
 
@@ -1032,7 +962,7 @@ def initialize_kernel_cves() :
     # CVE-2022-0847
     query = """
     CREATE (c:CVE {name: 'CVE-2022-0847'})
-    CREATE (b:OR_NODE {name: 'OR_NODE', key: 'vuln2', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})
+    CREATE (b:OR_NODE {name: 'OR_NODE', key: 'CVE-2022-0847', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})
     MERGE (b)-[:ROOT]->(c)
     UNION 
     """

@@ -52,14 +52,15 @@ docker run \
     --env server_bolt_listen__address="0.0.0.0:7687" \
     --env NEO4J_dbms_security.procedures.unrestricted="gds.*" \
     --env NEO4J_dbms_security.procedures.allowlist="gds.*" \
+    --env dbms_memory_heap_max_size=5G \
     neo4j:5
 ```
 
-Also, make sure Docker is running.
+If instead you use Neo4J Desktop, remember to apply the same options (e.g., install the graph-data-science, set the memory.heap.max.size to 5G, etc.) to the database settings.
 
 6. Finally, we can run the ContainerGraph tool, using the following command: `python main.py --help`
 
-_Keep in mind that the first time you run the tool, it may take a while (~ 1 hour) to initialize all vulnerabilities into the Neo4J database._
+_Keep in mind that the first time you run the tool, it may take around 45 minutes to initialize all configurations and vulnerabilities into the Neo4J database._
 
 
 ## Usage Examples

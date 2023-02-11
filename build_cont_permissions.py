@@ -127,10 +127,14 @@ def build_permissions(cont_id, run_args, kernel_v) :
             profile = 'custom'
 
             # NoNewPriv: the container can not start a process with more privileges than its own.
-            # Syntax: --security-opt=no-new-privileges:true
+            # Syntax_1: --security-opt=no-new-privileges:true
+            # Syntax_2: --security-opt no-new-privileges
 
             if value.startswith('no-new-privileges') :
-                aux = value.split(':')[1]
+                if ':' in value :
+                    aux = value.split(':')[1]
+                else : 
+                    aux = value
 
                 if aux : 
                     no_new_priv = True

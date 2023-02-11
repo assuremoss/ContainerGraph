@@ -361,33 +361,57 @@ def suggest_fix(leaves_list, cont_id) :
             leaf['type'] == 'containerdVersion' or \
             leaf['type'] == 'runcVersion' or \
                 leaf['type'] == 'KernelVersion' :
-                    aws = input('    > Do you want to upgrade the ' + leaf['type'].strip('Version') + ' version [Y/n] ? ')
-                    if aws == 'Y' : 
+                    aws = input('    > Do you want to upgrade the ' + leaf['type'].strip('Version') + ' version [y/n] ? ')
+                    if aws == 'y' : 
                         new_v = input('    Insert the new version: ')
+
+                        ###################
+                        ### HARDCODED FIXES ###
+                        if leaf['type'] == 'DockerVersion' :
+                            new_v = '20.10.23'
+                        elif leaf['type'] == 'containerdVersion' :
+                            new_v = '1.6.15'
+                        elif leaf['type'] == 'runcVersion' :
+                            new_v = '1.1.4'
+                        elif leaf['type'] == 'KernelVersion' :
+                            new_v = '6.2.0'
+                        ###################
+
                         print('')
                         output = "Upgrade " + leaf['type'][:-7] + " to version " + new_v
                         temp_d = {leaf['nodeID']: {'fix': 'version_upgrade', 'type': leaf['type'].strip('Version'), 'version': leaf['name'], 'new_version': new_v, 'output': output}}
                         
         elif leaf['type'] == 'Permissions' and leaf['name'] == 'Privileged' :
-            aws = input('    > Do you want to run the container as privileged [y/N] ? ')
+            aws = input('    > Do you want to run the container as privileged [y/n] ? ')
+
+            ###################
+            ### HARDCODED FIXES ###
             if aws == 'y' : 
-            # if aws == 'N' : 
+            ###################
+
+            # if aws == 'n' :  
                 temp_d = {'fix': 'not_privileged', 'type': 'Privileged'}
                 output_d = {'output': print_fix(temp_d, cont_id)}
                 temp_d.update(output_d)
                 temp_d = {leaf['nodeID']: temp_d}
         
         elif leaf['type'] == 'SystemCall' : 
-            aws = input('    > Do you need the ' + leaf['name'] + ' system call [y/N] ? ')
-            if aws == 'N' : 
+            aws = input('    > Do you need the ' + leaf['name'] + ' system call [y/n] ? ')
+            
+            if aws == 'y' : 
+            # if aws == 'n' :
+              
                 temp_d = {'fix': 'not_syscall', 'type': leaf['name']}
                 output_d = {'output': print_fix(temp_d, cont_id)}
                 temp_d.update(output_d)
                 temp_d = {leaf['nodeID']: temp_d}
 
         elif leaf['type'] == 'Capability' : 
-            aws = input('    > Do you need the ' + leaf['name'] + ' capability [y/N] ? ')
-            if aws == 'N' : 
+            aws = input('    > Do you need the ' + leaf['name'] + ' capability [y/n] ? ')
+            
+            if aws == 'y' : 
+            # if aws == 'n' :
+              
                 temp_d = {'fix': 'not_capability', 'type': leaf['name']}
                 output_d = {'output': print_fix(temp_d, cont_id)}
                 temp_d.update(output_d)
@@ -395,8 +419,11 @@ def suggest_fix(leaves_list, cont_id) :
 
         elif leaf['type'] == 'ContainerConfig' : 
             if leaf['name'] == 'root' :
-                aws = input('    > Do you want to run the container as root [y/N] ? ')
-                if aws == 'N' : 
+                aws = input('    > Do you want to run the container as root [y/n] ? ')
+                
+                if aws == 'y' : 
+                # if aws == 'n' :
+              
                     temp_d = {'fix': 'not_root', 'type': ''}
                     output_d = {'output': print_fix(temp_d, cont_id)}
                     temp_d.update(output_d)
@@ -407,16 +434,22 @@ def suggest_fix(leaves_list, cont_id) :
                 # volumes, env, etc.
 
         elif leaf['type'] == 'NewPriv' : 
-            aws = input('    > Do you want the container to gain additional privileges [y/N] ? ')
-            if aws == 'N' : 
+            aws = input('    > Do you want the container to gain additional privileges [y/n] ? ')
+            
+            if aws == 'y' : 
+            # if aws == 'n' :
+                
                 temp_d = {'fix': 'no_new_priv', 'type': ''}
                 output_d = {'output': print_fix(temp_d, cont_id)}
                 temp_d.update(output_d)
                 temp_d = {leaf['nodeID']: temp_d}
 
         elif leaf['type'] == 'NotReadOnly' : 
-            aws = input('    > Do you need write access to the filesystem [y/N] ? ')
-            if aws == 'N' : 
+            aws = input('    > Do you need write access to the filesystem [y/n] ? ')
+            
+            if aws == 'y' : 
+            # if aws == 'n' :
+              
                 temp_d = {'fix': 'read_only_fs', 'type': ''}
                 output_d = {'output': print_fix(temp_d, cont_id)}
                 temp_d.update(output_d)
@@ -512,13 +545,13 @@ def reached_CVE(cve_name, path) :
                 if eng == 'Kernel' : eng = 'the Linux Kernel'
                 
                 if vulnerable_cont :
-                    qst = "---------\nDo you want to fix " + cve_name + " affecting " + eng + " (and container config.) [Y/n] ? "
+                    qst = "---------\nDo you want to fix " + cve_name + " affecting " + eng + " (and container config.) [y/n] ? "
                 else : 
-                    qst = "---------\nDo you want to fix " + cve_name + " affecting " + eng + " [Y/n] ? "
+                    qst = "---------\nDo you want to fix " + cve_name + " affecting " + eng + " [y/n] ? "
 
                 aws = input(qst)
                 print('')
-                if aws == 'Y' : 
+                if aws == 'y' : 
                     list_of_fixes, removed_edges_dict = fix_vuln(cve_name, [eng_dict], eng_dict['nodeID'])
                     if list_of_fixes : # If the engine was fixes, return
                         driver.close()
@@ -544,10 +577,9 @@ def reached_CVE(cve_name, path) :
                 print(Fore.RED +"The container with ID " + cont['cont_id'] + " ignores " + cve_name + "! Continuing...\n" + Style.RESET_ALL)
                 continue
 
-            aws = input("---------\nDo you want to fix " + cve_name + " for container " + cont['cont_id'] + " [Y/n] ? ")
+            aws = input("---------\nDo you want to fix " + cve_name + " for container " + cont['cont_id'] + " [y/n] ? ")
             print('')
             if aws == 'y' : 
-            # if aws == 'Y' : 
                 list_of_fixes, removed_edges_dict = fix_vuln(cve_name, leaves_list, cont['nodeID'], cont['cont_id'])
                 if list_of_fixes :
                     fix_list += list_of_fixes
