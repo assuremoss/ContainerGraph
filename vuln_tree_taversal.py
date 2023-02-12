@@ -593,16 +593,27 @@ def reached_CVE(cve_name, path) :
     return fix_list, removed_edges_dict, ''
 
 
-def updateTree(leaf_id, path, tree_nodes) :
-    # tree_nodes = tree_nodes
-    
+# Global dictionary variable to represent tree nodes
+global tree_nodes
+tree_nodes = {}
+
+
+def updateTree(leaf_id, path) :
+
+    global tree_nodes
+        
     # Initialize the PQ
     PQ = [leaf_id]
 
     while len(PQ) > 0 :
+
         current_node_id = PQ.pop(0)
 
         if tree_nodes[current_node_id]['type'] == 'CVE' : 
+            continue
+
+        # If current node does not belong to hyperpath, skip iteration
+        if current_node_id not in path : 
             continue
 
         # Update the current node properties
@@ -641,8 +652,6 @@ def updateTree(leaf_id, path, tree_nodes) :
                 if not OR_parent_ID in PQ :
                     PQ.append(OR_parent_ID)
 
-    return tree_nodes
-
 
 def traverse_tree(PQ) :
     """Traverses all CVE trees, bottom-up, to check whether a path from a set of leaves
@@ -654,13 +663,12 @@ def traverse_tree(PQ) :
     ----------
     PQ : priority queue, implemented as a list of int, containing all leaves IDs.
     """ 
-
+    
     # List of all fixes
     list_of_fixes = []
     removed_edges_dict = {}
 
-    # Dict of tree nodes saved locally
-    tree_nodes = {}
+    global tree_nodes
 
     while len(PQ) > 0 :
         current_node_id = PQ.pop(0)
@@ -686,7 +694,7 @@ def traverse_tree(PQ) :
                 
                 ### WE CAN DO THE FOLLOWING INSIDE THE REACHED_CVE FUNCTION - TO CHECK ###
                 for fix in fix_temp :    
-                    tree_nodes = updateTree(list(fix.keys())[0], path, tree_nodes)
+                    updateTree(list(fix.keys())[0], path)
                 ######
 
                 list_of_fixes += fix_temp
@@ -742,7 +750,7 @@ def traverse_tree(PQ) :
 
                         ### WE CAN DO THE FOLLOWING INSIDE THE REACHED_CVE FUNCTION - TO CHECK ###
                         for fix in fix_temp :    
-                            tree_nodes = updateTree(list(fix.keys())[0], path, tree_nodes)
+                            updateTree(list(fix.keys())[0], path)
                         ######
                 
                         list_of_fixes += fix_temp

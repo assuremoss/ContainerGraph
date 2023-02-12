@@ -24,14 +24,14 @@ def neo4j_remove_cont():
     """
     This code connects to a Neo4j database using the connect_to_neo4j() function. It then creates a session with the driver and uses the write_transaction() method to execute the neo4jremove_data() function. Finally, it closes the driver connection.
     """
-
     driver = connect_to_neo4j()
     with driver.session() as session:
-        session.write_transaction(neo4jremove_cont)
+        session.write_transaction(neo4jremove_containers)
     driver.close()
 
-def neo4jremove_cont(tx) :
+def neo4jremove_containers(tx) :
     tx.run("MATCH (c:Container:Docker) DETACH DELETE c")
+    tx.run("MATCH ()-[r:IGNORES]->(c:CVE) DELETE r")
 
 
 def cont_remove_all() :

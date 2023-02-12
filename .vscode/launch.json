@@ -5,7 +5,7 @@
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
-            "program": "/Users/francescominna/Desktop/repos/ContainerGraph/main.py",
+            "program": "/Applications/Utilities/repos/ContainerGraph/main.py",
             "console": "integratedTerminal",
             "env": {
                 "NEO4J_ADDRESS": "192.168.2.5",

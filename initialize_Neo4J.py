@@ -85,7 +85,7 @@ def init_vuln() :
     queries = initialize_escape_cves()
     for query in queries :
         vuln_Neo4j(query)
-    print('Added 3 Container Escape vulnerabilities!\n')
+    print('Added Container Escape vulnerabilities!\n')
 
     # Initialize Container Engine vulnerabilities
     queries = initialize_engine_cves()

@@ -99,6 +99,13 @@ def build_DockerHost(host):
         else :
             temp_v += '.0'
         host.kernel_v = temp_v
+
+        #######################################
+        ### HARDCODED LOWEST KERNEL VERSION ###
+        
+        host.kernel_v = '3.16.0'
+        
+        #######################################
         
         return DockerHost(host, 
                 docker_v,
