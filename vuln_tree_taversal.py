@@ -6,6 +6,16 @@ from parse_Seccomp import seccomp_parser, analyze_syscalls
 from parse_Apparmor import apparmor_parser
 
 
+# TODO
+
+# Create a class to represent a TreeNode
+
+# Create a class to represent a Tree (dictionary of nodes)
+#   define functions to traverse (and update) the tree 
+# list_of_fixes is a field of the class
+# https://stackoverflow.com/questions/41636867/how-can-i-share-a-variable-between-functions-in-python
+
+
 def get_node(node_id) :
     """Returns a dict representation of the Neo4j node with ID equal to node_id.
     
@@ -513,8 +523,6 @@ def reached_CVE(cve_name, path) :
     """Desc ...
     """ 
 
-    # print(cve_name, path)
-
     driver = connect_to_neo4j()
     with driver.session() as session:
 
@@ -690,12 +698,10 @@ def traverse_tree(PQ) :
         if parent_node and parent_node['type'] == 'CVE' : 
             path = tree_nodes[current_node_id]['needed'] + [parent_node['nodeID']]
             fix_temp, removed_edges_temp, new_v = reached_CVE(parent_node['name'], path)
+            
             if fix_temp : 
-                
-                ### WE CAN DO THE FOLLOWING INSIDE THE REACHED_CVE FUNCTION - TO CHECK ###
                 for fix in fix_temp :    
                     updateTree(list(fix.keys())[0], path)
-                ######
 
                 list_of_fixes += fix_temp
                 removed_edges_dict.update(removed_edges_temp)
@@ -746,12 +752,10 @@ def traverse_tree(PQ) :
                 if parent_node and parent_node['type'] == 'CVE' : 
                     path = list(set(tree_nodes[AND_parent_ID]['needed'] + [parent_node['nodeID']]))
                     fix_temp, removed_edges_temp, new_v = reached_CVE(parent_node['name'], path)
+                    
                     if fix_temp : 
-
-                        ### WE CAN DO THE FOLLOWING INSIDE THE REACHED_CVE FUNCTION - TO CHECK ###
                         for fix in fix_temp :    
                             updateTree(list(fix.keys())[0], path)
-                        ######
                 
                         list_of_fixes += fix_temp
                         removed_edges_dict.update(removed_edges_temp)

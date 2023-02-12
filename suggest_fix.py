@@ -131,6 +131,7 @@ def analyze_all_deployment() :
         return
 
     # List of all fixes
+    # graph = AOTrees()
     list_of_fixes, removed_edges_dict = traverse_tree(PQ)   
 
     # Print list of all fixes to eventually implement
