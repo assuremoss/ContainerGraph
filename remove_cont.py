@@ -31,7 +31,6 @@ def neo4j_remove_cont():
 
 def neo4jremove_containers(tx) :
     tx.run("MATCH (c:Container:Docker) DETACH DELETE c")
-    tx.run("MATCH ()-[r:IGNORES]->(c:CVE) DELETE r")
 
 
 def cont_remove_all() :

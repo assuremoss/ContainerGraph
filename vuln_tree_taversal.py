@@ -4,6 +4,7 @@ from build_host_Neo4j import host_exploits
 from build_cont_Neo4j import create_cont_exploit_rel
 from parse_Seccomp import seccomp_parser, analyze_syscalls
 from parse_Apparmor import apparmor_parser
+from build_host_Neo4j import get_kernel_v
 
 
 # TODO
@@ -14,6 +15,16 @@ from parse_Apparmor import apparmor_parser
 #   define functions to traverse (and update) the tree 
 # list_of_fixes is a field of the class
 # https://stackoverflow.com/questions/41636867/how-can-i-share-a-variable-between-functions-in-python
+
+
+global d_v
+d_v = ''
+global c_v
+c_v = ''
+global r_v
+r_v = ''
+global k_v
+k_v = get_kernel_v()
 
 
 def get_node(node_id) :
@@ -502,7 +513,6 @@ def fix_vuln(cve_name, leaves_list, node_id, cont_id=0) :
 
     # Implement the selected fixes, i.e., removing the :EXPLOITS edge 
     removed_edges_dict = implement_fixes(node_id, list_of_fixes)
-
     return list_of_fixes, removed_edges_dict
 
 
@@ -520,8 +530,11 @@ def get_version_ID(label, new_v) :
 
 
 def reached_CVE(cve_name, path) : 
-    """Desc ...
-    """ 
+
+    global d_v
+    global c_v
+    global r_v
+    global k_v
 
     driver = connect_to_neo4j()
     with driver.session() as session:
@@ -540,6 +553,28 @@ def reached_CVE(cve_name, path) :
             eng_dict = eng_dict[0]
             eng = eng_dict['type'][:-7]
             leaves_list.remove(eng_dict)
+
+            if not d_v  and eng == 'Docker' : 
+                d_v = eng_dict['name']
+            elif not c_v and eng == 'containerd' : 
+                c_v = eng_dict['name']
+            elif not r_v and eng == 'runc': 
+                r_v = eng_dict['name']
+
+            # Check if vulnerable version is equal to the currently used version (e.g., after updates).
+            # To avoid fixing multiple vulnerabilities for the same (updated) version.
+            if eng == 'Docker' and eng_dict['name'] != d_v :
+                driver.close()
+                return fix_list, removed_edges_dict, ''            
+            if eng == 'containerd' and eng_dict['name'] != c_v : 
+                driver.close()
+                return fix_list, removed_edges_dict, ''
+            if eng == 'runc' and eng_dict['name'] != r_v :
+                driver.close()
+                return fix_list, removed_edges_dict, ''
+            if eng == 'Kernel' and eng_dict['name'] != k_v :
+                driver.close()
+                return fix_list, removed_edges_dict, ''
 
             # Check whether the engine ignores this CVE
             if session.read_transaction(check_ignored, eng_dict['nodeID'], cve_name) :
@@ -562,6 +597,17 @@ def reached_CVE(cve_name, path) :
                 if aws == 'y' : 
                     list_of_fixes, removed_edges_dict = fix_vuln(cve_name, [eng_dict], eng_dict['nodeID'])
                     if list_of_fixes : # If the engine was fixes, return
+
+                        # Update global version variables
+                        if list_of_fixes[0][eng_dict['nodeID']]['type'] == 'Docker' : 
+                            d_v = list_of_fixes[0][eng_dict['nodeID']]['new_version']
+                        elif list_of_fixes[0][eng_dict['nodeID']]['type'] == 'containerd' : 
+                            c_v = list_of_fixes[0][eng_dict['nodeID']]['new_version']
+                        elif list_of_fixes[0][eng_dict['nodeID']]['type'] == 'runc' : 
+                            r_v = list_of_fixes[0][eng_dict['nodeID']]['new_version']
+                        elif list_of_fixes[0][eng_dict['nodeID']]['type'] == 'Kernel' : 
+                            k_v = list_of_fixes[0][eng_dict['nodeID']]['new_version']
+
                         driver.close()
                         session.write_transaction(update_new_v, eng_dict['type'], list_of_fixes[0][eng_dict['nodeID']]['new_version'])
                         new_v_ID = session.read_transaction(get_v_ID, eng_dict['type'], list_of_fixes[0][eng_dict['nodeID']]['new_version'])

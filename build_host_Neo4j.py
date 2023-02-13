@@ -2,21 +2,11 @@ from Neo4j_connection import connect_to_neo4j
 
 
 def get_kernel_v():
-    """ This function returns the kernel version currently in use.
-    The Linux kernel version is returned in the format of <kernel_version>.<major_revision>.
-    For example, version 4.9.
-    
-    Return
-    ----------
-    Linux kernel version as string.
-    """
-
     driver = connect_to_neo4j()
     with driver.session() as session:
         result = session.read_transaction(query_kernel_v)
     driver.close()
     return result
-
 
 def query_kernel_v(tx) :
     return tx.run("MATCH (d:Host)-[:HAS_PROPERTY]->(kv:KernelVersion) RETURN kv.name").single().value()

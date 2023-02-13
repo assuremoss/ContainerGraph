@@ -104,6 +104,9 @@ def build_DockerHost(host):
         ### HARDCODED LOWEST KERNEL VERSION ###
         
         host.kernel_v = '3.16.0'
+        docker_v = '1.5.0'
+        containerd_v = '0.0.1'
+        runc_v = '0.0.1'
         
         #######################################
         
