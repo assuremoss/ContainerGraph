@@ -24,7 +24,7 @@ c_v = ''
 global r_v
 r_v = ''
 global k_v
-k_v = get_kernel_v()
+k_v = ''
 
 
 def get_node(node_id) :
@@ -560,6 +560,8 @@ def reached_CVE(cve_name, path) :
                 c_v = eng_dict['name']
             elif not r_v and eng == 'runc': 
                 r_v = eng_dict['name']
+            elif not k_v and eng == 'Kernel': 
+                k_v = eng_dict['name']
 
             # Check if vulnerable version is equal to the currently used version (e.g., after updates).
             # To avoid fixing multiple vulnerabilities for the same (updated) version.
@@ -663,11 +665,11 @@ def updateTree(leaf_id, path) :
 
         current_node_id = PQ.pop(0)
 
-        if tree_nodes[current_node_id]['type'] == 'CVE' : 
-            continue
-
         # If current node does not belong to hyperpath, skip iteration
         if current_node_id not in path : 
+            continue
+
+        if tree_nodes[current_node_id]['type'] == 'CVE' : 
             continue
 
         # Update the current node properties

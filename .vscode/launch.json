@@ -13,7 +13,7 @@
                 "NEO4J_USER": "neo4j",
                 "NEO4J_PWS": "password"
             },
-            "args": ["--analyze"]
+            "args": ["--run", "ciao"]
         }
     ]
 }
