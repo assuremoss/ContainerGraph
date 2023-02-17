@@ -20,7 +20,7 @@ To run the ContainerGraph tool, follow the next steps:
 
 1. Clone this repository: `git clone https://github.com/fminna/ContainerGraph.git`
 
-2. Move to the ContainerGraph directory `cd ContainerGraph`, and create a Python virtual environment: `pipenv shell`
+2. Move to the ContainerGraph directory `cd ContainerGraph`, and create a Python virtual environment: `pipenv shell` (or `python3 -m pipenv shell`)
 
 3. Install Python requirements: `pip install -r requirements.txt`
 

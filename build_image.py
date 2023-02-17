@@ -1,5 +1,5 @@
 import os
-from parse_Dockerfile import parse_Dockerfile
+from parse_dockerfile import parse_Dockerfile
 import docker
 import json
 

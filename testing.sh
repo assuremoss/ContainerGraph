@@ -11,7 +11,7 @@ export TESTING_SCALE=($(seq 1 10 100))
 
 # Total number of runs to test the tool
 # For example, we test 10 containers 25 times, retrieving the min, avg, and max execution times.
-export TOTAL_RUNS=25
+export TOTAL_RUNS=2
 
 # Log file to save execution times
 export LOG_FILE=execution_times.log
@@ -19,12 +19,6 @@ export LOG_FILE=execution_times.log
 ###
 
 printf "Starting...\n"
-
-# Neo4J env variables
-export NEO4J_ADDRESS=localhost
-export NEO4J_PORT=7687
-export NEO4J_USER=neo4j
-export NEO4J_PWS=password
 
 # Creating the log file
 touch $LOG_FILE 
@@ -167,9 +161,6 @@ for i in $(seq 1 $TOTAL_RUNS); do
     python main.py --run docker run -it --rm -d --cpus=2 -m 1GB nginx >/dev/null;
     done
     '
-    # python main.py --run docker run -it --rm -d --cpus=2 -m 1GB --user $(id -u):$(id -g) nginx >/dev/null;
-
-    docker ps
 
     # 4. Compute Analyzing Time
     echo " $i Analyzing Time" >> $LOG_FILE

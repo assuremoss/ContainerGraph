@@ -1,10 +1,10 @@
 from build_image import build_image, retrieve_img_id
 from build_container import build_container
-from build_cont_Neo4j import cont_Neo4j_chart
-from build_img_Neo4j import image_Neo4j_chart
-from build_host_Neo4j import get_kernel_v
+from build_cont_neo4j import cont_Neo4j_chart
+from build_img_neo4j import image_Neo4j_chart
+from build_host_neo4j import get_kernel_v
 from remove_cont import data_remove_all, data_remove_cont, remove_container
-from initialize_Neo4J import initialize_Neo4j_db, graph_info
+from initialize_neo4J import initialize_Neo4j_db, graph_info
 from suggest_fix import analyze_all_deployment
 import argparse
 

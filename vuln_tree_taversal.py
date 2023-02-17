@@ -1,10 +1,10 @@
-from Neo4j_connection import connect_to_neo4j
+from neo4j_connection import connect_to_neo4j
 from colorama import Fore, Style
-from build_host_Neo4j import host_exploits
-from build_cont_Neo4j import create_cont_exploit_rel
-from parse_Seccomp import seccomp_parser, analyze_syscalls
-from parse_Apparmor import apparmor_parser
-from build_host_Neo4j import get_kernel_v
+from build_host_neo4j import host_exploits
+from build_cont_neo4j import create_cont_exploit_rel
+from parse_seccomp import seccomp_parser, analyze_syscalls
+from parse_apparmor import apparmor_parser
+from build_host_neo4j import get_kernel_v
 
 
 # TODO

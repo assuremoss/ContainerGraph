@@ -1,8 +1,7 @@
-from string import capwords
-from parse_Apparmor import apparmor_parser
-from parse_Seccomp import seccomp_parser
+from parse_apparmor import apparmor_parser
+from parse_seccomp import seccomp_parser
 from parse_perm_file import get_all_CAPs, get_all_syscalls
-from parse_Seccomp import analyze_syscalls
+from parse_seccomp import analyze_syscalls
 from parse_perm_file import parse_perm_taxonomy
 
 

@@ -1,4 +1,4 @@
-from Neo4j_connection import connect_to_neo4j
+from neo4j_connection import connect_to_neo4j
 
 
 def cont_Neo4j_chart(cont) :
