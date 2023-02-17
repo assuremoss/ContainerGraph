@@ -6,7 +6,6 @@ certifi==2021.10.8
 charset-normalizer==2.0.12; python_version >= '3'
 colorama==0.4.4
 docker==5.0.3
-dockerfile-parse==1.2.0
 idna==3.3; python_version >= '3'
 interchange==2021.0.4
 lxml==4.8.0

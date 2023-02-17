@@ -73,7 +73,7 @@ echo "Testing 10 containers (1 priv. + 9 default)"
 
 echo "Cleaning up the database..."
 # 1. Clean-up database and remove all containers
-python main.py --remove all
+# python main.py --remove all
 
 # 2. Initialize the database (configuration + vulnerabilities)
 echo "Initializing the database..."
@@ -123,7 +123,7 @@ echo "Testing 10 mixed containers "
 
 echo "Cleaning up the database..."
 # 1. Clean-up database and remove all containers
-python main.py --remove all
+# python main.py --remove all
 
 # 2. Initialize the database (configuration + vulnerabilities)
 echo "Initializing the database..."

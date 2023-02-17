@@ -1,5 +1,4 @@
 import os
-from parse_dockerfile import parse_Dockerfile
 import docker
 import json
 
@@ -25,31 +24,14 @@ class Image :
     blablabla
     """
 
-    def __init__(self, img_id, name, repo, tag, t_created, img_size, df, sbom):
+    def __init__(self, img_id, name, repo, tag, t_created, img_size, sbom):
         self.img_id = img_id
         self.name = name
         self.repo = repo
         self.tag = tag
         self.t_created = t_created
         self.img_size = img_size
-        self.Dockerfile = df
         self.SBOM = sbom
-
-
-class Dockerfile :
-    """  brief title.
-    
-    Arguments:
-    arg1 - desc
-    arg2 - desc
-
-    Description:
-    blablabla
-    """
-
-    def __init__(self, FROM) :
-        self.FROM = FROM
-
 
 
 def retrieve_img_id(img_id) :
@@ -104,33 +86,6 @@ def print_img_attr(img_id) :
     except docker.errors.APIError :
         print("Error while connecting to the Docker API! Exiting...")
         exit(1)
-
-
-def reconstruct_Dockerfile(img_hst) :
-    """ 
-    Description
-
-    Parameters
-    ---------
-    name: type
-        Description
-
-    Returns
-    -------
-    type:
-        Description
-    """
-
-    # Create a Dockerfile file
-    f = open("Dockerfile", "w+")
-
-    # Iterate over the image commands and save them into the file
-    for cmd in reversed(img_hst) :
-
-        field = cmd.get("CreatedBy")
-        if field != None : f.write(field[18:].lstrip() + "\n")
-    
-    f.close()
 
 
 def generate_sbom(image_id) :
@@ -204,13 +159,6 @@ def build_image(img_id) :
         # Image size
         img_size = str(img.attrs['Size'])[:3] + 'MB'
 
-        # Reconstruct the Dockerfile 
-        reconstruct_Dockerfile(img.history())
-        df = parse_Dockerfile(img_id, ".")
-
-        # df.print_df_instruction('ENV')
-        # df.print_df_instruction('CMD')
-
         # For now, remove the Dockerfile
         # Alternatively, we can save all Dockerfiles in a folder
         os.remove("Dockerfile")
@@ -219,7 +167,7 @@ def build_image(img_id) :
         # The SBOM is saved as a list of software packages 
         sbom = generate_sbom(img_id)
 
-        img = Image(img_id, name, repo, tag, t_created, img_size, df, sbom)
+        img = Image(img_id, name, repo, tag, t_created, img_size, sbom)
         return img
 
     # Raise an exception if the image doesn't exist
