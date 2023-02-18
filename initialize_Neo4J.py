@@ -84,17 +84,20 @@ def init_vuln() :
     # Initialize Container Escape vulnerabilities
     queries = initialize_escape_cves()
     for query in queries :
+
+        print('Adding ContainerEscape ...')
         vuln_Neo4j(query)
+
     print('Added Container Escape vulnerabilities!\n')
 
     # Initialize Container Engine vulnerabilities
     queries = initialize_engine_cves()
     for query in queries :
 
-        # # Print the CVE we are currently adding into Neo4J
-        # cve_pattern = r'CVE-\d{4}-\d{4,7}'
-        # cve = re.findall(cve_pattern, query)[0]
-        # print('Adding ' + cve + ' ...')
+        # Print the CVE we are currently adding into Neo4J
+        cve_pattern = r'CVE-\d{4}-\d{4,7}'
+        cve = re.findall(cve_pattern, query)[0]
+        print('Adding ' + cve + ' ...')
 
         vuln_Neo4j(query)
 
@@ -104,10 +107,10 @@ def init_vuln() :
     queries = initialize_kernel_cves()
     for query in queries :
         
-        # # Print the CVE we are currently adding into Neo4J
-        # cve_pattern = r'CVE-\d{4}-\d{4,7}'
-        # cve = re.findall(cve_pattern, query)[0]
-        # print('Adding ' + cve + ' ...')
+        # Print the CVE we are currently adding into Neo4J
+        cve_pattern = r'CVE-\d{4}-\d{4,7}'
+        cve = re.findall(cve_pattern, query)[0]
+        print('Adding ' + cve + ' ...')
 
         vuln_Neo4j(query)
 

@@ -4,7 +4,7 @@ from build_cont_neo4j import cont_Neo4j_chart
 from build_img_neo4j import image_Neo4j_chart
 from build_host_neo4j import get_kernel_v
 from remove_cont import data_remove_all, data_remove_cont, remove_container
-from initialize_neo4J import initialize_Neo4j_db, graph_info
+from initialize_neo4j import initialize_Neo4j_db, graph_info
 from suggest_fix import analyze_all_deployment
 import argparse
 

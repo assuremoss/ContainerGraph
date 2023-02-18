@@ -100,10 +100,10 @@ def initialize_escape_cves() :
     MATCH (a:AND_NODE {name: 'AND_NODE', key: 'ContainerEscape3'})
     MERGE (cc)-[:AND]->(a)
     UNION
-    MERGE (cc:ContainerConfig {name: 'PidNamespace', type: 'host', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})
+    CREATE (cc:ContainerConfig {name: 'PidNamespace', type: 'host', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})
     WITH cc
     MATCH (a:AND_NODE {name: 'AND_NODE', key: 'ContainerEscape3'})
-    MERGE (cc)-[:AND]->(a)
+    MERGE (cc)-[:AND]->(a);
     """
     query = query.strip().replace('\n', '')
     list_of_queries.append(query)
@@ -328,7 +328,7 @@ def initialize_engine_cves() :
     MATCH (p:Permissions:Privileged {name: 'Privileged'}) 
     MERGE (p)-[:OR]->(bb) 
     UNION
-    MERGE (cc:ContainerConfig {name: 'NetNamespace', type: 'host', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})
+    CREATE (cc:ContainerConfig {name: 'NetNamespace', type: 'host', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})
     WITH cc
     MATCH (bb:OR_NODE {name: 'OR_NODE2', key: 'CVE-2020-15257'})
     MERGE (cc)-[:OR]->(bb)
@@ -786,7 +786,7 @@ def initialize_kernel_cves() :
     MATCH (s:SystemCall {name: 'ptrace'})
     MERGE (s)-[:AND]->(aa)
     UNION
-    MERGE (cc:ContainerConfig {name: 'MntNamespace', type: 'host', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})
+    CREATE (cc:ContainerConfig {name: 'MntNamespace', type: 'host', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})
     WITH cc
     MATCH (aa:AND_NODE {name: 'AND_NODE2', key: 'CVE-2016-5195'})
     MERGE (cc)-[:AND]->(aa)

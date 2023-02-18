@@ -11,7 +11,7 @@ export TESTING_SCALE=($(seq 1 10 100))
 
 # Total number of runs to test the tool
 # For example, we test 10 containers 25 times, retrieving the min, avg, and max execution times.
-export TOTAL_RUNS=2
+export TOTAL_RUNS=25
 
 # Log file to save execution times
 export LOG_FILE=execution_times.log
@@ -40,7 +40,7 @@ python main.py --remove all
 
 # 2. Initialize the database (configuration + vulnerabilities)
 echo "Initializing the database..."
-python main.py --run ciao >/dev/null
+python main.py --run ciao 
 
 echo "Execution Times for 1 privileged Docker container" >> $LOG_FILE
 echo "" >> $LOG_FILE
@@ -73,7 +73,7 @@ echo "Testing 10 containers (1 priv. + 9 default)"
 
 echo "Cleaning up the database..."
 # 1. Clean-up database and remove all containers
-# python main.py --remove all
+python main.py --remove all
 
 # 2. Initialize the database (configuration + vulnerabilities)
 echo "Initializing the database..."
@@ -123,7 +123,7 @@ echo "Testing 10 mixed containers "
 
 echo "Cleaning up the database..."
 # 1. Clean-up database and remove all containers
-# python main.py --remove all
+python main.py --remove all
 
 # 2. Initialize the database (configuration + vulnerabilities)
 echo "Initializing the database..."
@@ -137,9 +137,6 @@ echo "Computing Loading and Analyzing times for 10 containers..."
 # Loading the Nginx AppArmor profile
 apparmor_parser -r -W ./files/Apparmor/docker-nginx
 
-# Create an user to run the container as non-root
-
-
 for i in $(seq 1 $TOTAL_RUNS); do 
 
     # 1. Container mixed 1 uses 3 of the most common CAPs that we found on GitHub and StackOverflow
@@ -148,7 +145,7 @@ for i in $(seq 1 $TOTAL_RUNS); do
         # https://blog.trailofbits.com/2019/07/19/understanding-docker-container-escapes/
     # 4. Container mixed 4 uses the AppAmor Nginx profile available in the official Docker documentation
         # https://docs.docker.com/engine/security/apparmor/
-    # 5. Container mixed 5 uses 3 common recommendations suggested by the Docker CIS Benchmark (i.e., limited cpus, memory, and not-root user)
+    # 5. Container mixed 5 uses 3 common recommendations suggested by the Docker CIS Benchmark (i.e., limited cpus and memory)
 
     # 3. Computing Loading Time
     echo " $i Loading Time" >> $LOG_FILE
@@ -161,6 +158,8 @@ for i in $(seq 1 $TOTAL_RUNS); do
     python main.py --run docker run -it --rm -d --cpus=2 -m 1GB nginx >/dev/null;
     done
     '
+    
+    docker ps
 
     # 4. Compute Analyzing Time
     echo " $i Analyzing Time" >> $LOG_FILE
@@ -177,19 +176,17 @@ echo "" >> $LOG_FILE
 
 ##################################################################################
 
-# Run Neo4J container
+##################################################################################
+# TESTING_SCALE = 100
+
+# echo "Testing 100 containers (10 priv. + 90 default)"
+python main.py --remove all
+
 
 ##################################################################################
 # TESTING_SCALE = 100
 
-echo "Testing 100 containers (10 priv. + 90 default)"
-
-
-
-##################################################################################
-# TESTING_SCALE = 100
-
-echo "Testing 100 mixed containers "
+# echo "Testing 100 mixed containers "
 
 ##################################################################################
 

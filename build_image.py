@@ -159,10 +159,6 @@ def build_image(img_id) :
         # Image size
         img_size = str(img.attrs['Size'])[:3] + 'MB'
 
-        # For now, remove the Dockerfile
-        # Alternatively, we can save all Dockerfiles in a folder
-        os.remove("Dockerfile")
-
         # Build a SBOM of the image
         # The SBOM is saved as a list of software packages 
         sbom = generate_sbom(img_id)

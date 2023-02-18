@@ -35,7 +35,12 @@ export NEO4J_PWS=password
 
 [How to make env variables permanent](https://www.cherryservers.com/blog/how-to-set-list-and-manage-linux-environment-variables).
 
-5. Run the Neo4J database as a Docker container:
+5. Create the Docker volumes to persiste the data if the container is stopped or rebooted, and run the Neo4J Docker container:
+
+```bash
+docker volume create --name cdata
+docker volume create --name cplugins
+```
 
 ```bash
 docker run \
@@ -43,17 +48,16 @@ docker run \
     --restart always \
     --publish=7474:7474 --publish=7687:7687 \
     --detach \
-    --env NEO4J_dbms_default__database=containergraph \
     --env NEO4J_AUTH=neo4j/password \
-    --env NEO4JLABS_PLUGINS='["graph-data-science"]' \
+    --env NEO4J_PLUGINS='["graph-data-science"]' \
     --env server_default__listen__address="0.0.0.0" \
     --env server_default__advertised__address="0.0.0.0" \
     --env server_bolt_enabled="true" \
     --env server_bolt_listen__address="0.0.0.0:7687" \
-    --env NEO4J_dbms_security.procedures.unrestricted="gds.*" \
-    --env NEO4J_dbms_security.procedures.allowlist="gds.*" \
+    --env NEO4J_dbms_security_procedures_unrestricted=gds.* \
+    --env NEO4J_dbms_security_procedures_allowlist=gds.* \
     --env dbms_memory_heap_max_size=5G \
-    neo4j:5
+    neo4j:5.5
 ```
 
 If instead you use Neo4J Desktop, remember to apply the same options (e.g., install the graph-data-science, set the memory.heap.max.size to 5G, etc.) to the database settings.
