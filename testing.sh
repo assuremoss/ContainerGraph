@@ -147,7 +147,7 @@ for i in $(seq 1 $TOTAL_RUNS); do
         python main.py --run docker run -it --rm -d --cap-add NET_ADMIN --cap-add SYS_PTRACE nginx >/dev/null;
         python main.py --run docker run -it --rm -d --cap-add CAP_IPC_LOCK --cap-add SYS_ADMIN nginx >/dev/null;
         python main.py --run docker run -it --rm -d --security-opt apparmor=unconfined --cap-add SYS_ADMIN nginx >/dev/null;
-        python main.py --run docker run -it --rm -d --security-opt apparmor=docker-nginx --security-opt no-new-privileges nginx >/dev/null;
+        python main.py --run docker run --security-opt apparmor=docker-nginx --security-opt no-new-privileges -d nginx >/dev/null;
         python main.py --run docker run -it --rm -d --cpus=2 -m 1GB nginx >/dev/null;
     done
     '
@@ -259,7 +259,7 @@ for i in $(seq 1 $TOTAL_RUNS); do
             python main.py --run docker run -it --rm -d --cap-add NET_ADMIN --cap-add SYS_PTRACE nginx >/dev/null;
             python main.py --run docker run -it --rm -d --cap-add CAP_IPC_LOCK --cap-add SYS_ADMIN nginx >/dev/null;
             python main.py --run docker run -it --rm -d --security-opt apparmor=unconfined --cap-add SYS_ADMIN nginx >/dev/null;
-            python main.py --run docker run -it --rm -d --security-opt apparmor=docker-nginx --security-opt no-new-privileges nginx >/dev/null;
+            python main.py --run docker run --security-opt apparmor=docker-nginx --security-opt no-new-privileges -d nginx >/dev/null;
             python main.py --run docker run -it --rm -d --cpus=2 -m 1GB nginx >/dev/null;
         done
         '
