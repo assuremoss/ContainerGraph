@@ -171,6 +171,9 @@ def apparmor_parser(profile_name='', uri='') :
     if not uri : 
         uri = './files/Apparmor/docker-default'
 
+    elif uri == 'docker-nginx' : 
+        uri = './files/Apparmor/docker-nginx'
+
     # elif not uri.startswith('/etc/apparmor.d/containers/') : 
     #     uri = '/etc/apparmor.d/containers/' + uri
 

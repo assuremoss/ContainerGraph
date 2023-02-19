@@ -60,7 +60,19 @@ docker run \
     neo4j:5.5
 ```
 
-If instead you use Neo4J Desktop, remember to apply the same options (e.g., install the graph-data-science, set the memory.heap.max.size to 5G, etc.) to the database settings.
+Once the container is up and running, you can run cypher quieres to check that everything is working as expected. For example, you can connect to the Neo4J container with the following command (username:neo4j, password:password):
+
+```bash
+docker exec -it neo4jcontainergraph cypher-shell
+```
+
+Now, you can execute Neo4j quieres, for example:
+
+```bash
+neo4j@neo4j> MATCH (N) RETURN COUNT(N);
+```
+
+**If instead you use Neo4J Desktop, remember to apply the same options (e.g., install the graph-data-science, set the memory.heap.max.size to 5G, etc.) to the database settings.**
 
 6. Finally, we can run the ContainerGraph tool, using the following command: `python main.py --help`
 

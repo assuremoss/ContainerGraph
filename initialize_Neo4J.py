@@ -69,7 +69,12 @@ def vuln_Neo4j(vuln) :
 
 
 def create_vuln(tx, vuln) : 
-    tx.run(vuln)
+    try :
+        tx.run(vuln)
+    
+    except Exception as e:
+        print('Error while creating CVE...')
+        print(e)
 
 
 def create_host_exploits() : 

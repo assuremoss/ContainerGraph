@@ -815,7 +815,7 @@ def initialize_kernel_cves() :
     MATCH (b:OR_NODE {name: 'OR_NODE', key: 'CVE-2016-4557'})
     MERGE (p)-[:OR]->(b)
     UNION
-    MERGE (cc:ContainerConfig {name: 'MntNamespace', type: 'host', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})
+    CREATE (cc:ContainerConfig {name: 'MntNamespace', type: 'host', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})
     WITH cc
     MATCH (a:AND_NODE {name: 'AND_NODE2', key: 'CVE-2016-4557'})
     MERGE (cc)-[:AND]->(a)
@@ -942,7 +942,7 @@ def initialize_kernel_cves() :
     MERGE (b)-[:AND]->(a)
     MERGE (bb)-[:AND]->(a)
     UNION
-    MERGE (cc:ContainerConfig {name: 'MntNamespace', type: 'host', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})
+    CREATE (cc:ContainerConfig {name: 'MntNamespace', type: 'host', tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})
     WITH cc
     MATCH (bb:OR_NODE {name: 'OR_NODE2', key: 'CVE-2016-2384'})
     MERGE (cc)-[:OR]->(bb)

@@ -46,11 +46,11 @@ def create_cconfig_nodes(tx, cont) :
         # Do not add a node for the container name
         if key != 'name' :
             if type(value) == list :
-                tx.run("MERGE (cc:ContainerConfig {name: $key, value: $value, tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})", key=key, value=value)
+                tx.run("CREATE (cc:ContainerConfig {name: $key, value: $value, tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})", key=key, value=value)
 
             else :
                 if key == 'user' and value != 'root' :
-                    query = "MERGE (cc:ContainerConfig {name: $value, type: $type, tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
+                    query = "CREATE (cc:ContainerConfig {name: $value, type: $type, tree: 'leaf', weight: -gds.util.infinity(), todo: 1, needed: [], pred: gds.util.NaN()})"
                     tx.run(query, type=key, value=value)
 
                 # elif key == 'pid_ns' : 

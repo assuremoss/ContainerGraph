@@ -41,10 +41,10 @@ def cont_remove_all() :
     try:
         # remove all running containers but not the Neo4j container
         cmd1 = "docker stop $(docker ps -a | grep -v 'neo4jcontainergraph' | awk 'NR>1 {print $1}')"
-        # cmd2 = "docker rm $(docker ps -a | grep -v 'neo4jcontainergraph' | awk 'NR>1 {print $1}')"
+        cmd2 = "docker rm $(docker ps -a | grep -v 'neo4jcontainergraph' | awk 'NR>1 {print $1}')"
 
         os.system(cmd1)
-        # os.system(cmd2)
+        os.system(cmd2)
 
     # Raise an exception if docker fails
     except FileNotFoundError:
@@ -77,7 +77,6 @@ def data_remove_cont() :
     cont_remove_all()
 
     print("All containers were cleaned up!")
-
 
 
 def remove_cont_Neo4j(cont_id) :
