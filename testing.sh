@@ -130,7 +130,7 @@ echo "" >> $LOG_FILE
 echo "Computing Loading and Analyzing times for 5 containers..."
 
 # Loading the Nginx AppArmor profile
-# sudo apparmor_parser -r -W ./files/Apparmor/docker-nginx
+sudo apparmor_parser -r -W ./files/Apparmor/docker-nginx
 
 for i in $(seq 1 $TOTAL_RUNS); do 
 
