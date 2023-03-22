@@ -12,7 +12,7 @@ def cont_Neo4j_chart(cont) :
     ----------
     object
     """
-   
+
     driver = connect_to_neo4j()
     with driver.session() as session:
 
@@ -21,7 +21,7 @@ def cont_Neo4j_chart(cont) :
 
         if cont.permissions.profile == 'docker-privileged' :
             session.write_transaction(create_perm_relationships, cont) 
-        
+
         else :
             session.write_transaction(create_sec_prof_nodes, cont)
             session.write_transaction(create_prof_relationships, cont) 

@@ -44,39 +44,48 @@ def build_container(options, kernel_v):
     run_args = options[0][2:]
 
     # run the container
-    cont_id, start_t = run_cont(options[0])
+    # cont_id, start_t = run_cont(options[0])
 
-    client = connect_to_Docker()
+    import string
+    import random
+    cont_id = ''.join(random.choices(string.ascii_lowercase +
+                             string.digits, k=12))
 
-    try:
+    # client = connect_to_Docker()
+
+    # try:
+
         # retrieve container object
-        cont = client.containers.get(cont_id)
+        # cont = client.containers.get(cont_id)
 
-        # retrieve container configuration
-        cconfig = build_config(run_args)
+    # retrieve container configuration
+    cconfig = build_config(run_args)
 
-        # retrieve container permissions
-        permissions = build_permissions(cont_id, run_args, kernel_v)
+    # retrieve container permissions
+    permissions = build_permissions(cont_id, run_args, kernel_v)
 
-    ############################
-        print('Allowed CAPs: ' + str(len(permissions.caps)))
-        # print(permissions.caps)
-        print('Allowed syscalls: ' + str(len(permissions.syscalls)) + '\n')
-        # print(permissions.syscalls)
-    ############################
+############################
+    print('Allowed CAPs: ' + str(len(permissions.caps)))
+    # print(permissions.caps)
+    print('Allowed syscalls: ' + str(len(permissions.syscalls)) + '\n')
+    # print(permissions.syscalls)
+############################
 
-        # build container object
-        cont = build_cont_obj(cont, start_t, cconfig, permissions)
-        # cont.print_cont()
-        return cont
-    
-    # Raise an exception if the container doesn't exist
-    except docker.errors.NotFound as error :
-        print(error)
-        exit(1)
-    except docker.errors.APIError as error :
-        print(error)
-        exit(1)
+    img_name = options[0][-1]
+
+    # build container object
+    # cont = build_cont_obj(cont, start_t, cconfig, permissions)
+    cont = build_cont_obj(cont_id, img_name, '0.0', cconfig, permissions)
+    # cont.print_cont()
+    return cont
+
+    # # Raise an exception if the container doesn't exist
+    # except docker.errors.NotFound as error :
+    #     print(error)
+    #     exit(1)
+    # except docker.errors.APIError as error :
+    #     print(error)
+    #     exit(1)
 
 
 def run_cont(command) :
@@ -100,22 +109,24 @@ def run_cont(command) :
         print(error)
         exit(1)
     except docker.errors.NullResource as error :
-        print('Docker error: Resource ID was not provided')
+        print(error)
         exit(1)
     except OSError as error :
         print(error)
         exit(1)
 
 
-def build_cont_obj(cont, start_t, cconfig, permissions) :
+def build_cont_obj(cont_id, img_name, start_t, cconfig, permissions) :
     """
     TODO
     """
 
     # retrieve container image
-    img = cont.image
-    img_id = img.short_id[7:]
+    # img = cont.image
+    # img_id = img.short_id[7:]
 
-    cont = Container(cont.short_id, img_id, cont.name, start_t, cont.status, cconfig, permissions)
+    # cont = Container(cont.short_id, img_id, cont.name, start_t, cont.status, cconfig, permissions)
+
+    cont = Container(cont_id, img_name, '', start_t, 'not_running', cconfig, permissions)
+
     return cont
-

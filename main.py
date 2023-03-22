@@ -49,7 +49,7 @@ def run_option(options) :
 
     # Eventually add the container image
     add_option(cont.img_id)
-    
+
     cont_Neo4j_chart(cont) 
 
     # Print graph info
@@ -71,7 +71,7 @@ def remove_option(option) :
     # Remove everything
     if option[0] == 'all' : 
         data_remove_all()
-    
+
     # Remove all containers
     elif option[0] == 'containers' :
         data_remove_cont()
