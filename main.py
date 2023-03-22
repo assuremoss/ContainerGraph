@@ -48,7 +48,7 @@ def run_option(options) :
     cont = build_cont(options, kernel_v)
 
     # Eventually add the container image
-    add_option(cont.img_id)
+    # add_option(cont.img_id)
 
     cont_Neo4j_chart(cont) 
 

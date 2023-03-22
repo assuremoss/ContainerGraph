@@ -160,9 +160,9 @@ def initialize_pq() :
     # Get all container IDs children of DockerDeployment
     cont_IDs = get_cont_IDs()
 
-    # Check that each container is running otherwise, remove container
-    for cont_id in cont_IDs : 
-        check_container(cont_id)
+    # # Check that each container is running otherwise, remove container
+    # for cont_id in cont_IDs : 
+    #     check_container(cont_id)
 
     return get_leaves()
 
