@@ -8,7 +8,7 @@ Bash script to execute the ContainerGraph tool on several ($TESTING_SCALE) conta
 
 # Total number of runs to test the tool
 # For example, we test 10 containers 25 times, retrieving the min, avg, and max execution times.
-export TOTAL_RUNS=4
+export TOTAL_RUNS=5
 
 # Log file to save execution times
 export LOG_FILE=execution_times.log
@@ -544,7 +544,7 @@ echo "Computing Loading and Analyzing times for 500 containers..."
 
 for i in $(seq 1 $TOTAL_RUNS); do 
     python main.py --run ciao >/dev/null
-    for i in $(seq 1 5); do 
+    for i in $(seq 1 $TOTAL_RUNS); do 
 
         echo " > Iteration $i"
 
