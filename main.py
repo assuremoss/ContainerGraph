@@ -1,12 +1,12 @@
+import argparse
 from build_image import build_image, retrieve_img_id
-from build_container import build_container
+from build_container import build_cont
 from build_cont_neo4j import cont_Neo4j_chart
 from build_img_neo4j import image_Neo4j_chart
 from build_host_neo4j import get_kernel_v
 from remove_cont import data_remove_all, data_remove_cont, remove_container
 from initialize_neo4j import initialize_Neo4j_db, graph_info
 from suggest_fix import analyze_all_deployment
-import argparse
 
 
 parser = argparse.ArgumentParser(description="ContainerGraph - A tool for automatic detection and mitigation of vulnerabilities and misconfigurations for Docker containers.")
@@ -45,7 +45,7 @@ def run_option(options) :
     kernel_v = get_kernel_v()
 
     # Build the Container 
-    cont = build_container(options, kernel_v)
+    cont = build_cont(options, kernel_v)
 
     # Eventually add the container image
     add_option(cont.img_id)

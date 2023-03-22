@@ -35,7 +35,7 @@ def connect_to_Docker() :
     return docker.from_env()
 
 
-def build_container(options, kernel_v):
+def build_cont(options, kernel_v):
     """
     TODO
     """
